@@ -24,6 +24,19 @@
 
 
 //wach
+
+
+
+
+
+
+
+
+
+
+
+
+
 void Location::FillValid()
 {
      Vstrvalid.push_back("listen");
