@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/05 18:58:29 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/05 19:02:57 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 
 class Post : public Method
 {
@@ -41,6 +42,7 @@ class Post : public Method
 		void mimeType();
     private:
         /* data */
+        
 		int crfile;
 		int MethodType;
         int special;
@@ -53,6 +55,7 @@ class Post : public Method
         int find_sep;
         int file_hang;
         int is_first;
+        int here_is;
         std::string buffer;
         std::string buff_chunk;
 		std::map<std::string, std::string> mime;
@@ -66,8 +69,10 @@ class Post : public Method
         Post(const Post& post);
         Post& operator=(const Post& post);
         ~Post();
+
+        std::string creat_file_name();
         
-        int process(std::string body, size_t body_size);
+        int process(std::string body, size_t body_size, int event);
 		void openFile(std::string body, size_t body_size);
 		void normalFile(std::string body, size_t body_size);
         
