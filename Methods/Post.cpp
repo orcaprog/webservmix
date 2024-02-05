@@ -570,11 +570,11 @@ void    Post::ft_boundary(std::string& body)
     }
 }
 
-int Post::process(std::string body, size_t body_size, int event)
+int Post::process(std::string body, size_t body_size)
 {
     // std::cout << "IN post \n";
 	// std::cout << MethodType << " << is "<<std::endl;
-	// std::cout << "Body is \n" <<body<<"."<<std::endl;
+	std::cout << "Body is \n" <<body<<"."<<std::endl;
     // std::cout  << serv.rootUri<<std::endl;
     // std::cout << serv.UriLocation.upload<<std::endl;
     // std::cout << serv.root[0]<<std::endl;
