@@ -54,6 +54,7 @@ Post::~Post()
 
 std::string Post::creat_file_name()
 {
+    
     std::time_t currentTime = std::time(NULL);
     // Convert time to struct tm in local time
     std::tm* timeInfo = std::localtime(&currentTime);
@@ -62,7 +63,7 @@ std::string Post::creat_file_name()
     std::strftime(time_B, sizeof(time_B), "%Y-%m-%d_%H-%M-%S", timeInfo);
     // Get the resulting string
     std::string currentTimeString = time_B;
-    return time_B;
+    return  serv.rootUri + "/"+ currentTimeString;
 }
 void Post::mimeType()
 {

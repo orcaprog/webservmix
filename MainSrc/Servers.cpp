@@ -192,6 +192,7 @@ void Servers::SetHost()
     // parceIp(arg);
     host.push_back(arg);
 }
+
 void Servers::SetRoot()
 {
     int i;
@@ -554,15 +555,29 @@ void Servers::SetDefaultError()
     error_page["404"] =  "../error_pages/404.html";
     error_page["405"] =  "../error_pages/405.html";
     error_page["406"] =  "../error_pages/406.html";
+    error_page["407"] =  "../error_pages/407.html";
+    error_page["408"] =  "../error_pages/408.html";
+    error_page["409"] =  "../error_pages/409.html";
+    error_page["410"] =  "../error_pages/410.html";
+    error_page["411"] =  "../error_pages/411.html";
+    error_page["412"] =  "../error_pages/412.html";
+    error_page["413"] =  "../error_pages/413.html";
+    error_page["414"] =  "../error_pages/414.html";
+    error_page["415"] =  "../error_pages/415.html";
+    error_page["416"] =  "../error_pages/416.html";
+    error_page["417"] =  "../error_pages/417.html";
     
 }
 int Servers::searchPathLocation(string &uri)
 {
     string pathL;
+    // size_t pos;
     for (size_t i = 0; i < locations.size(); i++)
     {
-        pathL =  locations[i].path[0] ;
-        if (!strncmp(uri.c_str(),pathL.c_str(),pathL.length())  && pathL != "/")
+        pathL =  locations[i].path[0];
+        if (pathL[pathL.size() - 1] != '/')
+            pathL += "/";
+        if (strncmp(uri.c_str(),pathL.c_str(),pathL.length()) == 0  && pathL != "/")
         {
             return i;
         }
