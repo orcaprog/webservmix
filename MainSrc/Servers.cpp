@@ -571,7 +571,6 @@ void Servers::SetDefaultError()
 int Servers::searchPathLocation(string &uri)
 {
     string pathL;
-    // size_t pos;
     for (size_t i = 0; i < locations.size(); i++)
     {
         pathL =  locations[i].path[0];
