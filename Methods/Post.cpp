@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/07 18:15:37 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/07 18:41:29 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,9 +165,10 @@ void Post::openFile(std::string body, size_t body_size)
 {
 	std::string mimeVal;
 
-	if (headers.find("Transfer-Encoding") != headers.end())
+	if (headers.find("Transfer-Encoding") != headers.end() && headers.find("Content-Type") != headers.end())
     {
-        if ((headers.find("Transfer-Encoding"))->second == "chunked")
+        std::string tmp_C = (headers.find("Content-Type"))->second;
+        if ((headers.find("Transfer-Encoding"))->second == "chunked"&& tmp_C.find("boundary=") == std::string::npos)
 		{
 			MethodType = 1;
 		}
@@ -259,6 +260,7 @@ void Post::openFile(std::string body, size_t body_size)
 
 void Post::normalFile(std::string body, size_t body_size)
 {
+    std::cout << "normal file"<<std::endl;
     (void)body_size;
 	outFile.write(body.c_str(), body.size());
     total_Body += body.size();
@@ -342,6 +344,7 @@ void Post::chunk_write(std::string body, size_t body_size)
 
 void Post::chunked_file(std::string body, size_t body_size)
 {
+    std::cout << "in chunked\n" <<std::endl;
     std::stringstream ss;
     if (left_over)
     {
@@ -387,6 +390,8 @@ void Post::chunked_file(std::string body, size_t body_size)
 
 void    Post::ft_boundary(std::string& body)
 {
+        std::cout << "in boundary norm"<<std::endl;
+
     size_t pos;
     size_t pos1;
 
@@ -620,6 +625,7 @@ void    Post::ft_boundary(std::string& body)
 
 void Post::ft_boundary_cgi(std::string &body)
 {
+    std::cout << "in boundary cgi"<<std::endl;
     size_t pos;
     size_t pos1;
 
