@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/05 19:02:57 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/06 16:02:58 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,8 @@ class Post : public Method
         void chunk_write(std::string body, size_t body_size);
 
         void    ft_boundary(std::string& body);
+
+        void    ft_boundary_cgi(std::string& body);
 
 };
 

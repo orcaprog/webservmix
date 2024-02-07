@@ -152,9 +152,15 @@ int Request::parce_req(const string &req)
 }
 
 void    Request::process_req(const string &req, size_t read_len){
+    std::cout << "req\n" << req<<std::endl;
     parce_req(req);
+    
     if (body_state && method)
+    {
+        std::cout << "Body is "<<body<<std::endl;
         method->process(body, read_len);
+
+    }
 }
 
 

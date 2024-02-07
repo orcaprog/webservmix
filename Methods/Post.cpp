@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/05 19:03:06 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/07 14:41:05 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ Post::Post()
     sep = "";
 	sep_found = "";
     file_hang = 0;
+    here_is = 0;
     mimeType();
 }
 
@@ -169,7 +170,7 @@ void Post::openFile(std::string body, size_t body_size)
 			MethodType = 1;
 		}
     }
-    else if (!MethodType && headers.find("Content-Type") != headers.end())
+    else if (!MethodType && headers.find("Content-Type") != headers.end() && !serv.Is_cgi)
     {
         std::string tmp_C = (headers.find("Content-Type"))->second;
 		if (tmp_C.find("boundary=") != std::string::npos)
@@ -182,6 +183,23 @@ void Post::openFile(std::string body, size_t body_size)
 			buffer = "";
 			crfile = 1;
 			ft_boundary(body);
+			return ;
+		}
+    }
+    else if (!MethodType && headers.find("Content-Type") != headers.end() && serv.Is_cgi)
+    {
+        std::string tmp_C = (headers.find("Content-Type"))->second;
+		if (tmp_C.find("boundary=") != std::string::npos)
+		{
+			buffer = tmp_C.substr(tmp_C.find("boundary=") + strlen("boundary=") , tmp_C.size() - tmp_C.find("boundary=") - strlen("boundary="));
+			MethodType = 4;
+			sep = "--";
+			sep.append(buffer,0, buffer.size());
+            sep_end = sep + "--";
+			buffer = "";
+			crfile = 1;
+			// ft_boundary(body);
+            // ft_boundary_cgi(body);
 			return ;
 		}
     }
@@ -440,12 +458,12 @@ void    Post::ft_boundary(std::string& body)
 		{
             
 			sep_found = body.substr(pos, sep.size());
-			if (sep != sep_found)
+			if (sep != sep_found)////removeeeeeeeeeeeeeeeeee
 			{
                 std::cout <<"sep here is->\n"<< sep <<"\nsep found is \n" << sep_found<<std::endl;
 				std::cout << "4arib\n";
 				exit(1);
-			}
+			}//here
             if (out.is_open())
             {
                 if (pos > 2)
@@ -460,17 +478,18 @@ void    Post::ft_boundary(std::string& body)
                 else
                     out.close();
             }
-			if (body.find("filename") != std::string::npos)
+			if (body.find("name") != std::string::npos)
 			{
-				pos = body.find("filename");
-                if (body.find("filename", pos + 1) != std::string::npos)
-                    pos1 = body.find(";", pos);         
-                else
-				    pos1 = body.find("\r\n", pos);
+                std::string mimeVal;
+				pos = body.find("name");
+                if (body.find("\"", pos + strlen("name=") + 1) != std::string::npos)
+                    pos1 = body.find("\"", pos + strlen("name=") + 1);
 				if (pos1 <= 1)
 					pos1 = 2;
-				std::string file = body.substr(pos + strlen("filename=") + 1, pos1 - ( strlen("filename=") + 1) - pos - 1);
-				if (!file[0])
+                std::cout << "pos is " << pos << " pos1 is " << pos1 << "the len is " <<pos1 - ( strlen("name=") + 1) - pos <<std::endl;
+				std::string file = body.substr(pos + strlen("name=") + 1, pos1 - ( strlen("name=") + 1) - pos);
+				std::cout << "THE file is "<< file<<"|"<<std::endl;
+                if (!file[0])
                 {
                     std::string time_B = creat_file_name();
                     file = time_B;
@@ -478,6 +497,23 @@ void    Post::ft_boundary(std::string& body)
                     file = time_B + dot;
                     file = file + "txt";
                 }
+                else if (body.find("Content-Type") != std::string::npos)
+                {
+                    std::string ext;
+                    pos = body.find("Content-Type");
+                    pos1 = body.find("\r\n", pos);
+                    ext = body.substr(pos + strlen("Content-Type: "), pos1);
+                    if (mime.find( ext) != mime.end())
+	            	{
+	            		mimeVal = mime.find(ext)->second;
+	            	}
+	            	else
+	            	{
+	            		mimeVal = "txt";
+	            	}
+                }
+                file = file + "." + mimeVal;
+                std::cout << "THE new file is " << file<< "|."<<std::endl; 
                 if (access(file.c_str(),F_OK ) == 0)
                 {
                     //in case of duplcate ********************************************
@@ -513,6 +549,7 @@ void    Post::ft_boundary(std::string& body)
 					std::cout << "FILE opened\n" << file<<std::endl;
 				else
                 {
+                    std::cout << file<<std::endl;
                     std::cout << "File Problem\n";
 					exit(4);
                     
@@ -525,10 +562,8 @@ void    Post::ft_boundary(std::string& body)
             int end_sep;
             if (body.find(sep, pos) != std::string::npos)
             {
-                std::cout << "case one \n";
                 pos1 = body.find(sep, pos);
                 end_sep = pos1 - (pos + 4 + 2);
-                exit(10);
             }
             else 
                 end_sep = body.size() - (pos + 4 );
@@ -573,13 +608,6 @@ void    Post::ft_boundary(std::string& body)
 
 int Post::process(std::string body, size_t body_size)
 {
-    // std::cout << "IN post \n";
-	// std::cout << MethodType << " << is "<<std::endl;
-	std::cout << "Body is \n" <<body<<"."<<std::endl;
-    // std::cout  << serv.rootUri<<std::endl;
-    // std::cout << serv.UriLocation.upload<<std::endl;
-    // std::cout << serv.root[0]<<std::endl;
-    // (void)event;
     if (crfile == -2)
         return 1;
     if (body_size == 2 && MethodType == 1)
@@ -594,11 +622,13 @@ int Post::process(std::string body, size_t body_size)
 			normalFile(body, body_size);
 		else if (MethodType == 1)
 			chunked_file(body, body_size);
-		else
+		else if (MethodType == 3)
 			ft_boundary(body);
+        // else
+        //     ft_boundary_cgi(body);
     }
 	else if (!crfile)
 		openFile(body, body_size);
-	std::cout << MethodType <<" IN post end \n";
+    exit(10);
     return 1;
 }
