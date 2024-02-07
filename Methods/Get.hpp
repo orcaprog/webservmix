@@ -25,8 +25,8 @@ string content_type;
 
 
 string extension;
-char **cmds;
-char **env;
+// char **cmds;
+// char **env;
 Cgi *cgi;
 
 void set_content_type(const string& file_name);

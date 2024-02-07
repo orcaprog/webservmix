@@ -114,7 +114,7 @@ void Cgi::set_cmd(const string& fullUri_path){
 }
 
 Cgi::~Cgi(){
-    for (int i = 0; cmds[i]; i++)
+    for (int i = 0; cmds && cmds[i]; i++)
 	    delete [] cmds[i];
     delete [] cmds;
 
