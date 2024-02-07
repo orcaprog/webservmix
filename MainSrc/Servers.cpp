@@ -192,7 +192,6 @@ void Servers::SetHost()
     // parceIp(arg);
     host.push_back(arg);
 }
-
 void Servers::SetRoot()
 {
     int i;
@@ -504,7 +503,7 @@ void Servers::SetIndex_Of(string path)
     std::vector<std::string> _split;
     std::vector<string>::iterator iterfind;
 
-
+    
     struct dirent *entry;
     DIR *dir = opendir(path.c_str());
     if (dir == NULL) {
@@ -525,21 +524,19 @@ void Servers::SetIndex_Of(string path)
         index_Of << "    <hr>" << endl;
         index_Of << "    <pre>" << endl;
 
-
         while ((entry = readdir(dir)) != NULL) 
         {
             if (std::strcmp(entry->d_name  , "."))
             {
                 if (entry->d_type == DT_DIR)
                 {
-                    index_Of << "    <a href=\""+ string(entry->d_name) +"/\">"+ string(entry->d_name) +" /</a>" <<endl;
+                    index_Of << "    <a href=\""+ string(entry->d_name) +"/\">"+ string(entry->d_name) +"/</a>" << endl;
                 }
                 else
-                {
-                    index_Of << "    <a href=\""+ string(entry->d_name) +"\">"+ string(entry->d_name) +"</a>" <<endl;
-
-                }
+                    index_Of << "    <a href=\""+ string(entry->d_name) +"\">"+ string(entry->d_name) +"</a>" << endl;
+                
             }
+            
         }
         index_Of << "    </pre>" << endl;
         index_Of << "    <hr>" << endl;
@@ -550,24 +547,13 @@ void Servers::SetIndex_Of(string path)
 }
 void Servers::SetDefaultError()
 {
-    error_page["400"] =  "error_pages/400.html";
-    error_page["401"] =  "error_pages/401.html";
-    error_page["402"] =  "error_pages/402.html";
-    error_page["403"] =  "error_pages/403.html";
-    error_page["404"] =  "error_pages/404.html";
-    error_page["405"] =  "error_pages/405.html";
-    error_page["406"] =  "error_pages/406.html";
-    error_page["407"] =  "error_pages/407.html";
-    error_page["408"] =  "error_pages/408.html";
-    error_page["409"] =  "error_pages/409.html";
-    error_page["410"] =  "error_pages/410.html";
-    error_page["411"] =  "error_pages/411.html";
-    error_page["412"] =  "error_pages/412.html";
-    error_page["413"] =  "error_pages/413.html";
-    error_page["414"] =  "error_pages/414.html";
-    error_page["415"] =  "error_pages/415.html";
-    error_page["416"] =  "error_pages/416.html";
-    error_page["417"] =  "error_pages/417.html";
+    error_page["400"] =  "../error_pages/400.html";
+    error_page["401"] =  "../error_pages/401.html";
+    error_page["402"] =  "../error_pages/402.html";
+    error_page["403"] =  "../error_pages/403.html";
+    error_page["404"] =  "../error_pages/404.html";
+    error_page["405"] =  "../error_pages/405.html";
+    error_page["406"] =  "../error_pages/406.html";
     
 }
 int Servers::searchPathLocation(string &uri)
@@ -575,10 +561,8 @@ int Servers::searchPathLocation(string &uri)
     string pathL;
     for (size_t i = 0; i < locations.size(); i++)
     {
-        pathL =  locations[i].path[0];
-        if (pathL[pathL.size() - 1] != '/')
-            pathL += "/";
-        if (strncmp(uri.c_str(),pathL.c_str(),pathL.length()) == 0  && pathL != "/")
+        pathL =  locations[i].path[0] ;
+        if (!strncmp(uri.c_str(),pathL.c_str(),pathL.length())  && pathL != "/")
         {
             return i;
         }
@@ -591,34 +575,24 @@ int  Servers::fillFromLocation(int &in, string &uri,string & method)
 {
         rootUri = uri;
         rootUri.replace(0, locations[in].path[0].length(), locations[in].root[0]);
-        string & hold = rootUri;
         if (pathIsFile(rootUri) == 3 && method == "GET")
         {
-            cout<<rootUri<<endl;
-            if (rootUri[rootUri.size() - 1] != '/')
+            rootUri += ("/" + locations[in].index[0]);
+            cout<<"from location :\n\n"<<rootUri<<endl<<endl;
+            if (!pathExists(rootUri))
             {
-                rootUri = error_page["409"];
-                status = "409";
-            }
-            else
-            {
-                rootUri += locations[in].index[0];
-                cout<<"from location :\n\n"<<rootUri<<endl<<endl;
-                if (!pathExists(rootUri))
+                if (locations[in].permession & AUTOINDEX)
                 {
-                    if (locations[in].permession & AUTOINDEX)
-                    {
-                        SetIndex_Of(hold);
-                        rootUri = "index_of.html";
-                    }
-                    else
-                    {
-                        rootUri = error_page["404"];
-                        status = "404";
-                    }
-                    return 0;
-                }        
-            }
+                    SetIndex_Of(root[0]);
+                    rootUri = "index_of.html";
+                }
+                else
+                {
+                    rootUri = error_page["404"];
+                    status = "404";
+                }
+                return 0;
+            }        
         }
         else if (!pathExists(rootUri))
         {
@@ -633,32 +607,24 @@ void Servers::SetUriRoot(int i,string & uri)
     rootUri = locations[i].root[0] + uri;
     if (pathIsFile(rootUri) == 3)
     {
-        if (rootUri[rootUri.size() - 1] != '/')
+        rootUri += ("/" + locations[i].index[0]);
+        if (!pathExists(rootUri))
         {
-            rootUri = error_page["409"];
-            status = "409";
-        }
-        else
-        {
-            rootUri +=locations[i].index[0];
-            if (!pathExists(rootUri))
+            if (locations[i].permession & AUTOINDEX)
             {
-                if (locations[i].permession & AUTOINDEX)
-                {
-                    SetIndex_Of(locations[i].root[0] +"/"+uri);
-                    rootUri = "index_of.html";
-                }
-                else
-                {
-                    rootUri = error_page["404"];
-                    status = "404";
-                }
+                SetIndex_Of(root[0]);
+                rootUri = "index_of.html";
             }
-        }
+            else
+            {
+                rootUri = error_page["404"];
+                status = "404";
+            }
+        }    
     }
 }
 
-void Servers::FillQuerys(string & uri)
+void Servers::FillData(string uri,string mehtod)
 {
     size_t pos;
     cout<<"URI :"<<uri<<endl;
@@ -668,20 +634,11 @@ void Servers::FillQuerys(string & uri)
     {
         len = uri.length() - pos;
         char q[len + 1];
-        if(uri[pos + 1])
-        {
-            uri.copy(q,len - 1,pos + 1 );
-            q[len - 1] = '\0';
-            querys = q;
-        }
-        else
-            querys = "";    
+        uri.copy(q,len,pos);
+        q[len] = '\0';
+        querys = q;
         uri.erase(pos,len);
     }
-}
-void Servers::FillData(string uri,string mehtod)
-{
-    FillQuerys(uri);
     int in = searchPathLocation(uri);
     Is_cgi = false;
     int def = 0;
