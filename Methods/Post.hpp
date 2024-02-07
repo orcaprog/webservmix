@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/06 16:02:58 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/07 17:28:18 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,7 @@ class Post : public Method
         int file_hang;
         int is_first;
         int here_is;
+        int first_time;
         std::string buffer;
         std::string buff_chunk;
 		std::map<std::string, std::string> mime;
