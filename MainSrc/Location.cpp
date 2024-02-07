@@ -169,11 +169,6 @@ void Location::SetIndex()
         throw "invalid port in of the server_name directive \n";
     }
     arg = vlocation[i][1];
-    // std::cout<<"index   :"<<arg<<endl;
-    // if (pathIsFile(arg) != 2 )
-    // {
-    //     throw("Path '" + arg + "' does not exist or is not a file.\n");
-    // }
     index.push_back(arg);
 }
 void Location::Printtwodom(const std::vector<std::vector<std::string> > & matrix,std::string data)

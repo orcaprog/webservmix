@@ -168,7 +168,7 @@ Method* Request::create_method(const string &type){
     //else if (type == "DELETE")
     //     m = new Delete();
     else
-        cerr<<"Cannot Create Method: "<<type<<endl;
+        cerr<<"Cannot Create Method: "<<"|"<<type<<"|"<<endl;
     if (m){
         m->headers = headers;
         m->http_v = http_v;

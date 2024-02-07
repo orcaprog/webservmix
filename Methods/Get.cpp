@@ -112,6 +112,7 @@ void Get::set_headers(const string& file_name){
 }
 
 void Get::open_file(const string& file_name){
+    cout<<"file name   :"<<file_name<<endl;
     src_file.open(file_name.c_str(), ios::in);
     opened = 1;
     if (!src_file.is_open()){
