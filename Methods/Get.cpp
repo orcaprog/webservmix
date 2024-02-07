@@ -3,6 +3,7 @@
 
 
 Get::Get(){
+    cgi = new Cgi(serv, "GET");
     set_extentions();
     cmds = new char *[3];
     cmds[0] = NULL;
@@ -115,7 +116,7 @@ void Get::open_file(const string& file_name){
     opened = 1;
     if (!src_file.is_open()){
         opened = -1;
-        // cout<<"can't open file: "<<file_name<<endl;
+        cout<<"can't open file: "<<file_name<<endl;
         return;
     }
     src_file.seekg(0, std::ios::end);
@@ -133,7 +134,6 @@ void Get::get(const string& file_name){
     
     if (!opened)
         open_file(file_name);
-    else 
     if (opened == 1){
         string res;
         res.resize(max_r);
@@ -143,13 +143,9 @@ void Get::get(const string& file_name){
         respons += res;
         if (src_file.eof())
             end = 1;
-        //cout<<"res_size = "<<respons.size()<<"\nres: <<"<<respons<<">>"<<endl;
     }
-    if (opened == -1){
-        opened = 0;
+    if (opened == -1)
         end = 1;
-        get(serv.error_page["404"]);
-    }
     if (end)
         src_file.close();
 }
@@ -159,7 +155,7 @@ int Get::process(string _body, size_t _body_size){
     body_size = _body_size;
     respons.clear();
     if (serv.Is_cgi)
-        get_bycgi();
+        cgi->execute(fullUri_path);
     else
         get(fullUri_path);
     return(0);
@@ -181,6 +177,7 @@ void Get::exec_cgi(){
     set_cmd();
     set_env();
     cmd = cmds[0];
+    // time_t time = time();
     pid = fork();
     if(pid < 0){
       perror("fork fail");

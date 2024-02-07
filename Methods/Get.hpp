@@ -1,12 +1,14 @@
+
 #include "Method.hpp"
 #include <cstring>
 
 using namespace std;
 
-
 #ifndef GET_HPP
 #define GET_HPP
+#include "Cgi.hpp"
 
+class Cgi;
 
 class Get : public Method
 {
@@ -25,6 +27,7 @@ string content_type;
 string extension;
 char **cmds;
 char **env;
+Cgi *cgi;
 
 void set_content_type(const string& file_name);
 void set_extentions();
