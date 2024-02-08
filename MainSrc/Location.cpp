@@ -145,7 +145,7 @@ void Location::desplayLocation()
 void Location::SetAllDir()
 {
     FillValid();
-    checkValidation();
+    // checkValidation();
     SetRoot();
     SetAllowMethods();
     SetUpload();

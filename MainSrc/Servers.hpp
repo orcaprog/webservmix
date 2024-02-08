@@ -65,7 +65,7 @@ private:
     void SetError_page(); // done ~
     void SetClient_max_body_size(); // done ~
     void SetIndex(); // done ~
-    
+    void FillQuerys(string & uri);
     void Printtwodom(const std::vector<std::vector<std::string> > & matrix,std::string data);
 
 public:

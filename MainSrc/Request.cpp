@@ -169,12 +169,12 @@ Method* Request::create_method(const string &type){
     Method* m = NULL;
     if (type == "GET")
         m = new Get();
-    if (type == "POST")
+    else if (type == "POST")
         m = new Post();
     // if (type == "DELETE")
     //     m = new Delete();
     else
-        cerr<<"Cannot Create Method: "<<type<<endl;
+        cerr<<"Cannot Create Method: "<<"|"<<type<<"|"<<endl;
     if (m){
         m->headers = headers;
         m->http_v = http_v;

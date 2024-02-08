@@ -124,7 +124,7 @@ void Multiplexing::CreatMUltiplex()
     while (std::getline(inputFile, line)) {
         data += line;
     }
-    // std::string headers = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 1000000\r\n\r\n";
+    // std::string headers = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 1000000\r\nLocation: http://pathjdid\r\n";
     // std::string httprespose = headers + data;
     // const char *hello = httprespose.c_str();
 
