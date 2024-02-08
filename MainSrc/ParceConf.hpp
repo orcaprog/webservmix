@@ -54,6 +54,9 @@ private:
 public:
     std::map<int,Servers > msockets;    
     void TakeAndParce(std::string confgfile);
+    void FillValid();
+    std::vector<std::string> Vstrvalid;
+
     ParceConf();
     ~ParceConf();
 };

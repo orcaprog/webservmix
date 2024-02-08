@@ -87,7 +87,7 @@ void Get::set_content_type(const string& file_name){
 void Get::set_headers(const string& file_name){
     int hed = 0;
     set_content_type(file_name);
-    respons = "HTTP/1.1 200 OK\r\nContent-Type: ";
+    respons = "HTTP/1.1 200 OK\r\nContent-Type: \r\n";
     respons +=  content_type+string("\r\n");
     respons +=  string("Content-Length: ");
     string line;

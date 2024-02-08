@@ -305,7 +305,7 @@ void Servers::SetAllDir()
     // ParceServers();
     FillValid();
     FillLocation();
-    checkValidation();
+    // checkValidation();
 
     SetHost();
     SetRoot();
@@ -370,18 +370,30 @@ size_t Servers::GetIndex(std::string dir)
 Location Servers::FirstFill(size_t &index)
 {
     Location loaction;
+    std::vector<std::string>::iterator iter;
+    if(servconf[index][0] != "location")
+    {
+        throw "no location'"+servconf[index][0]+"' \n";
+    }
     loaction.vlocation.push_back(servconf[index]);
     index++;
     if(servconf[index][0] != "{" )
     {
         throw "no open bracket for location \n";
     }
-    while (index < servconf.size() && servconf[index][0] != "location")
+    while (index < servconf.size() && servconf[index][0] != "}")
     {
-        // std::cout<<index<<"  :"<<servconf[index][0]<<std::endl;
+        iter = std::find(Vstrvalid.begin(),Vstrvalid.end(),servconf[index][0]);
+        if (iter == Vstrvalid.end())
+        {
+            throw "Error : '"+servconf[index][0]+"' directive is not allowed here \n";
+        }
         loaction.vlocation.push_back(servconf[index]);
         index++;
     }
+    if(index < servconf.size())
+        index++;
+
     return loaction;
 }
 
@@ -393,7 +405,7 @@ void Servers::FillLocation()
     {
         return;
     }
-    while (index < servconf.size())
+    while (index < servconf.size() && servconf[index][0] != "}")
     {
         locations.push_back(FirstFill(index));
     }
@@ -403,13 +415,7 @@ void Servers::FillLocation()
 
 void Servers::FillValid()
 {
-    Vstrvalid.push_back("listen");
-    Vstrvalid.push_back("server");
-    Vstrvalid.push_back("server_name");
-    Vstrvalid.push_back("host");
     Vstrvalid.push_back("root");
-    Vstrvalid.push_back("error_page");
-    Vstrvalid.push_back("client_max_body_size");
     Vstrvalid.push_back("index");
     Vstrvalid.push_back("location");
     Vstrvalid.push_back("{");
@@ -420,23 +426,11 @@ void Servers::FillValid()
     Vstrvalid.push_back("upload");
     Vstrvalid.push_back("cgi_path");
 }
-void Servers::checkValidation()
-{
-    std::vector<std::string>::iterator iter;
-    for (size_t i = 0; i < GetIndex("location"); i++)
-    {
-        iter = std::find(Vstrvalid.begin(), Vstrvalid.end(), servconf[i][0]);
-        if (iter == Vstrvalid.end())
-        {
-            
-            throw "Error : Invalid Derecties '"+servconf[i][0]+"'\n";
-        }
-    }
-}
+
 
 void Servers::desplay()
 {
-    // std::vector<std::vector<std::string> > matrix = servconf;
+    // std::vector<std::vector<std::string> > matrix = servconf; 
 
     cout<<"Ports :"<<GetPorts()<<endl;
     cout<<"ServerName  :"<<GetServerName()<<endl;
