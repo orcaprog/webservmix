@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/07 18:41:29 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/08 12:59:14 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,6 +175,8 @@ void Post::openFile(std::string body, size_t body_size)
     }
     else if (!MethodType && headers.find("Content-Type") != headers.end() && !serv.Is_cgi)
     {
+        std::cout << "chose onme \n" << "serv is "<< serv.Is_cgi<<std::endl;
+        exit(1);
         std::string tmp_C = (headers.find("Content-Type"))->second;
 		if (tmp_C.find("boundary=") != std::string::npos)
 		{
@@ -191,6 +193,8 @@ void Post::openFile(std::string body, size_t body_size)
     }
     else if (!MethodType && headers.find("Content-Type") != headers.end() && serv.Is_cgi)
     {
+        std::cout << "chose seoncd \n"<< "serv is "<< serv.Is_cgi<<std::endl;
+        exit(1);
         std::string tmp_C = (headers.find("Content-Type"))->second;
 		if (tmp_C.find("boundary=") != std::string::npos)
 		{
