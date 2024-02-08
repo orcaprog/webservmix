@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/08 14:15:36 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/08 14:30:34 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -264,7 +264,6 @@ void Post::openFile(std::string body, size_t body_size)
 
 void Post::normalFile(std::string body, size_t body_size)
 {
-    std::cout << "normal file"<<std::endl;
     (void)body_size;
 	outFile.write(body.c_str(), body.size());
     total_Body += body.size();
@@ -348,7 +347,6 @@ void Post::chunk_write(std::string body, size_t body_size)
 
 void Post::chunked_file(std::string body, size_t body_size)
 {
-    std::cout << "in chunked\n" <<std::endl;
     std::stringstream ss;
     if (left_over)
     {
@@ -394,8 +392,6 @@ void Post::chunked_file(std::string body, size_t body_size)
 
 void    Post::ft_boundary(std::string& body)
 {
-        std::cout << "in boundary norm"<<std::endl;
-    exit(10);
     size_t pos;
     size_t pos1;
 
@@ -485,12 +481,6 @@ void    Post::ft_boundary(std::string& body)
 		{
             
 			sep_found = body.substr(pos, sep.size());
-			if (sep != sep_found)////removeeeeeeeeeeeeeeeeee
-			{
-                std::cout <<"sep here is->\n"<< sep <<"\nsep found is \n" << sep_found<<std::endl;
-				std::cout << "4arib\n";
-				exit(1);
-			}//here
             if (out.is_open())
             {
                 if (pos > 2)
@@ -507,17 +497,13 @@ void    Post::ft_boundary(std::string& body)
             }
 			if (body.find("name") != std::string::npos)
 			{
-                std::cout << "lllllllllllllllllllllllllllllllllllllllllllllllllllllllllll\n";
-                std::cout << "THE Body is \n" << body<<std::endl;
                 std::string mimeVal;
 				pos = body.find("name");
                 if (body.find("\"", pos + strlen("name=") + 1) != std::string::npos)
                     pos1 = body.find("\"", pos + strlen("name=") + 1);
 				if (pos1 <= 1)
 					pos1 = 2;
-                std::cout << "pos is " << pos << " pos1 is " << pos1 << "the len is " <<pos1 - ( strlen("name=") + 1) - pos <<std::endl;
 				std::string file = body.substr(pos + strlen("name=") + 1, pos1 - ( strlen("name=") + 1) - pos);
-				std::cout << "THE file is "<< file<<"|"<<std::endl;
                 if (!file[0])
                 {
                     std::string time_B = creat_file_name();
@@ -525,12 +511,10 @@ void    Post::ft_boundary(std::string& body)
                 }
                 else if (body.find("Content-Type:") != std::string::npos)
                 {
-                    std::cout << "foundit \n\n\n\n";
                     std::string ext;
                     pos = body.find("Content-Type:");
                     pos1 = body.find("\r\n", pos);
                     ext = body.substr(pos + strlen("Content-Type: "), pos1 - (pos+ strlen("Content-Type: ")));
-                    std::cout << "pos and pos1 are " << pos << pos1 <<"the size is " << pos1 - (pos+ strlen("Content-Type: ")) <<"\n"<<"exte= "<< ext<<"."<<std::endl;
                     if (mime.find(ext) != mime.end())
 	            		mimeVal = mime.find(ext)->second;
                     else
@@ -540,7 +524,6 @@ void    Post::ft_boundary(std::string& body)
                     mimeVal = "txt";
                 file = file + ".";
                 file += mimeVal;
-                std::cout << "THE new file is " << file<< "|" << "mime " << mimeVal<<std::endl; 
                 if (access(file.c_str(),F_OK ) == 0)
                 {
                     //in case of duplcate ********************************************
@@ -629,8 +612,6 @@ void    Post::ft_boundary(std::string& body)
 
 void Post::ft_boundary_cgi(std::string &body)
 {
-    std::cout << "in boundary cgi"<<std::endl;
-    // exit(11);
     size_t pos;
     size_t pos1;
 
@@ -645,7 +626,6 @@ void Post::ft_boundary_cgi(std::string &body)
 	{
         if (body.find(sep_end) != std::string::npos)
         {
-            //in case it found many \r\n after sep end
             if (body.find("\r\n") !=std::string::npos)
             {
                 buffer = body.substr(0, body.size() - 2);
@@ -707,12 +687,6 @@ void Post::ft_boundary_cgi(std::string &body)
 		{
             
 			sep_found = body.substr(pos, sep.size());
-			if (sep != sep_found)////removeeeeeeeeeeeeeeeeee
-			{
-                std::cout <<"sep here is->\n"<< sep <<"\nsep found is \n" << sep_found<<std::endl;
-				std::cout << "4arib\n";
-				exit(1);
-			}//here
             if (out.is_open())
             {
                 if (pos > 2)
@@ -727,8 +701,6 @@ void Post::ft_boundary_cgi(std::string &body)
             }
 			if (body.find("name") != std::string::npos && !first_time)
 			{
-                std::cout << "lllllllllllllllllllllllllllllllllllllllllllllllllllllllllll\n";
-                std::cout << "THE Body is \n" << body<<std::endl;
                 std::string mimeVal;
                 first_time = 1;
 				pos = body.find("name");
@@ -736,9 +708,7 @@ void Post::ft_boundary_cgi(std::string &body)
                     pos1 = body.find("\"", pos + strlen("name=") + 1);
 				if (pos1 <= 1)
 					pos1 = 2;
-                std::cout << "pos is " << pos << " pos1 is " << pos1 << "the len is " <<pos1 - ( strlen("name=") + 1) - pos <<std::endl;
 				std::string file = body.substr(pos + strlen("name=") + 1, pos1 - ( strlen("name=") + 1) - pos);
-				std::cout << "THE file is "<< file<<"|"<<std::endl;
                 if (!file[0])
                 {
                     std::string time_B = creat_file_name();
@@ -746,12 +716,10 @@ void Post::ft_boundary_cgi(std::string &body)
                 }
                 else if (body.find("Content-Type:") != std::string::npos)
                 {
-                    std::cout << "foundit \n\n\n\n";
                     std::string ext;
                     pos = body.find("Content-Type:");
                     pos1 = body.find("\r\n", pos);
                     ext = body.substr(pos + strlen("Content-Type: "), pos1 - (pos+ strlen("Content-Type: ")));
-                    std::cout << "pos and pos1 are " << pos << pos1 <<"the size is " << pos1 - (pos+ strlen("Content-Type: ")) <<"\n"<<"exte= "<< ext<<"."<<std::endl;
                     if (mime.find(ext) != mime.end())
 	            		mimeVal = mime.find(ext)->second;
                     else
@@ -761,7 +729,6 @@ void Post::ft_boundary_cgi(std::string &body)
                     mimeVal = "txt";
                 file = file + ".";
                 file += mimeVal;
-                std::cout << "THE new file is " << file<< "|" << "mime " << mimeVal<<std::endl; 
                 if (access(file.c_str(),F_OK ) == 0)
                 {
                     //in case of duplcate ********************************************
