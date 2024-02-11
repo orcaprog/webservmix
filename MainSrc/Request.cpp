@@ -148,16 +148,38 @@ int Request::parce_req(const string &req)
     }
     serv.FillData(uri,type);
     method = create_method(type);
+    cgi.set_arg(serv, type);
     return 1;
 }
 
-void    Request::process_req(const string &req, size_t read_len){
-    parce_req(req);
-    if (body_state && method)
-        method->process(body, read_len);
+void    Request::process_req(const string &req, size_t read_len, int event){
+    if (!parce_req(req))
+        return ;
+    if (body_state && method){
+        if (serv.Is_cgi)
+            cgi.execute(method);
+        else{
+            if (type == "GET")
+                method->process(body, event);
+            else
+                method->process(body, read_len);
+        }
+    }
 }
 
-
+int Request::resp_done(){
+    if (serv.Is_cgi){
+        if (cgi.resp_done)
+            return 1;
+    }
+    else{
+        if (!method)
+            return 1;
+        if (method->end)
+            return 1;
+    }
+    return 0;
+}
 
 Method* Request::create_method(const string &type){
     Method* m = NULL;
@@ -183,6 +205,8 @@ Method* Request::create_method(const string &type){
 string Request::get_respons() const{
     if (!method)
         return("");
+     if (serv.Is_cgi)
+            return cgi.get.respons;
     return (method->respons);
 }
 

@@ -1,11 +1,13 @@
-#include "../Methods/Get.hpp"
-#include "../Methods/Post.hpp"
+#ifndef REQUEST_HPP
+#define REQUEST_HPP
+
+// #include "../Methods/Post.hpp"
+#include "../Methods/Cgi.hpp"
 
 using namespace std;
 
 
-#ifndef REQUEST_HPP
-#define REQUEST_HPP
+class Cgi;
 
 enum errors{
     Method_Unkounu = 1,
@@ -17,6 +19,7 @@ class Request
 {
 std::string req_h;
 std::string root_path;
+Cgi cgi;
 int parce_req(const std::string& req1);
 int parce_line(const std::string& line);
 int parce_rline(const std::string& line);
@@ -41,9 +44,9 @@ public:
     Request(const Servers &ser);
     Request(const Request& req);
     Request& operator=(const Request& oth);
-    void process_req(const string &req, size_t read_len);
+    void process_req(const string &req, size_t read_len, int event);
     string get_respons() const;
-    
+    int resp_done();
     ~Request();
 };
 

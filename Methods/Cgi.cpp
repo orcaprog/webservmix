@@ -1,5 +1,6 @@
 #include "Cgi.hpp"
 
+
 Cgi::Cgi(){
     cmds = new char *[3];
     cmds[0] = NULL;
@@ -11,6 +12,8 @@ Cgi::Cgi(){
     env[2] = NULL;
     env[3] = NULL;
     cgi_execueted = 0;
+    resp_done = 0;
+    is_run = 0;
 }
 
 Cgi::Cgi(Servers _serv, const string& m_type){
@@ -26,6 +29,8 @@ Cgi::Cgi(Servers _serv, const string& m_type){
     env[2] = NULL;
     env[3] = NULL;
     cgi_execueted = 0;
+    resp_done = 0;
+    is_run = 0;
 }
 
 Cgi& Cgi::operator=(const Cgi& oth){
@@ -34,6 +39,11 @@ Cgi& Cgi::operator=(const Cgi& oth){
         method_type = oth.method_type;
     }
     return *this;
+}
+
+void Cgi::set_arg(Servers srv, const string& mtype){
+    serv = srv;
+    method_type = mtype;
 }
 
 int Cgi::extension_search(const string& f_name){
@@ -51,32 +61,50 @@ int Cgi::extension_search(const string& f_name){
     return 0;
 }
 
-void Cgi::execute(const string& fullUri_path){
-    FILE *file;
-    char * cmd;
-    int exit_stat;
-
-    set_cmd(fullUri_path);
-    set_env();
-    cmd = cmds[0];
-    pid = fork();
-    if(pid < 0){
-      perror("fork fail");
-      exit(EXIT_FAILURE);
-    }
-    if (pid == 0){
-        // cout<<"file_name: "<<cmds[1]<<endl;
-        file = fopen("out.html", "w");
-        dup2(file->_fileno,STDOUT_FILENO);
-        if(execve(cmd,cmds,env) == -1){
-            std::cout<<"No exec\n";
-            perror("execve");
-            exit(1);
+void Cgi::exec_cgi(const string& fullUri_path){
+    if (!is_run){
+        set_cmd(fullUri_path);
+        set_env();
+        cmd = cmds[0];
+        is_run = 1;
+        start_time = clock();
+        pid = fork();
+        if(pid < 0){
+          perror("fork fail");
+          exit(EXIT_FAILURE);
+        }
+        if (pid == 0){
+            file = fopen("out.html", "w");
+            dup2(file->_fileno,STDOUT_FILENO);
+            if(execve(cmd,cmds,env) == -1){
+                std::cout<<"No exec\n";
+                cerr<<"execve"<<endl;
+                exit(1);
+            }
         }
     }
-    waitpid(pid,&exit_stat,0);
-    cgi_execueted = 1;
-    cout<<WEXITSTATUS(exit_stat)<<endl;
+    if (waitpid(pid,&exit_stat,WNOHANG)>0)
+        cgi_execueted = 1;
+    else{
+        if ((clock()-start_time)/CLOCKS_PER_SEC > 10){
+            kill(pid,SIGKILL);
+            cgi_execueted = 1;
+            get.get(serv.error_page["408"]);
+            resp_done = 1;
+        }
+    }
+
+}
+
+void Cgi::execute(Method *method){
+    if (!cgi_execueted){
+        exec_cgi(method->fullUri_path);
+    }
+    else{
+        get.get(string("out.html"));
+        if (get.end)
+            resp_done = 1;
+    }
 }
 
 void Cgi::set_env(){

@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <time.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/types.h>
@@ -16,7 +17,7 @@
 #include <sys/epoll.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include "../MainSrc/ParceConf.hpp"
+#include "../MainSrc/Servers.hpp"
 using namespace std;
 
 #ifndef METHOD_HPP

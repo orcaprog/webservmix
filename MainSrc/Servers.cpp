@@ -721,16 +721,16 @@ void Servers::FillData(string uri,string mehtod)
         UriLocation = locations[in];
             
     }
-    cout<<"rootUri :"<<rootUri<<endl;
-    cout<<"is_cgi :"<<Is_cgi<<endl;
-    cout<<"querys :"<<querys<<endl;
-    cout<<"      ========\n";
-    cout<<"        ===\n";
-    cout<<"         =\n";
-    UriLocation.desplayLocation();
-    cout<<"         =\n";
-    cout<<"        ===\n";
-    cout<<"      ========\n";
+    // cout<<"rootUri :"<<rootUri<<endl;
+    // cout<<"is_cgi :"<<Is_cgi<<endl;
+    // cout<<"querys :"<<querys<<endl;
+    // cout<<"      ========\n";
+    // cout<<"        ===\n";
+    // cout<<"         =\n";
+    // UriLocation.desplayLocation();
+    // cout<<"         =\n";
+    // cout<<"        ===\n";
+    // cout<<"      ========\n";
 }
 
 Servers::Servers()

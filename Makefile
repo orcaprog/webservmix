@@ -13,7 +13,7 @@ SRC =   main.cpp \
 
 CXX = c++
 
-CXXFLAGS =  -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g3 
+CXXFLAGS =  -Wall -Wextra -Werror -std=c++98 #-fsanitize=address -g3 
 
 OBJ = ${SRC:.cpp=.o}
 

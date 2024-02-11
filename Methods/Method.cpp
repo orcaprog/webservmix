@@ -9,6 +9,7 @@ Method::Method(const Method& oth){
 }
 
 Method& Method::operator=(const Method& oth){
+    cout<<"METHOD COPY ASSIGNMENT"<<endl;
     if (this != &oth){
         end = oth.end;
         serv = oth.serv;
