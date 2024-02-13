@@ -34,7 +34,7 @@
 #include <dirent.h>
 #include <iostream>
 #include<cstring>
-
+#include <ctime>
 
 
 
@@ -47,7 +47,6 @@ private:
     int  checkDup(std::string der,int & index);
     bool check_isdigit(std::string str);
     void FillValid();
-    void checkValidation();
     void parceIp(std::string ip);
     void check_Status(std::string status);
 
@@ -70,6 +69,7 @@ private:
 
 public:
 
+    clock_t startTime ;
     std::vector<int> port;
     std::vector<std::string> server_name; 
     std::vector<std::string> host; 

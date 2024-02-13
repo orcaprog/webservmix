@@ -591,8 +591,8 @@ int  Servers::fillFromLocation(int &in, string &uri,string & method)
             cout<<rootUri<<endl;
             if (rootUri[rootUri.size() - 1] != '/')
             {
-                rootUri = error_page["409"];
-                status = "409";
+                rootUri = "";
+                status = "301 Moved Permanently  \r\nLocation: "+uri+"/";
             }
             else
             {
@@ -629,8 +629,8 @@ void Servers::SetUriRoot(int i,string & uri)
     {
         if (rootUri[rootUri.size() - 1] != '/')
         {
-            rootUri = error_page["409"];
-            status = "409";
+            rootUri = "";
+            status = "301 Moved Permanently  \r\nLocation: "+uri+"/";
         }
         else
         {
@@ -731,7 +731,7 @@ Servers::Servers()
 {
     // root.push_back("");
     SetDefaultError();
-    status = "200";
+    status = "200 OK";
     
 }
 

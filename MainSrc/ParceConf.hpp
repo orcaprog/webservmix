@@ -37,7 +37,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
-
+#include <ctime>
 #include "Request.hpp"
 
 #define MAX_EVENTS 1000

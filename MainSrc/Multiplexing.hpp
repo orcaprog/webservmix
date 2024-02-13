@@ -13,7 +13,6 @@
 #ifndef MULIPLEXING_HPP
 #define MULIPLEXING_HPP
 #include "ParceConf.hpp"
-
 class Multiplexing
 {
 private:
@@ -23,6 +22,7 @@ public:
     ~Multiplexing();
     ParceConf server;
     std::map<int ,std::pair<Servers,Request> > mClients;
+    clock_t SocketTimeout;
     struct epoll_event ev;
     struct epoll_event events[MAX_EVENTS];
     int  conn_sock;
@@ -32,7 +32,7 @@ public:
     void Connect_And_Add(int n);
     void In_Events(int n);
     void Out_Events(int n);
-
+    void CheckTimeOut();
 };
 
 

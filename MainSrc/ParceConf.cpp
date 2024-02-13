@@ -123,11 +123,7 @@ Servers ParceConf::FirstFill()
         server.servconf.push_back(Vconf[index]);
         index++;
     }
-    // std::cout<<"_______br______"<<bracket<<std::endl;
-    // if (Vconf[index - 1][0] != "}")
-    // {
-    //     throw "Error : no open brackets \n";
-    // }
+
 
     return server;
 }
