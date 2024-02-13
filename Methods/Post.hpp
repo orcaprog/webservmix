@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/07 17:28:18 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/12 17:19:09 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,22 +57,30 @@ class Post : public Method
         int is_first;
         int here_is;
         int first_time;
+        int enter_cgi;
+        std::string the_file;
         std::string buffer;
         std::string buff_chunk;
+        std::string content_type;
 		std::map<std::string, std::string> mime;
 		std::fstream outFile;
         std::fstream out;
         std::string sep;
         std::string sep_end;
         std::string sep_found;
+        time_t start_time; 
+        int pid;
+        int exit_status;
+        int first_run;
     public:
         Post();
         Post(const Post& post);
         Post& operator=(const Post& post);
         ~Post();
 
-        std::string creat_file_name();
-        
+        std::string creat_file_name(int ret);
+        char **set_cmd(std::string& ext_path);
+        char **set_env();
         int process(std::string body, size_t body_size);
 		void openFile(std::string body, size_t body_size);
 		void normalFile(std::string body, size_t body_size);
@@ -83,6 +91,10 @@ class Post : public Method
         void    ft_boundary(std::string& body);
 
         void    ft_boundary_cgi(std::string& body);
+        void    exe_cgi();
+        std::string find_path_info();
+        std::string find_ext();
+
 
 };
 
