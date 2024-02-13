@@ -17,15 +17,17 @@ enum errors{
 
 class Request
 {
-std::string req_h;
-std::string root_path;
+string req_h;
+string root_path;
+string error_resp;
 Cgi cgi;
-int parce_req(const std::string& req1);
-int parce_line(const std::string& line);
-int parce_rline(const std::string& line);
-int parce_key(const std::string& key);
-int spl_reqh_body(std::string s1);
+int parce_req(const string& req1);
+int parce_line(const string& line);
+int parce_rline(const string& line);
+int parce_key(const string& key);
+int spl_reqh_body(string s1);
 Method* create_method(const string &type);
+void check_for_error();
 public:
     Servers serv;
     int error;

@@ -74,11 +74,10 @@ void Cgi::exec_cgi(const string& fullUri_path){
           exit(EXIT_FAILURE);
         }
         if (pid == 0){
-            file = fopen("out.html", "w");
+            file = fopen(out_file.c_str(), "w");
             dup2(file->_fileno,STDOUT_FILENO);
             if(execve(cmd,cmds,env) == -1){
-                std::cout<<"No exec\n";
-                cerr<<"execve"<<endl;
+                std::cout<<"Cannot execute cgi scripte\n";
                 exit(1);
             }
         }
@@ -101,15 +100,25 @@ void Cgi::execute(Method *method){
         exec_cgi(method->fullUri_path);
     }
     else{
-        get.get(string("out.html"));
+        get.get(string(out_file));
         if (get.end)
             resp_done = 1;
     }
 }
 
-void Cgi::set_env(){
-    string senv("QUERY_STRING=");
+void Cgi::generate_file_name(){
+    time_t currentTime = std::time(NULL);
+    std::tm* tm = std::localtime(&currentTime);
+    char time_B[80];
+    std::strftime(time_B, sizeof(time_B), "%Y-%m-%d-%H-%M-%S", tm);
+    out_file = time_B;
+    out_file += string(".html");
+}
 
+void Cgi::set_env(){
+
+    generate_file_name();
+    string senv("QUERY_STRING=");
     senv += serv.querys;
     env[0] = new char[senv.length()+1];
     strcpy(env[0],senv.c_str());
@@ -117,10 +126,6 @@ void Cgi::set_env(){
     senv += "None";
     env[1] = new char[senv.length()+1];
     strcpy(env[1],senv.c_str());
-    // senv = "REQUEST_METHOD=";
-    // senv += "GET";
-    // env[2] = new char[senv.length()+1];
-    // strcpy(env[2],senv.c_str());
 }
 
 void Cgi::set_cmd(const string& fullUri_path){
@@ -130,7 +135,7 @@ void Cgi::set_cmd(const string& fullUri_path){
     map<string,string>::iterator it;
     it = serv.UriLocation.cgi_path.find(extension);
     if (it == serv.UriLocation.cgi_path.end()){
-        cerr<<"No Cgi Extension"<<endl;
+        cerr<<"No Cgi Command"<<endl;
         // get(serv.error_page["404"]);
         return ;
     }

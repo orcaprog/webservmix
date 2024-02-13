@@ -78,9 +78,10 @@ void Get::set_content_type(const string& file_name){
 void Get::set_headers(const string& file_name){
     int hed = 0;
     set_content_type(file_name);
-    respons = "HTTP/1.1 200 OK\r\nContent-Type: ";
-    respons +=  content_type+string("\r\n");
-    respons +=  string("Content-Length: ");
+    respons = "HTTP/1.1 " + serv.status;
+    respons += string("\r\nContent-Type: ");
+    respons += content_type+string("\r\n");
+    respons += string("Content-Length: ");
     string line;
     getline(src_file,line);
     head_size = line.size()+1;
@@ -104,16 +105,14 @@ void Get::open_file(const string& file_name){
     src_file.open(file_name.c_str(), ios::in);
     opened = 1;
     if (!src_file.is_open()){
+        cout<<"can't open file: "<<file_name<<endl;
         opened = -1;
-        // cout<<"can't open file: "<<file_name<<endl;
         return;
     }
     src_file.seekg(0, std::ios::end);
     file_len = src_file.tellg();
     src_file.seekg(0, std::ios::beg);
     set_headers(file_name);
-    // cout<<"full_path: "<<fullUri_path<<endl;
-    // cout<<"uri: "<<uri<<endl;
     cout<<"content_len: "<<file_len<<endl;
     cout<<"content_type: "<<content_type<<endl;
 }

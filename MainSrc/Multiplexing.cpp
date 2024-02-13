@@ -47,16 +47,11 @@ void Multiplexing::In_Events(int n)
 {
     char buffer[1024];
     ssize_t bytesRead = 0;
-
-    // if (mClients[events[n].data.fd].second.body_state && mClients[events[n].data.fd].second.type == "GET")
-    //     return ;
-    // std::cout<<"IN Enter clinet "<<events[n].data.fd<<" \n";
     bytesRead = read(events[n].data.fd,buffer,1024);
     
-    // std::cout<<"size :"<<bytesRead<<std::endl;
     if (bytesRead == -1)
     {
-        perror("Error read\n");
+        perror("Error read");
         return ;
     }
     if (bytesRead == 0) 
@@ -68,9 +63,7 @@ void Multiplexing::In_Events(int n)
     {
         std::map<int ,std::pair<Servers,Request> >::iterator iter2 = mClients.find(events[n].data.fd);
         if (iter2 != mClients.end())
-        {
             mClients[events[n].data.fd].second.process_req(string("").append(buffer, bytesRead),bytesRead,EPOLLIN);
-        }
     }
 }
 

@@ -152,9 +152,20 @@ int Request::parce_req(const string &req)
     return 1;
 }
 
+void Request::check_for_error(){
+    if (!error)
+        return;
+    Get get;
+    if (error == Method_Unkounu || error == Httpv_Unkounu || error == Invalid_Header)
+        get.get(serv.error_page["400"]);
+    error_resp = get.respons;
+}
+
 void    Request::process_req(const string &req, size_t read_len, int event){
-    if (!parce_req(req))
+    if (!parce_req(req)){
+        check_for_error();
         return ;
+    }
     if (body_state && method){
         if (serv.Is_cgi)
             cgi.execute(method);
@@ -168,14 +179,14 @@ void    Request::process_req(const string &req, size_t read_len, int event){
 }
 
 int Request::resp_done(){
+    if (error)
+        return 1;
     if (serv.Is_cgi){
         if (cgi.resp_done)
             return 1;
     }
     else{
-        if (!method)
-            return 1;
-        if (method->end)
+        if (method && method->end)
             return 1;
     }
     return 0;
@@ -203,6 +214,8 @@ Method* Request::create_method(const string &type){
 }
 
 string Request::get_respons() const{
+    if (error)
+        return error_resp;
     if (!method)
         return("");
      if (serv.Is_cgi)
