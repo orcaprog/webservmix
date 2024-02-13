@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/13 10:53:27 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/13 14:53:28 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ Post::Post()
     here_is = 0;
     first_time = 0;
     first_run = 0;
+    cgi_exe = 0;
     mimeType();
 }
 
@@ -909,7 +910,6 @@ char **Post::set_env()
 }
 void Post::exe_cgi()
 {
-    std::cout << "in cgi " <<std::endl;
     if (!first_run)
     {
         std::cout << "llllllllllllllllllllll\n";
@@ -967,32 +967,21 @@ void Post::exe_cgi()
             }
         }
     }
-    std::cout << "dsdsssssssssssssssssssssssssssssssssssssssssssssssssss\n";
     if (waitpid(pid, &exit_status, WNOHANG) > 0)
-    {
-        end = 1;
-        std::cout << "ssds\n";
-        exit(1);
-    }
+        cgi_exe = 1;
     else if ((clock() - start_time) / CLOCKS_PER_SEC > 5)
     {
         kill(pid, SIGKILL);
         std::cout << "there is time out \n";
-        end = 1;
-        exit(1);
+        cgi_exe = 1;
     }
 }
 
 int Post::process(std::string body, size_t body_size)
 {
-    std::cout << "Here in Post\n";
-    std::cout << "END is  " << end<<std::endl;
-    std::cout << "enter cgi is " << enter_cgi<<std::endl;
-    std::cout << "is cgi " << serv.Is_cgi<<std::endl;
-    std::cout << "is run " << first_run<<std::endl;
-    if (crfile == -2)
-        return 1;
-    if (body_size == 2 && MethodType == 1)
+    // if (crfile == -2 && !(enter_cgi && serv.Is_cgi) )
+    //     return 1;
+    if (crfile > 0 && body_size == 2 && MethodType == 1)
     {
         buff_chunk = body;
         left_over = 2;
@@ -1011,19 +1000,11 @@ int Post::process(std::string body, size_t body_size)
     }
 	else if (!crfile)
 		openFile(body, body_size);
-    if (end)
-    {
-        if (!enter_cgi)
-            enter_cgi = 1;
-        else
-            enter_cgi = 0;
-    }
+    if (end && !cgi_exe)
+        enter_cgi = 1;
     if (enter_cgi && serv.Is_cgi)
         exe_cgi();
-    std::cout << "Here in Post2\n";
-    std::cout << "END is  " << end<<std::endl;
-    std::cout << "enter cgi is " << enter_cgi<<std::endl;
-    std::cout << "is cgi " << serv.Is_cgi<<std::endl;
-    std::cout << "is run " << first_run<<std::endl;
+    if (cgi_exe)
+        end = 1;
     return 1;
 }

@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/12 17:19:09 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/13 14:56:02 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include "Get.hpp"
 
 class Post : public Method
 {
@@ -72,6 +73,10 @@ class Post : public Method
         int pid;
         int exit_status;
         int first_run;
+        int cgi_exe;
+        
+        Get get;
+        
     public:
         Post();
         Post(const Post& post);
