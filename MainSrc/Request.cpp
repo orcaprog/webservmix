@@ -148,22 +148,49 @@ int Request::parce_req(const string &req)
     }
     serv.FillData(uri,type);
     method = create_method(type);
+    cgi.set_arg(serv, type);
     return 1;
 }
 
-void    Request::process_req(const string &req, size_t read_len){
-    std::cout << "req\n" << req<<std::endl;
-    parce_req(req);
-    
-    if (body_state && method)
-    {
-        std::cout << "Body is "<<body<<std::endl;
-        method->process(body, read_len);
+void Request::check_for_error(){
+    if (!error)
+        return;
+    Get get;
+    if (error == Method_Unkounu || error == Httpv_Unkounu || error == Invalid_Header)
+        get.get(serv.error_page["400"]);
+    error_resp = get.respons;
+}
 
+void    Request::process_req(const string &req, size_t read_len, int event){
+    if (!parce_req(req)){
+        check_for_error();
+        return ;
+    }
+    if (body_state && method){
+        if (serv.Is_cgi && type == "GET")
+            cgi.execute(method);
+        else{
+            if (type == "GET")
+                method->process(body, event);
+            else
+                method->process(body, read_len);
+        }
     }
 }
 
-
+int Request::resp_done(){
+    if (error)
+        return 1;
+    if (serv.Is_cgi && type == "GET"){
+        if (cgi.resp_done)
+            return 1;
+    }
+    else{
+        if (method && method->end)
+            return 1;
+    }
+    return 0;
+}
 
 Method* Request::create_method(const string &type){
     Method* m = NULL;
@@ -171,7 +198,7 @@ Method* Request::create_method(const string &type){
         m = new Get();
     else if (type == "POST")
         m = new Post();
-    // if (type == "DELETE")
+    //else if (type == "DELETE")
     //     m = new Delete();
     else
         cerr<<"Cannot Create Method: "<<"|"<<type<<"|"<<endl;
@@ -187,8 +214,12 @@ Method* Request::create_method(const string &type){
 }
 
 string Request::get_respons() const{
+    if (error)
+        return error_resp;
     if (!method)
         return("");
+     if (serv.Is_cgi && type == "GET")
+            return cgi.get.respons;
     return (method->respons);
 }
 

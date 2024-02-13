@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/13 14:53:28 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/13 17:13:58 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -910,12 +910,11 @@ char **Post::set_env()
 }
 void Post::exe_cgi()
 {
+    std::string ran_file;
+    FILE *infile;
+    FILE *outfile;
     if (!first_run)
     {
-        std::cout << "llllllllllllllllllllll\n";
-        FILE *infile;
-        FILE *outfile;
-        std::string ran_file;
         std::string ext_path;
         char **cmd;
         char **env;
@@ -923,6 +922,7 @@ void Post::exe_cgi()
         end = 0;
         first_run = 1;
         ran_file = creat_file_name(1);
+        ran_file = ran_file + ".html";
         infile = fopen(the_file.c_str(), "r");
         outfile = fopen(ran_file.c_str(), "w");
         std::string ext = find_ext();
@@ -968,17 +968,30 @@ void Post::exe_cgi()
         }
     }
     if (waitpid(pid, &exit_status, WNOHANG) > 0)
+    {
         cgi_exe = 1;
+        std::cout << "the fail " << the_file<<std::endl;
+        close(infile->_fileno);
+        std::remove(the_file.c_str());
+        exit(1);
+    }
     else if ((clock() - start_time) / CLOCKS_PER_SEC > 5)
     {
         kill(pid, SIGKILL);
         std::cout << "there is time out \n";
+        // remove(ran_file.c_str());
+        std::cout << "the fail " << the_file<<std::endl;
+        close(infile->_fileno);
+        std::remove(the_file.c_str());
         cgi_exe = 1;
+        exit(1);
+
     }
 }
 
 int Post::process(std::string body, size_t body_size)
 {
+    std::cout << "IN Post \n";
     // if (crfile == -2 && !(enter_cgi && serv.Is_cgi) )
     //     return 1;
     if (crfile > 0 && body_size == 2 && MethodType == 1)

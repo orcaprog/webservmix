@@ -28,12 +28,12 @@ Multiplexing::~Multiplexing()
 void Multiplexing::Out_Events(int n)
 {
        
-    mClients[events[n].data.fd].second.process_req(string(""),0);
+    mClients[events[n].data.fd].second.process_req(string(""),0,EPOLLOUT);
 
     string res = mClients[events[n].data.fd].second.get_respons();
 
     write(events[n].data.fd , res.c_str(), res.size());
-    if (mClients[events[n].data.fd].second.method && mClients[events[n].data.fd].second.method->end)
+    if (mClients[events[n].data.fd].second.resp_done())
     {
         epoll_ctl(epollfd,EPOLL_CTL_DEL,events[n].data.fd,&ev);
         close(events[n].data.fd);
@@ -47,14 +47,11 @@ void Multiplexing::In_Events(int n)
 {
     char buffer[1024];
     ssize_t bytesRead = 0;
-
-    std::cout<<"Enter clinet "<<events[n].data.fd<<" \n";
     bytesRead = read(events[n].data.fd,buffer,1024);
     
-    std::cout<<"size :"<<bytesRead<<std::endl;
     if (bytesRead == -1)
     {
-        perror("Error read\n");
+        perror("Error read");
         return ;
     }
     if (bytesRead == 0) 
@@ -66,12 +63,7 @@ void Multiplexing::In_Events(int n)
     {
         std::map<int ,std::pair<Servers,Request> >::iterator iter2 = mClients.find(events[n].data.fd);
         if (iter2 != mClients.end())
-        {
-            
-            mClients[events[n].data.fd].second.process_req(string("").append(buffer, bytesRead),bytesRead);
-            string res = mClients[events[n].data.fd].second.get_respons();
-            write(events[n].data.fd , res.c_str(), res.size());
-        }
+            mClients[events[n].data.fd].second.process_req(string("").append(buffer, bytesRead),bytesRead,EPOLLIN);
     }
 }
 
@@ -95,20 +87,17 @@ void Multiplexing::Connect_And_Add(int n)
         std::cout<<"Fd Server :"<<iter->first<<std::endl;
         ev.events = EPOLLIN | EPOLLOUT;
         ev.data.fd = conn_sock;
-        if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock,&ev) == -1) 
-        {
+        if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock,&ev) == -1){
             perror("epoll_ctl: conn_sock");
             exit(EXIT_FAILURE);
         }
-    } 
+    }
     else 
     {
-        if (events[n].events & EPOLLIN) 
-        {
+        if (events[n].events & EPOLLIN)
             In_Events(n);
-        }
-        else if (events[n].events & EPOLLOUT && mClients.find(events[n].data.fd) !=  mClients.end()) 
-        {
+        else if (events[n].events & EPOLLOUT
+            && mClients.find(events[n].data.fd) !=  mClients.end()){
             Out_Events(n);
         }
     }
@@ -124,7 +113,7 @@ void Multiplexing::CreatMUltiplex()
     while (std::getline(inputFile, line)) {
         data += line;
     }
-    // std::string headers = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 1000000\r\nLocation: http://pathjdid\r\n";
+    // std::string headers = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 1000000\r\n\r\n";
     // std::string httprespose = headers + data;
     // const char *hello = httprespose.c_str();
 
@@ -152,11 +141,10 @@ void Multiplexing::CreatMUltiplex()
             perror("epoll_wait");
             exit(EXIT_FAILURE);
         }
-        
+
         for (int n = 0; n < nfds ; ++n) 
         {
             Connect_And_Add(n);
         }
     }
-
 }
