@@ -13,12 +13,12 @@ enum errors{
     Method_Unkounu = 1,
     Httpv_Unkounu = 2,
     Invalid_Header = 4,
+    NotAllowedMethod = 8,
 };
 
 class Request
 {
 string req_h;
-string root_path;
 string error_resp;
 Cgi cgi;
 int parce_req(const string& req1);
@@ -31,13 +31,13 @@ void check_for_error();
 public:
     Servers serv;
     int error;
+    int method_type;
     Method* method;
     size_t body_size;
     int body_state;
     std::string type;
     std::string r_path;
     std::string uri;
-    std::string req_path;
     std::string http_v;
     std::string body;
     std::map<std::string, std::string> headers;

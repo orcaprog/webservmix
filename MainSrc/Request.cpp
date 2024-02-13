@@ -6,7 +6,6 @@ Request::Request()
     body_state = 0;
     body_size = 0;
     error = 0;
-    root_path = "/nfs/homes/aelidrys/Desktop/webserv/root_dir";
 }
 
 
@@ -16,7 +15,6 @@ Request::Request(const Servers &ser){
     body_size = 0;
     error = 0;
     serv = ser;
-    root_path = ser.root[0];
 }
 
 Request::Request(const Request& req1){
@@ -33,8 +31,6 @@ Request& Request::operator=(const Request& oth){
         body_size = oth.body_size;
         type = oth.type;
         r_path = oth.r_path;
-        root_path = oth.root_path;
-        req_path = oth.req_path;
         http_v = oth.http_v;
         body = oth.body;
         headers = oth.headers;
@@ -67,17 +63,11 @@ int Request::spl_reqh_body(string s1)
 int Request::parce_key(const string &key)
 {
     if (key.size() > 0 && !isalpha(key[0]))
-    {
-        cout << "ERROR: " << key << " invalid key" << endl;
         return 0;
-    }
     for (size_t i = 0; i < key.size(); i++)
     {
         if (!isalnum(key[i]) && key[i] != '_' && key[i] != '-')
-        {
-            cout << "ERROR: " << key << " invalid key" << endl;
             return 0;
-        }
     }
     return 1;
 }
@@ -88,18 +78,15 @@ int Request::parce_rline(const string &rline){
     ss<<rline;
     getline(ss, tmp, ' ');
     if (tmp != "GET" && tmp != "POST" && tmp != "DELETE"){
-        cerr << "ERROE: Unkounu Method " << tmp << endl;
         error = Method_Unkounu;
         return 0;
     }
+    method_type = (tmp == "GET") + (tmp == "POST")*2 + (tmp == "DELETE")*4;
     type = tmp;
     getline(ss, tmp, ' ');
-    r_path = tmp;
-    uri = tmp;
-    req_path = root_path + uri;
+    r_path = uri = tmp;
     getline(ss, tmp);
     if (tmp != "HTTP/1.1\r" && tmp != "HTTP/1.1"){
-        cout << "ERROE: Unkounu Http Version " << tmp << endl;
         error = Httpv_Unkounu;
         return 0;
     }
@@ -118,8 +105,10 @@ int Request::parce_line(const string &line)
     getline(ss, value, ' ');
     value.clear();
     getline(ss, value, '\r');
-    if (!parce_key(key) && value.size())
+    if (!parce_key(key) && value.size()){
+        error = Invalid_Header;
         return 0;
+    }
     if (value.size() == 0){
         cout << "ERROR: No Value For Key " << key << endl;
         error = Invalid_Header;
@@ -147,6 +136,10 @@ int Request::parce_req(const string &req)
             return 0;
     }
     serv.FillData(uri,type);
+    if (!(serv.UriLocation.permession & method_type)){
+        error = error | NotAllowedMethod;
+        return 0;
+    }
     method = create_method(type);
     cgi.set_arg(serv, type);
     return 1;
@@ -156,8 +149,14 @@ void Request::check_for_error(){
     if (!error)
         return;
     Get get;
-    if (error == Method_Unkounu || error == Httpv_Unkounu || error == Invalid_Header)
+    if (error == Method_Unkounu || error == Httpv_Unkounu || error == Invalid_Header){
+        get.serv.status = "400";
         get.get(serv.error_page["400"]);
+    }
+    if (error & NotAllowedMethod){
+        get.serv.status = "405";
+        get.get(serv.error_page["405"]);
+    }
     error_resp = get.respons;
 }
 
@@ -206,7 +205,6 @@ Method* Request::create_method(const string &type){
         m->headers = headers;
         m->http_v = http_v;
         m->uri = uri;
-        m->req_path = req_path;
         m->fullUri_path = serv.rootUri;
         m->serv = serv;
     }
