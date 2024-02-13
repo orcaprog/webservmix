@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/13 17:13:58 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/13 17:42:23 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ Post::Post()
     first_time = 0;
     first_run = 0;
     cgi_exe = 0;
+    error = 0;
     mimeType();
 }
 
@@ -198,8 +199,6 @@ void Post::openFile(std::string body, size_t body_size)
     }
     else if (!MethodType && headers.find("Content-Type") != headers.end() && serv.Is_cgi)
     {
-        std::cout << "chose seoncd \n"<< "serv is "<< serv.Is_cgi<<std::endl;
-        // exit(1);
         std::string tmp_C = (headers.find("Content-Type"))->second;
 		if (tmp_C.find("boundary=") != std::string::npos)
 		{
@@ -210,7 +209,6 @@ void Post::openFile(std::string body, size_t body_size)
             sep_end = sep + "--";
 			buffer = "";
 			crfile = 1;
-			// ft_boundary(body);
             ft_boundary_cgi(body);
 			return ;
 		}
@@ -236,6 +234,7 @@ void Post::openFile(std::string body, size_t body_size)
         std::cout << "No Content Type\n";
 		crfile = -2;
         end = 1;
+        error = 1;
         return ;
     }
 	if (MethodType != 3)
@@ -248,6 +247,12 @@ void Post::openFile(std::string body, size_t body_size)
         the_file = fileName;
         content_type = mimeVal;
 		outFile.open(fileName.c_str(), std::ios::out | std::ios::binary);
+        if (!outFile.is_open())
+        {
+            error = 1;
+            end = 1;
+            return ;
+        }
 	}
     if (headers.find("Content-Length") != headers.end())
     {
@@ -255,7 +260,11 @@ void Post::openFile(std::string body, size_t body_size)
     }
     else
     {
-        end = 1;
+        if (headers.find("Transfer-Encoding") == headers.end())
+        {
+            end = 1;
+            error = 1;
+        }
         return ;
     }
 	if (MethodType != 3 && outFile.is_open())
@@ -272,6 +281,9 @@ void Post::openFile(std::string body, size_t body_size)
 void Post::normalFile(std::string body, size_t body_size)
 {
     (void)body_size;
+    std::cout << "in normal\n";
+    std::cout << "is file open " << outFile.is_open() << std::endl;
+    std::cout << "the file " << the_file<< std::endl;
 	outFile.write(body.c_str(), body.size());
     total_Body += body.size();
     if (total_Body >= size_len)
@@ -755,6 +767,7 @@ void Post::ft_boundary_cgi(std::string &body)
                     //in case of duplcate ********************************************
                     end = 1;
                     crfile = -2;
+                    error = 1;
                     return ;
                 }
                 out.open(file.c_str(), std::ios::out | std::ios::binary);
@@ -972,7 +985,9 @@ void Post::exe_cgi()
         cgi_exe = 1;
         std::cout << "the fail " << the_file<<std::endl;
         close(infile->_fileno);
-        std::remove(the_file.c_str());
+        int rem = std::remove(the_file.c_str());
+        if (!rem)
+            std::cout << " flussh\n";
         exit(1);
     }
     else if ((clock() - start_time) / CLOCKS_PER_SEC > 5)
@@ -982,7 +997,9 @@ void Post::exe_cgi()
         // remove(ran_file.c_str());
         std::cout << "the fail " << the_file<<std::endl;
         close(infile->_fileno);
-        std::remove(the_file.c_str());
+        int rem = std::remove(the_file.c_str());
+        if (!rem)
+            std::cout << " flussh\n";
         cgi_exe = 1;
         exit(1);
 
@@ -994,6 +1011,11 @@ int Post::process(std::string body, size_t body_size)
     std::cout << "IN Post \n";
     // if (crfile == -2 && !(enter_cgi && serv.Is_cgi) )
     //     return 1;
+    if (error)
+        return 1;
+    std::cout << "Body \n" << body << std::endl;
+    std::cout << "body_size " << body.size() << std::endl;
+    std::cout << "total " << total_Body << std::endl;
     if (crfile > 0 && body_size == 2 && MethodType == 1)
     {
         buff_chunk = body;
@@ -1019,5 +1041,9 @@ int Post::process(std::string body, size_t body_size)
         exe_cgi();
     if (cgi_exe)
         end = 1;
-    return 1;
+    std::cout << "end is " << end << std::endl;
+    std::cout << "total "<< total_Body<<std::endl;
+    std::cout << "Methos " << MethodType << std::endl;
+    std::cout << "THE file " << the_file << std::endl;
+    return 1; 
 }

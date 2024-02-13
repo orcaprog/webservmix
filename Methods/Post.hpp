@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/13 14:56:02 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/13 17:39:45 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ class Post : public Method
         /* data */
         
 		int crfile;
+        int error;
 		int MethodType;
         int special;
         int rare;
