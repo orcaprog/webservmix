@@ -166,11 +166,16 @@ void Multiplexing::CreatMUltiplex()
 
     for (iter = server.msockets.begin(); iter != server.msockets.end(); iter++)
     {
-        ev.events = EPOLLIN;
-        ev.data.fd = iter->first;
-        if (epoll_ctl(epollfd, EPOLL_CTL_ADD, iter->first, &ev) == -1) {
-            perror("epoll_ctl: listen_sock");
-            exit(EXIT_FAILURE);
+        if(iter->second.sercheck)
+        {
+            ev.events = EPOLLIN;
+            ev.data.fd = iter->first;
+            if (epoll_ctl(epollfd, EPOLL_CTL_ADD, iter->first, &ev) == -1) 
+            {
+                perror("epoll_ctl: listen_sock");
+                exit(EXIT_FAILURE);
+            }
+
         }
     }
     while (true)

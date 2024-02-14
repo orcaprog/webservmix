@@ -142,7 +142,7 @@ void Servers::SetPorts()
     }
     arg = servconf[i][1];
     int myport = std::atoi(arg.c_str());
-    if (!check_isdigit(arg) || myport > 65535)
+    if (!check_isdigit(arg) || myport > 65535 || myport <= 1023)
     {
         throw("invalid port in '" + arg + "' of the  directive \n");
     }
@@ -458,9 +458,27 @@ void Servers::desplay()
 /*CREATE SOKCET*/
 /*#############################################################*/
 
-void Servers::CreatSocketServer()
+void Servers::CreatSocketServer( std::map<int,Servers > & msockets)
 {
 
+    std::map<int,Servers >::iterator iter = msockets.begin();
+    while (iter != msockets.end())
+    {
+        if (iter->second.host[0] == host[0] && iter->second.port[0] == port[0])
+        {
+            break;
+        }
+        iter++;
+    }
+    if (iter ==  msockets.end())
+    {
+        cout<<"this is new server\n";
+    }
+    else 
+    {
+        cout<<"this is already exist\n";
+        return ;
+    }
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         perror("connot create socket");
@@ -475,6 +493,7 @@ void Servers::CreatSocketServer()
         exit(EXIT_FAILURE);
     }
 
+    
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = inet_addr(host[0].c_str()); //init_adder(host); 
     address.sin_port = htons(port[0]);
@@ -489,6 +508,7 @@ void Servers::CreatSocketServer()
         perror("“In listen”");
         exit(EXIT_FAILURE);
     }
+    sercheck = 1;
 }
 /*#############################################################*/
 void Servers::SetIndex_Of(string path)
@@ -730,6 +750,7 @@ void Servers::FillData(string uri,string mehtod)
 Servers::Servers()
 {
     // root.push_back("");
+    sercheck = 0;
     SetDefaultError();
     status = "200 OK";
     

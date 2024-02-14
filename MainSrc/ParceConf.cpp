@@ -145,7 +145,7 @@ void ParceConf::desplay()
     while (i < Vservers.size())
     {
         Vservers[i].SetAllDir();
-        Vservers[i].CreatSocketServer();
+        Vservers[i].CreatSocketServer(msockets);
         msockets[Vservers[i].server_fd] = Vservers[i];
         // cout<<"===============================================\n";
         // Vservers[i].desplay();

@@ -82,6 +82,7 @@ public:
     
 
     int server_fd;
+    bool sercheck;
     struct sockaddr_in address;
     std::vector<std::string> Vstrvalid;
     std::vector<std::vector<std::string> > servconf;
@@ -104,7 +105,7 @@ public:
 
     int getLocation(std::string path);
     void SetDefaultError();
-    void CreatSocketServer();
+    void CreatSocketServer( std::map<int,Servers > & msockets);
     Servers();
     void SetIndex_Of(string path);
     /*====================================*/

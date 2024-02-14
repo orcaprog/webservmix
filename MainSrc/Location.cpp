@@ -14,29 +14,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-//wach
-
-
-
-
-
-
-
-
-
-
-
-
-
 void Location::FillValid()
 {
      Vstrvalid.push_back("listen");
@@ -362,7 +339,6 @@ void Location::SetCgiPath()
             cgi_path[extantion] = path;
         }
     }
-    
 }
 
 /*__________________________________________*/
