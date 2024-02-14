@@ -29,7 +29,7 @@ Multiplexing::~Multiplexing()
 void Multiplexing::Out_Events(int n)
 {
        
-    mClients[events[n].data.fd].second.process_req(string(""),0);
+    mClients[events[n].data.fd].second.process_req(string(""),events[n].events);
 
     string res = mClients[events[n].data.fd].second.get_respons();
 
@@ -69,7 +69,7 @@ void Multiplexing::In_Events(int n)
         if (iter2 != mClients.end())
         {
             
-            mClients[events[n].data.fd].second.process_req(string("").append(buffer, bytesRead),bytesRead);
+            mClients[events[n].data.fd].second.process_req(string("").append(buffer, bytesRead),events[n].events);
             string res = mClients[events[n].data.fd].second.get_respons();
             write(events[n].data.fd , res.c_str(), res.size());
         }
@@ -192,7 +192,7 @@ void Multiplexing::CreatMUltiplex()
         {
             Connect_And_Add(n);
         }
-        CheckTimeOut();
+        // CheckTimeOut();
     }
 
 }

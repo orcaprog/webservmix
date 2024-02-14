@@ -11,10 +11,38 @@
 /* ************************************************************************** */
 
 #include "Delete.hpp"
-int Delete::process(string body, size_t body_size)
+int Delete::process(string body, int event) 
 {
-    RemoveAllPath(serv.rootUri);
-    
+    (void)body;
+    cout<<"EPOLLOUT :"<<EPOLLOUT<<endl;
+    cout<<"EPOLLIN  :"<<EPOLLIN<<endl;
+    cout<<"event    :"<<event<<endl;
+    if(deleted) 
+    {
+        cout<<"Enter in "<<serv.rootUri<<" \n";
+        RemoveAllPath(serv.rootUri);
+        deleted = 0;
+    }
+    else if(event & EPOLLOUT)
+    {
+        Get get;
+        cout<<"status :"<<status<<endl;
+        if(status == 0)
+        {
+            cout<<"entere here \n";
+            respons = "HTTP/1.1 204\r\n\r\n";
+            end = 1;
+        }
+        else
+        {
+            get.serv.status = "403";
+            get.get(serv.error_page["403"]);
+            respons = get.respons;
+            std::cout<<respons<<endl;
+            end = 1;
+        }
+    }
+    return 0;
 }
 
 int Delete::pathExists(std::string path) {
@@ -24,7 +52,9 @@ int Delete::pathExists(std::string path) {
 
 Delete::Delete()
 {
-
+    cout<<"call constructor \n";
+    status = 0;
+    deleted = 1;
 }
 
 int  Delete::my_remove(std::string file)
@@ -44,13 +74,12 @@ int  Delete::my_remove(std::string file)
 string PatentOfFile(string & fullPath)
 {
     size_t len = fullPath.length();
-    string parentPath= "";
     len--;
     while (len >= 0 && fullPath[len] != '/')
     {
         len--;
     }
-    char buffer[++len];
+    char buffer[fullPath.size()];
     std::size_t length = fullPath.copy(buffer,len,0);
     buffer[length]='\0';
     return string(buffer);
@@ -58,8 +87,6 @@ string PatentOfFile(string & fullPath)
 }
 void Delete::RemoveAllPath(std::string path)
 {
-
-    int check_rm = 0;
     struct stat stat_info;
     std::string path_plus;
     std::cout<<"path   :"<<path<<std::endl;
@@ -74,7 +101,11 @@ void Delete::RemoveAllPath(std::string path)
         {
              my_remove(path);
         }
-        return ; 
+        else 
+        {
+            status = 1;
+        }
+        return ;
     }
     
 
@@ -85,19 +116,18 @@ void Delete::RemoveAllPath(std::string path)
     }
     if (!(stat_info.st_mode & S_IWOTH))
     {
-        cout<<"Forbidan \n";
-        return;
+        status = 1;
+        return ;
     }
     
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type == DT_DIR)
         {
-
             if (std::strcmp(entry->d_name  , ".") && std::strcmp(entry->d_name ,"..") )
             {
                 path_plus = path + "/"+entry->d_name;
-                 RemoveAllPath(path_plus);
+                RemoveAllPath(path_plus);
                 std::cout<<"dir :"<<entry->d_name<<std::endl;
             }
         }
@@ -106,7 +136,7 @@ void Delete::RemoveAllPath(std::string path)
             std::string filePath = std::string(path) + "/" + entry->d_name;
             std::cout<<"file :"<<filePath<<std::endl;
              stat(path_plus.c_str(),&stat_info);
-            check_rm += my_remove(filePath );
+             my_remove(filePath );
 
         }
     }

@@ -23,11 +23,13 @@ class Delete : public Method
 {
 
 public:
+    bool deleted;
     Delete();
     int  my_remove(std::string file);
+    bool status;
     void RemoveAllPath(std::string path);
     int pathExists(std::string path);
-    int process(string body, size_t body_size);
+    int process(string body, int event) ;
     ~Delete();
 };
 #endif
