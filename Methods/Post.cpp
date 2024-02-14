@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/13 17:42:23 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/14 09:57:04 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,9 +69,29 @@ std::string Post::creat_file_name(int ret)
     std::strftime(time_B, sizeof(time_B), "%Y-%m-%d_%H-%M-%S", timeInfo);
     // Get the resulting string
     std::string currentTimeString = time_B;
+    std::string root;
     if (ret)
         return currentTimeString;
-    return  serv.rootUri + "/"+ currentTimeString;
+    if (serv.Is_cgi)
+    {
+        
+        size_t i;
+        if (!fullUri_path.size())
+        {
+            std::cout << "extention Problem\n";
+            return std::string("");       
+        }
+        for (i = fullUri_path.size() - 1; i >= 0 && fullUri_path[i]!= '.'; i--);
+        
+        if (fullUri_path[i] == '.')
+            for (i -= 1 ; i >= 0 && fullUri_path[i]!= '/'; i--);
+        if (!i)
+            i = fullUri_path.size();
+        root = fullUri_path.substr(0, i);
+    }
+    else
+        root = serv.rootUri;
+    return  root + "/"+ currentTimeString;
 }
 void Post::mimeType()
 {
@@ -235,6 +255,9 @@ void Post::openFile(std::string body, size_t body_size)
 		crfile = -2;
         end = 1;
         error = 1;
+        exit(1);
+                    std::cout << "err1";
+
         return ;
     }
 	if (MethodType != 3)
@@ -251,6 +274,8 @@ void Post::openFile(std::string body, size_t body_size)
         {
             error = 1;
             end = 1;
+            std::cout << "Could not open the output file"<< the_file << std::endl << outFile.is_open()<<std::endl;
+            exit(1);
             return ;
         }
 	}
@@ -264,6 +289,8 @@ void Post::openFile(std::string body, size_t body_size)
         {
             end = 1;
             error = 1;
+            std::cout << "err3";
+            exit(1);
         }
         return ;
     }
@@ -768,6 +795,8 @@ void Post::ft_boundary_cgi(std::string &body)
                     end = 1;
                     crfile = -2;
                     error = 1;
+                                std::cout << "err5";
+                    exit(1);
                     return ;
                 }
                 out.open(file.c_str(), std::ios::out | std::ios::binary);
@@ -923,7 +952,6 @@ char **Post::set_env()
 }
 void Post::exe_cgi()
 {
-    std::string ran_file;
     FILE *infile;
     FILE *outfile;
     if (!first_run)
@@ -987,35 +1015,32 @@ void Post::exe_cgi()
         close(infile->_fileno);
         int rem = std::remove(the_file.c_str());
         if (!rem)
-            std::cout << " flussh\n";
-        exit(1);
+            std::cout << " couldn't remove the TMP file \n";
     }
     else if ((clock() - start_time) / CLOCKS_PER_SEC > 5)
     {
         kill(pid, SIGKILL);
         std::cout << "there is time out \n";
-        // remove(ran_file.c_str());
-        std::cout << "the fail " << the_file<<std::endl;
         close(infile->_fileno);
         int rem = std::remove(the_file.c_str());
         if (!rem)
-            std::cout << " flussh\n";
+            std::cout << " couldn't remove the TMP file \n";
         cgi_exe = 1;
-        exit(1);
-
     }
 }
 
 int Post::process(std::string body, size_t body_size)
 {
-    std::cout << "IN Post \n";
-    // if (crfile == -2 && !(enter_cgi && serv.Is_cgi) )
-    //     return 1;
+    std::cout << "Post \n"<<std::endl;
     if (error)
+    {
+        std::cout << "Found error\n";
         return 1;
+    }
     std::cout << "Body \n" << body << std::endl;
     std::cout << "body_size " << body.size() << std::endl;
     std::cout << "total " << total_Body << std::endl;
+    std::cout << "the len is " << size_len << std::endl;
     if (crfile > 0 && body_size == 2 && MethodType == 1)
     {
         buff_chunk = body;
@@ -1039,11 +1064,25 @@ int Post::process(std::string body, size_t body_size)
         enter_cgi = 1;
     if (enter_cgi && serv.Is_cgi)
         exe_cgi();
-    if (cgi_exe)
-        end = 1;
-    std::cout << "end is " << end << std::endl;
-    std::cout << "total "<< total_Body<<std::endl;
-    std::cout << "Methos " << MethodType << std::endl;
-    std::cout << "THE file " << the_file << std::endl;
+    if (cgi_exe && body_size == EPOLLOUT)
+    {
+        std::cout << "in get\n";
+        get.get(ran_file);
+        respons = get.respons;
+        std::cout << "response: " << respons<<std::endl;
+        if (get.end)
+            end = 1;
+        std::cout << "out of get\n";   
+    }
+    if (end && !serv.Is_cgi)
+    {
+        std::cout << "in Post resp\n";
+        serv.status = "201";
+        respons = "HTTP/1.1 " + serv.status;
+        respons += string("\r\nContent-Type: text/html\r\n");
+        respons += string("Content-Length: 13");
+        respons += "\r\n\r\n";
+        respons += "File created\n";
+    }
     return 1; 
 }

@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/13 17:39:45 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/14 09:30:49 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,8 @@ class Post : public Method
         int pid;
         int exit_status;
         int first_run;
+            std::string ran_file;
+
         int cgi_exe;
         
         Get get;
