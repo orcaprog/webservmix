@@ -84,7 +84,11 @@ int Request::parce_rline(const string &rline){
     method_type = (tmp == "GET") + (tmp == "POST")*2 + (tmp == "DELETE")*4;
     type = tmp;
     getline(ss, tmp, ' ');
-    r_path = uri = tmp;
+    uri = tmp;
+    if (uri.size() > 1000){
+        error = Uri_Too_Long;
+        return 0;
+    }
     getline(ss, tmp);
     if (tmp != "HTTP/1.1\r" && tmp != "HTTP/1.1"){
         error = Httpv_Unkounu;
@@ -106,12 +110,12 @@ int Request::parce_line(const string &line)
     value.clear();
     getline(ss, value, '\r');
     if (!parce_key(key) && value.size()){
-        error = Invalid_Header;
+        error |= Invalid_Header;
         return 0;
     }
     if (value.size() == 0){
         cout << "ERROR: No Value For Key " << key << endl;
-        error = Invalid_Header;
+        error |= Invalid_Header;
         return 0;
     }
     headers[key] = value;
@@ -149,18 +153,26 @@ void Request::check_for_error(){
     if (!error)
         return;
     Get get;
-    if (error == Method_Unkounu || error == Httpv_Unkounu || error == Invalid_Header){
+    if (error == Method_Unkounu || error == Invalid_Header){
         get.serv.status = "400";
         get.get(serv.error_page["400"]);
     }
-    if (error & NotAllowedMethod){
+    else if (error & Httpv_Unkounu){
+        get.serv.status = "505";
+        get.get(serv.error_page["505"]);
+    }
+    else if (error & Uri_Too_Long){
+        get.serv.status = "414";
+        get.get(serv.error_page["414"]);
+    }
+    else if (error & NotAllowedMethod){
         get.serv.status = "405";
         get.get(serv.error_page["405"]);
     }
     error_resp = get.respons;
 }
 
-void    Request::process_req(const string &req, size_t read_len, int event){
+void    Request::process_req(const string &req, int event){
     if (!parce_req(req)){
         check_for_error();
         return ;
@@ -172,7 +184,7 @@ void    Request::process_req(const string &req, size_t read_len, int event){
             if (type == "GET")
                 method->process(body, event);
             else
-                method->process(body, read_len);
+                method->process(body, event);
         }
     }
 }
@@ -180,7 +192,7 @@ void    Request::process_req(const string &req, size_t read_len, int event){
 int Request::resp_done(){
     if (error)
         return 1;
-    if (serv.Is_cgi){
+    if (serv.Is_cgi && type == "GET"){
         if (cgi.resp_done)
             return 1;
     }
@@ -216,8 +228,8 @@ string Request::get_respons() const{
         return error_resp;
     if (!method)
         return("");
-     if (serv.Is_cgi)
-            return cgi.get.respons;
+    if (serv.Is_cgi)
+        return cgi.get.respons;
     return (method->respons);
 }
 

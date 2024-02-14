@@ -71,7 +71,7 @@ void Get::set_content_type(const string& file_name){
     cout<<"extension1: "<<extension<<endl;
     if (types.find(extension) != types.end())
         content_type = types.find(extension)->second;
-    else
+    else if (extension == "")
         content_type = "application/octet-stream";
 }
 
@@ -122,15 +122,17 @@ void Get::get(const string& file_name){
     
     if (!opened)
         open_file(file_name); 
-    if (opened == 1){
+    if (opened == 1 && !end){
         string res;
         res.resize(max_r);
         src_file.read(&res[0], max_r);
         r_len = src_file.gcount();
         res.resize(r_len);
         respons += res;
-        if (src_file.eof())
+        if (src_file.eof()){
+            src_file.close();
             end = 1;
+        }
         // cout<<"res_size = "<<respons.size()<<"\nres: <<"<<respons<<">>"<<endl;
     }
     if (opened == -1){
@@ -138,11 +140,9 @@ void Get::get(const string& file_name){
         end = 1;
         get(serv.error_page["404"]);
     }
-    if (end)
-        src_file.close();
 }
 
-int Get::process(string _body, size_t event){
+int Get::process(string _body, int event){
     body = _body;
     if (event == EPOLLIN)
         return 0;

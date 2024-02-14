@@ -14,6 +14,7 @@ enum errors{
     Httpv_Unkounu = 2,
     Invalid_Header = 4,
     NotAllowedMethod = 8,
+    Uri_Too_Long = 16,
 };
 
 class Request
@@ -46,7 +47,7 @@ public:
     Request(const Servers &ser);
     Request(const Request& req);
     Request& operator=(const Request& oth);
-    void process_req(const string &req, size_t read_len, int event);
+    void process_req(const string &req, int event);
     string get_respons() const;
     int resp_done();
     ~Request();

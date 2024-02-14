@@ -21,7 +21,7 @@ string extension;
 string out_file;
 string method_type;
 Servers serv;
-void set_env();
+void set_env(const string& fullUri_path);
 void generate_file_name();
 void set_cmd(const string& fullUri_path);
 int extension_search(const string& f_name);

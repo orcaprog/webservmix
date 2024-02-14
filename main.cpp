@@ -13,6 +13,7 @@
 #include "MainSrc/ParceConf.hpp"
 #include "MainSrc/Multiplexing.hpp"
 #include <exception>
+
 int main(int ac , char **av)
 {
     (void)ac;
@@ -20,21 +21,19 @@ int main(int ac , char **av)
     try
     {
         Multiplexing mult(av[1]);
-        mult.CreatMUltiplex();
-    
+        mult.CreatMUltiplex(); 
     }
     catch(std::string  e)
     {
-        std::cerr << e<< '\n';
+        std::cerr <<e<< '\n';
     }
-        catch(const char * e)
+    catch(const char * e)
     {
-        std::cerr << e<< '\n';
+        std::cerr <<e<< '\n';
     }
     catch(exception & ex)
     {
         cout<<ex.what()<<endl;
         cout<<string::npos<<endl;
     }
-    
 }

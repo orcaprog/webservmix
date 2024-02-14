@@ -64,7 +64,7 @@ int Cgi::extension_search(const string& f_name){
 void Cgi::exec_cgi(const string& fullUri_path){
     if (!is_run){
         set_cmd(fullUri_path);
-        set_env();
+        set_env(fullUri_path);
         cmd = cmds[0];
         is_run = 1;
         start_time = clock();
@@ -92,7 +92,6 @@ void Cgi::exec_cgi(const string& fullUri_path){
             resp_done = 1;
         }
     }
-
 }
 
 void Cgi::execute(Method *method){
@@ -101,8 +100,10 @@ void Cgi::execute(Method *method){
     }
     else{
         get.get(string(out_file));
-        if (get.end)
+        if (get.end){
             resp_done = 1;
+            std::remove(out_file.c_str());
+        }
     }
 }
 
@@ -115,7 +116,7 @@ void Cgi::generate_file_name(){
     out_file += string(".html");
 }
 
-void Cgi::set_env(){
+void Cgi::set_env(const string& fullUri_path){
 
     generate_file_name();
     string senv("QUERY_STRING=");
@@ -123,7 +124,7 @@ void Cgi::set_env(){
     env[0] = new char[senv.length()+1];
     strcpy(env[0],senv.c_str());
     senv = "PATH_INFO=";
-    senv += "None";
+    senv += fullUri_path;
     env[1] = new char[senv.length()+1];
     strcpy(env[1],senv.c_str());
 }

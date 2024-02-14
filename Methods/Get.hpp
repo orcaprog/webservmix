@@ -30,7 +30,7 @@ public:
     void get(const string& file_name);
     Get(const Get& oth);
     Get& operator=(const Get& oth);
-    int process(std::string body, size_t event);
+    int process(std::string body, int event);
     ~Get();
 };
 

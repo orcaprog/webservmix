@@ -571,7 +571,7 @@ void    Post::ft_boundary(std::string& body)
     }
 }
 
-int Post::process(std::string body, size_t body_size)
+int Post::process(std::string body, int body_size)
 {
     // std::cout << "IN post \n";
 	// std::cout << MethodType << " << is "<<std::endl;

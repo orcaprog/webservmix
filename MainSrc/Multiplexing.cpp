@@ -28,7 +28,7 @@ Multiplexing::~Multiplexing()
 void Multiplexing::Out_Events(int n)
 {
        
-    mClients[events[n].data.fd].second.process_req(string(""),0,EPOLLOUT);
+    mClients[events[n].data.fd].second.process_req(string(""),EPOLLOUT);
 
     string res = mClients[events[n].data.fd].second.get_respons();
 
@@ -63,7 +63,7 @@ void Multiplexing::In_Events(int n)
     {
         std::map<int ,std::pair<Servers,Request> >::iterator iter2 = mClients.find(events[n].data.fd);
         if (iter2 != mClients.end())
-            mClients[events[n].data.fd].second.process_req(string("").append(buffer, bytesRead),bytesRead,EPOLLIN);
+            mClients[events[n].data.fd].second.process_req(string("").append(buffer, bytesRead),EPOLLIN);
     }
 }
 
