@@ -72,7 +72,7 @@ class Post : public Method
 
         std::string creat_file_name();
         
-        int process(std::string body, size_t body_size);
+        int process(std::string body, int event);
 		void openFile(std::string body, size_t body_size);
 		void normalFile(std::string body, size_t body_size);
         
