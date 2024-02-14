@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/14 09:57:04 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/14 14:35:41 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -254,10 +254,7 @@ void Post::openFile(std::string body, size_t body_size)
         std::cout << "No Content Type\n";
 		crfile = -2;
         end = 1;
-        error = 1;
-        exit(1);
-                    std::cout << "err1";
-
+        error = 3;
         return ;
     }
 	if (MethodType != 3)
@@ -272,10 +269,9 @@ void Post::openFile(std::string body, size_t body_size)
 		outFile.open(fileName.c_str(), std::ios::out | std::ios::binary);
         if (!outFile.is_open())
         {
-            error = 1;
+            error = 4;
             end = 1;
             std::cout << "Could not open the output file"<< the_file << std::endl << outFile.is_open()<<std::endl;
-            exit(1);
             return ;
         }
 	}
@@ -288,9 +284,7 @@ void Post::openFile(std::string body, size_t body_size)
         if (headers.find("Transfer-Encoding") == headers.end())
         {
             end = 1;
-            error = 1;
-            std::cout << "err3";
-            exit(1);
+            error = 3;
         }
         return ;
     }
@@ -372,8 +366,7 @@ void Post::chunk_write(std::string body, size_t body_size)
                 outFile.close();
                 crfile = -2;
                 end = 1;
-                            out.close();
-
+                out.close();
                 return ;
             }
             tmp.append(buffer, 0, buffer.size());
@@ -418,8 +411,9 @@ void Post::chunked_file(std::string body, size_t body_size)
         }
         if (body.find("\r\n") == std::string::npos)
         {
-            std::cout << "not found \n";
-            end = 1;
+            std::cout << "not /r/n found \n";
+            error  = 3;
+            return ;
         }
         chunks_s = body.substr(0, body.find("\r\n"));
         body = body.substr(body.find("\r\n") + 2, body.size() -  body.find("\r\n") - 2);
@@ -578,6 +572,7 @@ void    Post::ft_boundary(std::string& body)
                     //in case of duplcate ********************************************
                     end = 1;
                     crfile = -2;
+                    error = 3;
                     return ;
                 }
                 out.open(file.c_str(), std::ios::out | std::ios::binary);
@@ -586,7 +581,8 @@ void    Post::ft_boundary(std::string& body)
 				else
                 {
                     std::cout << "File Problem\n";
-					exit(4);/////ERRRRRRRROE PAGES  
+					error = 4;/////ERRRRRRRROE PAGES  
+                    return ;
                 }
 				
 			}
@@ -610,7 +606,8 @@ void    Post::ft_boundary(std::string& body)
                 {
                     std::cout << file<<std::endl;
                     std::cout << "File Problem\n";
-					exit(4);
+                    error = 4;
+					return ;
                     
                 }
 				//make Error page 
@@ -794,9 +791,7 @@ void Post::ft_boundary_cgi(std::string &body)
                     //in case of duplcate ********************************************
                     end = 1;
                     crfile = -2;
-                    error = 1;
-                                std::cout << "err5";
-                    exit(1);
+                    error = 3;
                     return ;
                 }
                 out.open(file.c_str(), std::ios::out | std::ios::binary);
@@ -806,8 +801,8 @@ void Post::ft_boundary_cgi(std::string &body)
 				else
                 {
                     std::cout << "File Problem\n";
-                    end = 1;
-					exit(4);/////ERRRRRRRROE PAGES  
+                    error  = 4;
+					return ;/////ERRRRRRRROE PAGES  
                 }
 				
 			}
@@ -833,7 +828,8 @@ void Post::ft_boundary_cgi(std::string &body)
                 {
                     std::cout << file<<std::endl;
                     std::cout << "File Problem\n";
-					exit(4);
+                    error = 4;
+					return  ;
                     
                 }
 				//make Error page 
@@ -978,16 +974,14 @@ void Post::exe_cgi()
         }
         if (serv.UriLocation.cgi_path.find(ext) != serv.UriLocation.cgi_path.end())
         {
-            std::cout << "here now  \n";
             std::string ext_path = (serv.UriLocation.cgi_path.find(ext))->second;
-            std::cout << "the extention is " << ext_path<<std::endl;
             cmd = set_cmd(ext_path);
-            std::cout << "is out \n";
             env = set_env();
         }
         else
         {
             std::cout << "Problem in the extention\n";
+            error = 3;
             return ;
         }
         start_time = clock();
@@ -995,6 +989,7 @@ void Post::exe_cgi()
         if (pid < 0)
         {
             perror("Fork failed");
+             error = 4;
             exit(1);
         }
         if (pid == 0)
@@ -1015,7 +1010,10 @@ void Post::exe_cgi()
         close(infile->_fileno);
         int rem = std::remove(the_file.c_str());
         if (!rem)
+        {
             std::cout << " couldn't remove the TMP file \n";
+            error = 4;
+        }
     }
     else if ((clock() - start_time) / CLOCKS_PER_SEC > 5)
     {
@@ -1024,8 +1022,13 @@ void Post::exe_cgi()
         close(infile->_fileno);
         int rem = std::remove(the_file.c_str());
         if (!rem)
+        {
             std::cout << " couldn't remove the TMP file \n";
+            error = 4;
+            return ;
+        }
         cgi_exe = 1;
+        error = 2;
     }
 }
 
@@ -1034,6 +1037,28 @@ int Post::process(std::string body, size_t body_size)
     std::cout << "Post \n"<<std::endl;
     if (error)
     {
+        std::cout << "Error " <<error << std::endl;
+        if (error == 2)
+        {
+            get.serv.status = "408";
+            get.get("error_pages/408.html");
+            serv.status = "408";
+        }
+        else if (error == 3)
+        {
+            get.serv.status = "400";
+            get.get("error_pages/400.html");
+            serv.status = "400";
+        }
+        else if (error == 4)
+        {
+            get.serv.status = "509";
+            get.get("error_pages/417.html");
+            serv.status = "417";
+        }
+        respons = get.respons;
+             if (get.end)
+                end = 1;
         std::cout << "Found error\n";
         return 1;
     }
@@ -1064,7 +1089,7 @@ int Post::process(std::string body, size_t body_size)
         enter_cgi = 1;
     if (enter_cgi && serv.Is_cgi)
         exe_cgi();
-    if (cgi_exe && body_size == EPOLLOUT)
+    if (cgi_exe && body_size == EPOLLOUT && !error)
     {
         std::cout << "in get\n";
         get.get(ran_file);
