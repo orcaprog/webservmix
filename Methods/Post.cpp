@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/15 11:43:34 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/15 11:45:42 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1009,28 +1009,18 @@ void Post::exe_cgi()
     if (waitpid(pid, &exit_status, WNOHANG) > 0)
     {
         cgi_exe = 1;
-        std::cout << "the fail " << the_file<<std::endl;
-        // close(infile->_fileno);
-        std::cout << "dsdsdsd1\n";
-        
-        // close(outfile->_fileno);
-        std::cout << "dsdsdsd2\n";
         int rem = std::remove(the_file.c_str());
-        std::cout << "dsdsdsd3\n";
         if (rem)
         {
             std::cout << " couldn't remove the TMP file \n";
             error = 4;
             return ;
         }
-        std::cout << "dsdsdsd5\n";
     }
     else if ((clock() - start_time) / CLOCKS_PER_SEC > 5)
     {
         kill(pid, SIGKILL);
         std::cout << "there is time out \n";
-        // close(infile->_fileno);
-        // close(outfile->_fileno);
         int rem = std::remove(the_file.c_str());
         int ram = std::remove(ran_file.c_str());
         if (rem || ram)
@@ -1097,14 +1087,6 @@ int Post::process(std::string body, size_t body_size)
         std::cout << "Found error\n";
         return 1;
     }
-    std::cout << "Body \n" << body << std::endl;
-    std::cout << "body_size " << body.size() << std::endl;
-    std::cout << "total " << total_Body << std::endl;
-    std::cout << "the len is " << size_len << std::endl;
-    std::cout << "error " << error << std::endl;
-    std::cout << "crfile " << crfile << std::endl;
-    std::cout << "IS CGI " << serv.Is_cgi<<std::endl;
-    std::cout << "****************************************************************\n";
     if (crfile > 0 && body_size == 2 && MethodType == 1)
     {
         buff_chunk = body;
