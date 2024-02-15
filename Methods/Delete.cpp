@@ -14,9 +14,6 @@
 int Delete::process(string body, int event) 
 {
     (void)body;
-    cout<<"EPOLLOUT :"<<EPOLLOUT<<endl;
-    cout<<"EPOLLIN  :"<<EPOLLIN<<endl;
-    cout<<"event    :"<<event<<endl;
     if(deleted) 
     {
         cout<<"Enter in "<<serv.rootUri<<" \n";
@@ -33,10 +30,18 @@ int Delete::process(string body, int event)
             respons = "HTTP/1.1 204\r\n\r\n";
             end = 1;
         }
-        else
+        else if (status == 1)
         {
             get.serv.status = "403";
             get.get(serv.error_page["403"]);
+            respons = get.respons;
+            std::cout<<respons<<endl;
+            end = 1;
+        }
+        else
+        {
+            get.serv.status = "500";
+            get.get(serv.error_page["500"]);
             respons = get.respons;
             std::cout<<respons<<endl;
             end = 1;
@@ -111,7 +116,9 @@ void Delete::RemoveAllPath(std::string path)
 
     DIR *dir = opendir(path.c_str());
     if (dir == NULL) {
+        status = 2;
         perror("Error opening directory");
+        cout<<status<<endl;
         return ;
     }
     if (!(stat_info.st_mode & S_IWOTH))

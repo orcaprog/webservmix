@@ -458,13 +458,15 @@ void Servers::desplay()
 /*CREATE SOKCET*/
 /*#############################################################*/
 
-void Servers::CreatSocketServer( std::map<int,Servers > & msockets)
+void Servers::CreatSocketServer( std::map<int,vector<Servers> > & msockets)
 {
 
-    std::map<int,Servers >::iterator iter = msockets.begin();
+    std::map<int,vector<Servers> >::iterator iter = msockets.begin();
+    vector<Servers>::iterator ser;
     while (iter != msockets.end())
     {
-        if (iter->second.host[0] == host[0] && iter->second.port[0] == port[0])
+        ser = find(iter->second.begin(),iter->second.end(),*this);
+        if (ser != iter->second.end())
         {
             break;
         }
@@ -582,7 +584,24 @@ void Servers::SetDefaultError()
     error_page["415"] =  "error_pages/415.html";
     error_page["416"] =  "error_pages/416.html";
     error_page["417"] =  "error_pages/417.html";
+    error_page["500"] =  "error_pages/500.html";
     
+}
+bool  Servers::operator== (const Servers& ser)
+{
+    if (host[0] == ser.host[0] && port[0] == ser.port[0])
+    {
+        return 1;
+    }
+    return 0;
+}
+bool  Servers::operator== (const string & servername)
+{
+    if (server_name[0] == servername)
+    {
+        return 1;
+    }
+    return 0;
 }
 int Servers::searchPathLocation(string &uri)
 {
@@ -599,7 +618,6 @@ int Servers::searchPathLocation(string &uri)
     }
     return -1;
 }
-
 
 int  Servers::fillFromLocation(int &in, string &uri,string & method)
 {

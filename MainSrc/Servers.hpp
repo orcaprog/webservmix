@@ -41,9 +41,6 @@
 class Servers
 {
 private:
-  
-
-
     int  checkDup(std::string der,int & index);
     bool check_isdigit(std::string str);
     void FillValid();
@@ -79,7 +76,8 @@ public:
     map<string,string> error_page;
     std::vector<std::string> s_erorr;
 
-    
+    bool  operator== (const Servers& ser);
+    bool  operator== (const string & servername);
 
     int server_fd;
     bool sercheck;
@@ -105,7 +103,7 @@ public:
 
     int getLocation(std::string path);
     void SetDefaultError();
-    void CreatSocketServer( std::map<int,Servers > & msockets);
+    void CreatSocketServer( std::map<int,vector<Servers> > & msockets);
     Servers();
     void SetIndex_Of(string path);
     /*====================================*/

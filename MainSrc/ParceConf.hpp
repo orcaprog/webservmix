@@ -52,7 +52,7 @@ private:
     void FillServers();
     void desplay();
 public:
-    std::map<int,Servers > msockets;    
+    std::map<int, vector<Servers> > msockets;    
     void TakeAndParce(std::string confgfile);
     void FillValid();
     std::vector<std::string> Vstrvalid;

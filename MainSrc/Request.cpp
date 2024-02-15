@@ -52,6 +52,7 @@ int Request::spl_reqh_body(string s1)
         body = s1.substr(s1.find("\r\n\r\n", 0) + 4);
         cout << "--_______Lheaders Te9raw Kolhom________--\n" << endl;
         req_h += s1.substr(0, s1.find("\r\n\r\n", 0));
+        cout<<req_h<<endl;
         body_state = 1;
         body_size = body.size();
         return 1;

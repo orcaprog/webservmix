@@ -26,7 +26,7 @@ public:
     bool deleted;
     Delete();
     int  my_remove(std::string file);
-    bool status;
+    int status;
     void RemoveAllPath(std::string path);
     int pathExists(std::string path);
     int process(string body, int event) ;
