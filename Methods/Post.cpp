@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/14 14:35:41 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/15 11:43:34 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@ Post::Post()
     is_first = 0;
     sep = "";
 	sep_found = "";
+    ran_file = "";
+    the_file = "";
     file_hang = 0;
     here_is = 0;
     first_time = 0;
@@ -948,8 +950,6 @@ char **Post::set_env()
 }
 void Post::exe_cgi()
 {
-    FILE *infile;
-    FILE *outfile;
     if (!first_run)
     {
         std::string ext_path;
@@ -960,18 +960,10 @@ void Post::exe_cgi()
         first_run = 1;
         ran_file = creat_file_name(1);
         ran_file = ran_file + ".html";
-        infile = fopen(the_file.c_str(), "r");
-        outfile = fopen(ran_file.c_str(), "w");
         std::string ext = find_ext();
         if (!ext.size())
             return ;//error page before
         std::cout << ext<<std::endl;
-        if (!infile || !outfile)
-        {
-            std::cout << "Problem in opening the File\n";
-            return ;
-            //Error pages for problem
-        }
         if (serv.UriLocation.cgi_path.find(ext) != serv.UriLocation.cgi_path.end())
         {
             std::string ext_path = (serv.UriLocation.cgi_path.find(ext))->second;
@@ -994,6 +986,17 @@ void Post::exe_cgi()
         }
         if (pid == 0)
         {
+            FILE *infile;
+            FILE *outfile;
+
+            infile = fopen(the_file.c_str(), "r");
+            outfile = fopen(ran_file.c_str(), "w");
+            if (!infile || !outfile)
+            {
+                std::cout << "Problem in opening the File\n";
+                exit(1) ;
+                //Error pages for problem
+            }
             dup2(infile->_fileno, STDIN_FILENO);
             dup2(outfile->_fileno, STDOUT_FILENO);
             if (execve(cmd[0], cmd, env) == -1)
@@ -1007,21 +1010,30 @@ void Post::exe_cgi()
     {
         cgi_exe = 1;
         std::cout << "the fail " << the_file<<std::endl;
-        close(infile->_fileno);
+        // close(infile->_fileno);
+        std::cout << "dsdsdsd1\n";
+        
+        // close(outfile->_fileno);
+        std::cout << "dsdsdsd2\n";
         int rem = std::remove(the_file.c_str());
-        if (!rem)
+        std::cout << "dsdsdsd3\n";
+        if (rem)
         {
             std::cout << " couldn't remove the TMP file \n";
             error = 4;
+            return ;
         }
+        std::cout << "dsdsdsd5\n";
     }
     else if ((clock() - start_time) / CLOCKS_PER_SEC > 5)
     {
         kill(pid, SIGKILL);
         std::cout << "there is time out \n";
-        close(infile->_fileno);
+        // close(infile->_fileno);
+        // close(outfile->_fileno);
         int rem = std::remove(the_file.c_str());
-        if (!rem)
+        int ram = std::remove(ran_file.c_str());
+        if (rem || ram)
         {
             std::cout << " couldn't remove the TMP file \n";
             error = 4;
@@ -1037,6 +1049,29 @@ int Post::process(std::string body, size_t body_size)
     std::cout << "Post \n"<<std::endl;
     if (error)
     {
+        if (serv.Is_cgi)
+        {
+            if (access(the_file.c_str(),F_OK ) == 0)
+            {
+                int rem = std::remove(the_file.c_str());
+                if (rem)
+                {
+                    std::cout << " couldn't remove the TMP file \n";
+                    error = 4;
+                    return 0;
+                }
+            }
+            if (access(ran_file.c_str(),F_OK ) == 0)
+            {
+                 int rem = std::remove(ran_file.c_str());
+                if (rem)
+                {
+                    std::cout << " couldn't remove the TMP file \n";
+                    error = 4;
+                    return 0;
+                }
+            }
+        }
         std::cout << "Error " <<error << std::endl;
         if (error == 2)
         {
@@ -1066,6 +1101,10 @@ int Post::process(std::string body, size_t body_size)
     std::cout << "body_size " << body.size() << std::endl;
     std::cout << "total " << total_Body << std::endl;
     std::cout << "the len is " << size_len << std::endl;
+    std::cout << "error " << error << std::endl;
+    std::cout << "crfile " << crfile << std::endl;
+    std::cout << "IS CGI " << serv.Is_cgi<<std::endl;
+    std::cout << "****************************************************************\n";
     if (crfile > 0 && body_size == 2 && MethodType == 1)
     {
         buff_chunk = body;
@@ -1087,7 +1126,7 @@ int Post::process(std::string body, size_t body_size)
 		openFile(body, body_size);
     if (end && !cgi_exe)
         enter_cgi = 1;
-    if (enter_cgi && serv.Is_cgi)
+    if (enter_cgi && serv.Is_cgi&& !error)
         exe_cgi();
     if (cgi_exe && body_size == EPOLLOUT && !error)
     {
@@ -1096,10 +1135,18 @@ int Post::process(std::string body, size_t body_size)
         respons = get.respons;
         std::cout << "response: " << respons<<std::endl;
         if (get.end)
+        {
             end = 1;
+            int x =  std::remove(ran_file.c_str());
+            if (!x)
+            {
+                std::cout << "Erro in deleting file\n";
+                error = 4;
+            }
+        }
         std::cout << "out of get\n";   
     }
-    if (end && !serv.Is_cgi)
+    if (end && !serv.Is_cgi&& !error)
     {
         std::cout << "in Post resp\n";
         serv.status = "201";
