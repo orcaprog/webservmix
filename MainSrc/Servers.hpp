@@ -1,3 +1,5 @@
+
+
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
@@ -34,20 +36,16 @@
 #include <dirent.h>
 #include <iostream>
 #include<cstring>
-
+#include <ctime>
 
 
 
 class Servers
 {
 private:
-  
-
-
     int  checkDup(std::string der,int & index);
     bool check_isdigit(std::string str);
     void FillValid();
-    void checkValidation();
     void parceIp(std::string ip);
     void check_Status(std::string status);
 
@@ -70,6 +68,7 @@ private:
 
 public:
 
+    clock_t startTime ;
     std::vector<int> port;
     std::vector<std::string> server_name; 
     std::vector<std::string> host; 
@@ -79,9 +78,11 @@ public:
     map<string,string> error_page;
     std::vector<std::string> s_erorr;
 
-    
+    bool  operator== (const Servers& ser);
+    bool  operator== (const string & servername);
 
     int server_fd;
+    bool sercheck;
     struct sockaddr_in address;
     std::vector<std::string> Vstrvalid;
     std::vector<std::vector<std::string> > servconf;
@@ -104,7 +105,7 @@ public:
 
     int getLocation(std::string path);
     void SetDefaultError();
-    void CreatSocketServer();
+    void CreatSocketServer( std::map<int,vector<Servers> > & msockets);
     Servers();
     void SetIndex_Of(string path);
     /*====================================*/

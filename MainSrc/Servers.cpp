@@ -142,7 +142,7 @@ void Servers::SetPorts()
     }
     arg = servconf[i][1];
     int myport = std::atoi(arg.c_str());
-    if (!check_isdigit(arg) || myport > 65535)
+    if (!check_isdigit(arg) || myport > 65535 || myport <= 1023)
     {
         throw("invalid port in '" + arg + "' of the  directive \n");
     }
@@ -305,7 +305,7 @@ void Servers::SetAllDir()
     // ParceServers();
     FillValid();
     FillLocation();
-    checkValidation();
+    // checkValidation();
 
     SetHost();
     SetRoot();
@@ -370,18 +370,30 @@ size_t Servers::GetIndex(std::string dir)
 Location Servers::FirstFill(size_t &index)
 {
     Location loaction;
+    std::vector<std::string>::iterator iter;
+    if(servconf[index][0] != "location")
+    {
+        throw "no location'"+servconf[index][0]+"' \n";
+    }
     loaction.vlocation.push_back(servconf[index]);
     index++;
     if(servconf[index][0] != "{" )
     {
         throw "no open bracket for location \n";
     }
-    while (index < servconf.size() && servconf[index][0] != "location")
+    while (index < servconf.size() && servconf[index][0] != "}")
     {
-        // std::cout<<index<<"  :"<<servconf[index][0]<<std::endl;
+        iter = std::find(Vstrvalid.begin(),Vstrvalid.end(),servconf[index][0]);
+        if (iter == Vstrvalid.end())
+        {
+            throw "Error : '"+servconf[index][0]+"' directive is not allowed here \n";
+        }
         loaction.vlocation.push_back(servconf[index]);
         index++;
     }
+    if(index < servconf.size())
+        index++;
+
     return loaction;
 }
 
@@ -393,7 +405,7 @@ void Servers::FillLocation()
     {
         return;
     }
-    while (index < servconf.size())
+    while (index < servconf.size() && servconf[index][0] != "}")
     {
         locations.push_back(FirstFill(index));
     }
@@ -403,13 +415,7 @@ void Servers::FillLocation()
 
 void Servers::FillValid()
 {
-    Vstrvalid.push_back("listen");
-    Vstrvalid.push_back("server");
-    Vstrvalid.push_back("server_name");
-    Vstrvalid.push_back("host");
     Vstrvalid.push_back("root");
-    Vstrvalid.push_back("error_page");
-    Vstrvalid.push_back("client_max_body_size");
     Vstrvalid.push_back("index");
     Vstrvalid.push_back("location");
     Vstrvalid.push_back("{");
@@ -420,23 +426,11 @@ void Servers::FillValid()
     Vstrvalid.push_back("upload");
     Vstrvalid.push_back("cgi_path");
 }
-void Servers::checkValidation()
-{
-    std::vector<std::string>::iterator iter;
-    for (size_t i = 0; i < GetIndex("location"); i++)
-    {
-        iter = std::find(Vstrvalid.begin(), Vstrvalid.end(), servconf[i][0]);
-        if (iter == Vstrvalid.end())
-        {
-            
-            throw "Error : Invalid Derecties '"+servconf[i][0]+"'\n";
-        }
-    }
-}
+
 
 void Servers::desplay()
 {
-    // std::vector<std::vector<std::string> > matrix = servconf;
+    // std::vector<std::vector<std::string> > matrix = servconf; 
 
     cout<<"Ports :"<<GetPorts()<<endl;
     cout<<"ServerName  :"<<GetServerName()<<endl;
@@ -464,9 +458,29 @@ void Servers::desplay()
 /*CREATE SOKCET*/
 /*#############################################################*/
 
-void Servers::CreatSocketServer()
+void Servers::CreatSocketServer( std::map<int,vector<Servers> > & msockets)
 {
 
+    std::map<int,vector<Servers> >::iterator iter = msockets.begin();
+    vector<Servers>::iterator ser;
+    while (iter != msockets.end())
+    {
+        ser = find(iter->second.begin(),iter->second.end(),*this);
+        if (ser != iter->second.end())
+        {
+            break;
+        }
+        iter++;
+    }
+    if (iter ==  msockets.end())
+    {
+        cout<<"this is new server\n";
+    }
+    else 
+    {
+        cout<<"this is already exist\n";
+        return ;
+    }
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         perror("connot create socket");
@@ -481,6 +495,7 @@ void Servers::CreatSocketServer()
         exit(EXIT_FAILURE);
     }
 
+    
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = inet_addr(host[0].c_str()); //init_adder(host); 
     address.sin_port = htons(port[0]);
@@ -495,6 +510,7 @@ void Servers::CreatSocketServer()
         perror("“In listen”");
         exit(EXIT_FAILURE);
     }
+    sercheck = 1;
 }
 /*#############################################################*/
 void Servers::SetIndex_Of(string path)
@@ -568,8 +584,24 @@ void Servers::SetDefaultError()
     error_page["415"] =  "error_pages/415.html";
     error_page["416"] =  "error_pages/416.html";
     error_page["417"] =  "error_pages/417.html";
-    error_page["505"] =  "error_pages/505.html";
+    error_page["500"] =  "error_pages/500.html";
     
+}
+bool  Servers::operator== (const Servers& ser)
+{
+    if (host[0] == ser.host[0] && port[0] == ser.port[0])
+    {
+        return 1;
+    }
+    return 0;
+}
+bool  Servers::operator== (const string & servername)
+{
+    if (server_name[0] == servername)
+    {
+        return 1;
+    }
+    return 0;
 }
 int Servers::searchPathLocation(string &uri)
 {
@@ -587,7 +619,6 @@ int Servers::searchPathLocation(string &uri)
     return -1;
 }
 
-
 int  Servers::fillFromLocation(int &in, string &uri,string & method)
 {
         rootUri = uri;
@@ -598,8 +629,8 @@ int  Servers::fillFromLocation(int &in, string &uri,string & method)
             cout<<rootUri<<endl;
             if (rootUri[rootUri.size() - 1] != '/')
             {
-                rootUri = error_page["409"];
-                status = "409";
+                rootUri = "";
+                status = "301 Moved Permanently  \r\nLocation: "+uri+"/";
             }
             else
             {
@@ -636,8 +667,8 @@ void Servers::SetUriRoot(int i,string & uri)
     {
         if (rootUri[rootUri.size() - 1] != '/')
         {
-            rootUri = error_page["409"];
-            status = "409";
+            rootUri = "";
+            status = "301 Moved Permanently  \r\nLocation: "+uri+"/";
         }
         else
         {
@@ -722,23 +753,24 @@ void Servers::FillData(string uri,string mehtod)
         UriLocation = locations[in];
             
     }
-    // cout<<"rootUri :"<<rootUri<<endl;
-    // cout<<"is_cgi :"<<Is_cgi<<endl;
-    // cout<<"querys :"<<querys<<endl;
-    // cout<<"      ========\n";
-    // cout<<"        ===\n";
-    // cout<<"         =\n";
-    // UriLocation.desplayLocation();
-    // cout<<"         =\n";
-    // cout<<"        ===\n";
-    // cout<<"      ========\n";
+    cout<<"rootUri :"<<rootUri<<endl;
+    cout<<"is_cgi :"<<Is_cgi<<endl;
+    cout<<"querys :"<<querys<<endl;
+    cout<<"      ========\n";
+    cout<<"        ===\n";
+    cout<<"         =\n";
+    UriLocation.desplayLocation();
+    cout<<"         =\n";
+    cout<<"        ===\n";
+    cout<<"      ========\n";
 }
 
 Servers::Servers()
 {
     // root.push_back("");
+    sercheck = 0;
     SetDefaultError();
-    status = "200";
+    status = "200 OK";
     
 }
 
