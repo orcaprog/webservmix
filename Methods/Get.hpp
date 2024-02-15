@@ -20,10 +20,10 @@ map<string,string> types;
 string content_type;
 string extension;
 
-void set_content_type(const string& file_name);
+int set_content_type(const string& file_name);
 void set_extentions();
 void open_file(const string& file_name);
-void set_headers(const string& file_name);
+void set_headers();
 int extension_search(const string& f_name);
 public:
     Get();

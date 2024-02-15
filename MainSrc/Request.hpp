@@ -31,6 +31,7 @@ Method* create_method(const string &type);
 void check_for_error();
 public:
     Servers serv;
+    vector<Servers> ser_vec;
     int error;
     int method_type;
     Method* method;

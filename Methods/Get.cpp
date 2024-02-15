@@ -63,7 +63,7 @@ int Get::extension_search(const string& f_name){
     return 0;
 }
 
-void Get::set_content_type(const string& file_name){
+int Get::set_content_type(const string& file_name){
     extension_search(file_name);
     if (serv.Is_cgi){
         content_type = "text/html";
@@ -73,11 +73,16 @@ void Get::set_content_type(const string& file_name){
         content_type = types.find(extension)->second;
     else if (extension == "")
         content_type = "application/octet-stream";
+    else{
+        serv.status = "415";
+        get(serv.error_page["415"]);
+        return 0;
+    }
+    return 1;
 }
 
-void Get::set_headers(const string& file_name){
+void Get::set_headers(){
     int hed = 0;
-    set_content_type(file_name);
     respons = "HTTP/1.1 " + serv.status;
     respons += string("\r\nContent-Type: ");
     respons += content_type+string("\r\n");
@@ -102,6 +107,8 @@ void Get::set_headers(const string& file_name){
 }
 
 void Get::open_file(const string& file_name){
+    if (!set_content_type(file_name))
+        return ;
     src_file.open(file_name.c_str(), ios::in);
     opened = 1;
     if (!src_file.is_open()){
@@ -112,7 +119,7 @@ void Get::open_file(const string& file_name){
     src_file.seekg(0, std::ios::end);
     file_len = src_file.tellg();
     src_file.seekg(0, std::ios::beg);
-    set_headers(file_name);
+    set_headers();
     cout<<"content_len: "<<file_len<<endl;
     cout<<"content_type: "<<content_type<<endl;
 }
