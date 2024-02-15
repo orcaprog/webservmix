@@ -174,7 +174,7 @@ void    Request::process_req(const string &req, size_t read_len, int event){
             if (type == "GET")
                 method->process(body, event);
             else
-                method->process(body, event);
+                method->process(body, read_len);
         }
     }
 }

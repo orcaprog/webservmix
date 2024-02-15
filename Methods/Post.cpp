@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/15 11:45:42 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/15 15:39:42 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -292,6 +292,7 @@ void Post::openFile(std::string body, size_t body_size)
     }
 	if (MethodType != 3 && outFile.is_open())
 	{
+        std::cout << "lll >>> " << body.size()<<std::endl;
         crfile = 1;
         body_size =  body.size();
         if (MethodType == 2)
@@ -323,9 +324,10 @@ void Post::chunk_write(std::string body, size_t body_size)
 {
     if (chunk_ctl >= (int)body.size())
     {
+        // std::cout << "Me1\n";
         (void)body_size;
         outFile.write(body.c_str(), body.size());
-        total_Body += body.size();
+
         buffer = "";
         left_over = 0;
         if ((int)body.size() == chunk_ctl)
@@ -338,6 +340,8 @@ void Post::chunk_write(std::string body, size_t body_size)
     }
     else
     {
+                // std::cout << "Me2\n";
+
         std::string tmp = "";
         std::string chunks_s;
         std::stringstream ss;
@@ -347,7 +351,7 @@ void Post::chunk_write(std::string body, size_t body_size)
         if (body.size() - chunk_ctl == 1)
         {
             outFile.write(tmp.c_str(), tmp.size());
-            total_Body += body.size();
+
             buff_chunk = body.substr(chunk_ctl, 1);
             left_over = 1;
             chunk_ctl = 0;
@@ -364,7 +368,6 @@ void Post::chunk_write(std::string body, size_t body_size)
             if (!chunk_ctl)
             {
                 outFile.write(tmp.c_str(), tmp.size());
-                total_Body += body.size();
                 outFile.close();
                 crfile = -2;
                 end = 1;
@@ -373,13 +376,11 @@ void Post::chunk_write(std::string body, size_t body_size)
             }
             tmp.append(buffer, 0, buffer.size());
             outFile.write(tmp.c_str(), tmp.size());
-            total_Body += body.size();
             chunk_ctl = chunk_ctl - buffer.size();
         }
         else
         {
             outFile.write(tmp.c_str(), tmp.size());
-            total_Body += body.size();
             buff_chunk = buffer;
             left_over = buffer.size();
             chunk_ctl = 0;
@@ -392,6 +393,9 @@ void Post::chunk_write(std::string body, size_t body_size)
 void Post::chunked_file(std::string body, size_t body_size)
 {
     std::stringstream ss;
+    if (!body.size()&& !left_over)
+        return ;
+    // std::cout << "in chunked\n";
     if (left_over)
     {
         buffer = "";
@@ -413,9 +417,8 @@ void Post::chunked_file(std::string body, size_t body_size)
         }
         if (body.find("\r\n") == std::string::npos)
         {
-            std::cout << "not /r/n found \n";
-            error  = 3;
-            return ;
+            std::cout << "not found \n";
+            end = 1;
         }
         chunks_s = body.substr(0, body.find("\r\n"));
         body = body.substr(body.find("\r\n") + 2, body.size() -  body.find("\r\n") - 2);
@@ -1036,7 +1039,20 @@ void Post::exe_cgi()
 
 int Post::process(std::string body, size_t body_size)
 {
-    std::cout << "Post \n"<<std::endl;
+    // std::cout << "Post \n"<<std::endl;
+    // std::cout << "body is " << body << "." << std::endl<< std::endl;
+    // std::cout << "body size " << body.size() << std::endl<< std::endl;
+    //  std::cout << "body size1 " << body.size() << std::endl<< std::endl;
+    // std::cout << "rare " << rare << std::endl<< std::endl;
+    // std::cout << "left over " << left_over<< std::endl<< std::endl;
+    // std::cout << "buffer " << buffer << "."<<std::endl<< std::endl;
+    // std::cout << "chunk ctl " << chunk_ctl <<std::endl<< std::endl;
+    // std::cout << "****************************************************************\n";
+    // if (!body.size() )
+    // {
+    //     std::cout << "nothing to do\n";
+    // }
+        // exit(1);
     if (error)
     {
         if (serv.Is_cgi)
@@ -1089,8 +1105,8 @@ int Post::process(std::string body, size_t body_size)
     }
     if (crfile > 0 && body_size == 2 && MethodType == 1)
     {
-        buff_chunk = body;
-        left_over = 2;
+        buff_chunk += body;
+        left_over += body.size();
         return 1;
     } 
 	 if (crfile > 0)
@@ -1138,5 +1154,7 @@ int Post::process(std::string body, size_t body_size)
         respons += "\r\n\r\n";
         respons += "File created\n";
     }
+    
+    // std::cout << " >> " << body.size() << "recv read " << body_size << "chunked is " << chunk_ctl<<std::endl;
     return 1; 
 }

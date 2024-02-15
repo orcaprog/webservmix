@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Multiplexing.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouassi <abouassi@student.42.fr>          +#+  +:+       +#+        */
+/*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/22 18:04:44 by abouassi          #+#    #+#             */
-/*   Updated: 2024/01/29 16:30:35 by abouassi         ###   ########.fr       */
+/*   Updated: 2024/02/15 14:31:41 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ void Multiplexing::In_Events(int n)
 {
     char buffer[1024];
     ssize_t bytesRead = 0;
-    bytesRead = read(events[n].data.fd,buffer,1024);
+    bytesRead = recv(events[n].data.fd, buffer, sizeof(buffer), 0);
     
     if (bytesRead == -1)
     {
