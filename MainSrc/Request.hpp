@@ -29,6 +29,7 @@ int parce_key(const string& key);
 int spl_reqh_body(string s1);
 Method* create_method(const string &type);
 void check_for_error();
+void set_serv();
 public:
     Servers serv;
     vector<Servers> ser_vec;
@@ -45,7 +46,7 @@ public:
     std::map<std::string, std::string> headers;
 
     Request();
-    Request(const Servers &ser);
+    Request(const vector<Servers>& ser);
     Request(const Request& req);
     Request& operator=(const Request& oth);
     void process_req(const string &req, int event);

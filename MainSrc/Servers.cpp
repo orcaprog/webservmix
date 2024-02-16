@@ -478,6 +478,7 @@ void Servers::CreatSocketServer( std::map<int,vector<Servers> > & msockets)
     }
     else 
     {
+        server_fd = iter->second[0].server_fd;
         cout<<"this is already exist\n";
         return ;
     }
@@ -585,6 +586,7 @@ void Servers::SetDefaultError()
     error_page["416"] =  "error_pages/416.html";
     error_page["417"] =  "error_pages/417.html";
     error_page["500"] =  "error_pages/500.html";
+    error_page["505"] =  "error_pages/505.html";
     
 }
 bool  Servers::operator== (const Servers& ser)
@@ -736,6 +738,7 @@ void Servers::FillData(string uri,string mehtod)
         }
         else
         {
+            cout<<"root[0]: "<<root.size()<<endl;
             rootUri = root[0] +uri +"/" + index[0];
             UriLocation.path.push_back("");
             UriLocation.root.push_back(root[0]);
@@ -753,16 +756,16 @@ void Servers::FillData(string uri,string mehtod)
         UriLocation = locations[in];
             
     }
-    cout<<"rootUri :"<<rootUri<<endl;
-    cout<<"is_cgi :"<<Is_cgi<<endl;
-    cout<<"querys :"<<querys<<endl;
-    cout<<"      ========\n";
-    cout<<"        ===\n";
-    cout<<"         =\n";
-    UriLocation.desplayLocation();
-    cout<<"         =\n";
-    cout<<"        ===\n";
-    cout<<"      ========\n";
+    // cout<<"rootUri :"<<rootUri<<endl;
+    // cout<<"is_cgi :"<<Is_cgi<<endl;
+    // cout<<"querys :"<<querys<<endl;
+    // cout<<"      ========\n";
+    // cout<<"        ===\n";
+    // cout<<"         =\n";
+    // UriLocation.desplayLocation();
+    // cout<<"         =\n";
+    // cout<<"        ===\n";
+    // cout<<"      ========\n";
 }
 
 Servers::Servers()

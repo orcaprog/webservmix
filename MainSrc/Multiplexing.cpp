@@ -90,7 +90,7 @@ void Multiplexing::Connect_And_Add(int n)
 
         // mClients[conn_sock].first = iter->second[0];
         // mClients[conn_sock].first.startTime = clock();
-        Request req(iter->second[0]);
+        Request req(iter->second);
         mClients[conn_sock] = req;
         std::cout<<"Fd Server :"<<iter->first<<std::endl;
         ev.events = EPOLLIN | EPOLLOUT ;

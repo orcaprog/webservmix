@@ -70,7 +70,7 @@ public:
 
     clock_t startTime ;
     std::vector<int> port;
-    std::vector<std::string> server_name; 
+    std::vector<std::string> server_name;
     std::vector<std::string> host; 
     std::vector<std::string> root;
     std::vector<std::string> index;

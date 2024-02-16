@@ -9,12 +9,12 @@ Request::Request()
 }
 
 
-Request::Request(const Servers &ser){
+Request::Request(const vector<Servers>& vser){
     method = NULL;
     body_state = 0;
-    body_size = 0;
+    body_size = 140;
     error = 0;
-    serv = ser;
+    ser_vec = vser;
 }
 
 Request::Request(const Request& req1){
@@ -35,9 +35,24 @@ Request& Request::operator=(const Request& oth){
         body = oth.body;
         headers = oth.headers;
         uri = oth.uri;
-        serv = oth.serv;
+        ser_vec = oth.ser_vec;
     }
     return *this;
+}
+
+void Request::set_serv(){
+    string serv_name;
+    if (headers.find("Host") == headers.end()){
+        serv = ser_vec[0];
+        return ;
+    }
+    serv_name = headers.find("Host")->second;
+    vector<Servers>::iterator it;
+    it = find(ser_vec.begin(), ser_vec.end(), serv_name);
+    if (it != ser_vec.end())
+        serv = *it;
+    else
+        serv = ser_vec[0];
 }
 
 int Request::spl_reqh_body(string s1)
@@ -139,6 +154,7 @@ int Request::parce_req(const string &req)
         if (line.size() && !parce_line(line))
             return 0;
     }
+    set_serv();
     serv.FillData(uri,type);
     if (!(serv.UriLocation.permession & method_type)){
         error = error | NotAllowedMethod;
