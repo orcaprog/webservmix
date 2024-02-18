@@ -33,6 +33,7 @@ public:
     void In_Events(int n);
     void Out_Events(int n);
     void CheckTimeOut();
+    int setnonblocking(int sockfd) ;
 };
 
 

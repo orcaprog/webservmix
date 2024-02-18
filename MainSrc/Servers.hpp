@@ -66,7 +66,7 @@ private:
 
 public:
 
-    clock_t startTime ;
+
     std::vector<int> port;
     std::vector<std::string> server_name; 
     std::vector<std::string> host; 
@@ -93,13 +93,7 @@ public:
     void SetAllDir();
     void desplay();
     
-    const int & GetPorts (); 
-    const std::string & GetServerName(); 
-    const std::string & GetHost();  
-    const std::string & GetRoot();  
-    const std::vector<std::vector<std::string> >&  GetError_page(); 
-    const long long int  &  GetClient_max_body_size(); 
-    const std::string & GetIndex(); 
+
 
     int getLocation(std::string path);
     void SetDefaultError();

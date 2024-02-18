@@ -15,7 +15,7 @@
 Multiplexing::Multiplexing(std::string  configfile)
 {
     server.TakeAndParce(configfile);
-    SocketTimeout = 5;
+    SocketTimeout = 3;
     
 
 }
@@ -53,12 +53,15 @@ void Multiplexing::In_Events(int n)
     std::cout<<"size :"<<bytesRead<<std::endl;
     if (bytesRead == -1)
     {
+        // close(events[n].data.fd);
+        //  mClients.erase(events[n].data.fd);
         perror("Error read\n");
         return ;
     }
     if (bytesRead == 0) 
     {
         close(events[n].data.fd);
+        mClients.erase(events[n].data.fd);
         std::cout<<"Connection closed by client\n"; 
     }
     else 
@@ -66,7 +69,7 @@ void Multiplexing::In_Events(int n)
         std::map<int ,Request >::iterator iter2 = mClients.find(events[n].data.fd);
         if (iter2 != mClients.end())
         {
-            
+            cout<<"==========  :"<<buffer<<endl;
             mClients[events[n].data.fd].process_req(string("").append(buffer, bytesRead),events[n].events);
             string res = mClients[events[n].data.fd].get_respons();
             write(events[n].data.fd , res.c_str(), res.size());
@@ -92,8 +95,9 @@ void Multiplexing::Connect_And_Add(int n)
         // mClients[conn_sock].first.startTime = clock();
         Request req(iter->second[0]);
         mClients[conn_sock] = req;
+        mClients[conn_sock].startTime = clock();
         std::cout<<"Fd Server :"<<iter->first<<std::endl;
-        ev.events = EPOLLIN | EPOLLOUT ;
+        ev.events = EPOLLIN | EPOLLOUT | EPOLLHUP;
         ev.data.fd = conn_sock;
         if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock,&ev) == -1) 
         {
@@ -103,69 +107,55 @@ void Multiplexing::Connect_And_Add(int n)
     } 
     else 
     {
-        // if(events[n].events & EPOLLHUP)
-        // {
-        //     close(events[n].data.fd);
-        //     mClients.erase(events[n].data.fd);
-        //     cout<<"close connections Hup:"<<events[n].data.fd<<endl;
-        // }
-        // else
-        if (events[n].events & EPOLLIN) 
+        if(events[n].events & EPOLLHUP)
+        {
+            close(events[n].data.fd);
+            mClients.erase(events[n].data.fd);
+            cout<<"close connections Hup:"<<events[n].data.fd<<endl;
+        }
+        else if (events[n].events & EPOLLIN) 
         {
             In_Events(n);
-            // mClients[events[n].data.fd].first.startTime = clock();
+            mClients[events[n].data.fd].startTime = clock();
 
         }
         else if (events[n].events & EPOLLOUT && mClients.find(events[n].data.fd) !=  mClients.end()) 
         {
             Out_Events(n);
-            // mClients[events[n].data.fd].first.startTime = clock(); 
+            // mClients[events[n].data.fd].startTime = clock(); 
         }
     }
 }
 
 void Multiplexing::CheckTimeOut()
 {
-    // clock_t CurrentTime = clock();
-    // std::map<int ,std::pair<Servers,Request> >::iterator iter  = mClients.begin();
-    // while (iter != mClients.end())
-    // {
-    //     if(( double(CurrentTime - iter->second.first.startTime) / CLOCKS_PER_SEC  ) > SocketTimeout)
-    //     {
-    //         std::cout<<CurrentTime<<endl;
-    //         std::cout<<iter->second.first.startTime<<endl;
-    //         std::cout<<( double(CurrentTime - iter->second.first.startTime)/ CLOCKS_PER_SEC  )<<endl;
-    //         close(iter->first);
-    //         cout<<"close connection  client TIme out ..."<<"[fd :]"<<iter->first<<endl;
-    //         mClients.erase(iter->first);
-    //     }
-    //     iter++;
-    // }
+    clock_t CurrentTime = clock();
+    std::map<int ,Request >::iterator iter  = mClients.begin();
+    while (iter != mClients.end())
+    {
+        if(( double(CurrentTime - iter->second.startTime) / CLOCKS_PER_SEC  ) > SocketTimeout)
+        {
+            std::cout<<CurrentTime<<endl;
+            std::cout<<iter->second.startTime<<endl;
+            std::cout<<( double(CurrentTime - iter->second.startTime)/ CLOCKS_PER_SEC  )<<endl;
+            close(iter->first);
+            cout<<"close connection  client TIme out fd :"<<"["<<iter->first<<"]"<<endl;
+            mClients.erase(iter->first);
+        }
+        iter++;
+    }
 }
 void Multiplexing::CreatMUltiplex()
 {
-    std::ifstream inputFile;
-    inputFile.open("index.html");
-    std::string line;
-    std::string data= "";
-    while (std::getline(inputFile, line)) {
-        data += line;
-    }
-    // std::string headers = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 1000000\r\nLocation: http://pathjdid\r\n";
-    // std::string httprespose = headers + data;
-    // const char *hello = httprespose.c_str();
-
+    std::map<int,vector<Servers> >::iterator iter;
     epollfd = epoll_create(1);
     if (epollfd == -1) {
         perror("epoll_create1");
         exit(EXIT_FAILURE);
     }
-    std::map<int,vector<Servers> >::iterator iter;
-
     for (iter = server.msockets.begin(); iter != server.msockets.end(); iter++)
     {
-        if(iter->second[0].sercheck)
-        {
+
             ev.events = EPOLLIN;
             ev.data.fd = iter->first;
             if (epoll_ctl(epollfd, EPOLL_CTL_ADD, iter->first, &ev) == -1) 
@@ -173,24 +163,23 @@ void Multiplexing::CreatMUltiplex()
                 perror("epoll_ctl: listen_sock");
                 exit(EXIT_FAILURE);
             }
-
-        }
     }
     while (true)
     {
-
         nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
-        // std::cout<<"nfds   :"<<nfds<<std::endl;
         if (nfds == -1) {
             perror("epoll_wait");
             exit(EXIT_FAILURE);
         }
-        
+        cout<<"EPOLLIN  :"<<EPOLLIN<<endl;
+        cout<<"EPOLLOUT :"<<EPOLLOUT<<endl;
         for (int n = 0; n < nfds ; ++n) 
         {
+            cout<<"fd  : ["<<events[n].data.fd<<"]  : ";
+            cout<<"event  : ["<<events[n].events<<"]"<<endl;
             Connect_And_Add(n);
         }
-        // CheckTimeOut();
+        CheckTimeOut();
     }
 
 }

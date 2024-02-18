@@ -94,17 +94,14 @@ void Delete::RemoveAllPath(std::string path)
 {
     struct stat stat_info;
     std::string path_plus;
-    std::cout<<"path   :"<<path<<std::endl;
     stat(path.c_str(),&stat_info);
-    std::cout<<stat_info.st_mode<<endl;
-    std::cout<<S_IFREG<<endl;
     if (stat_info.st_mode & S_IFREG)
     {
         cout<<PatentOfFile(path);
         stat(PatentOfFile(path).c_str(),&stat_info);
         if (stat_info.st_mode & S_IWOTH)
         {
-             my_remove(path);
+            my_remove(path);
         }
         else 
         {
@@ -112,7 +109,6 @@ void Delete::RemoveAllPath(std::string path)
         }
         return ;
     }
-    
 
     DIR *dir = opendir(path.c_str());
     if (dir == NULL) {
@@ -135,13 +131,13 @@ void Delete::RemoveAllPath(std::string path)
             {
                 path_plus = path + "/"+entry->d_name;
                 RemoveAllPath(path_plus);
-                std::cout<<"dir :"<<entry->d_name<<std::endl;
+                // std::cout<<"dir :"<<entry->d_name<<std::endl;
             }
         }
         else
         {
             std::string filePath = std::string(path) + "/" + entry->d_name;
-            std::cout<<"file :"<<filePath<<std::endl;
+            // std::cout<<"file :"<<filePath<<std::endl;
              stat(path_plus.c_str(),&stat_info);
              my_remove(filePath );
 

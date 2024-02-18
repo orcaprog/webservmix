@@ -79,6 +79,7 @@ void Get::set_headers(const string& file_name){
     int hed = 0;
     set_content_type(file_name);
     respons = "HTTP/1.1 " + serv.status;
+    
     respons += string("\r\nContent-Type: ");
     respons += content_type+string("\r\n");
     respons += string("Content-Length: ");
@@ -138,7 +139,7 @@ void Get::get(const string& file_name){
     if (opened == -1){
         opened = 0;
         end = 1;
-        get(serv.error_page["404"]);
+        // get(serv.error_page["404"])
     }
 }
 

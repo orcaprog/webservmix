@@ -51,6 +51,7 @@ public:
     void process_req(const string &req, int event);
     string get_respons() const;
     int resp_done();
+        clock_t startTime ;
     ~Request();
 };
 
