@@ -474,12 +474,12 @@ void Servers::CreatSocketServer( std::map<int,vector<Servers> > & msockets)
     }
     if (iter ==  msockets.end())
     {
-        cout<<"this is new server\n";
+        // cout<<"this is new server\n";
     }
     else 
     {
         server_fd = iter->second[0].server_fd;
-        cout<<"this is already exist\n";
+        // cout<<"this is already exist\n";
         return ;
     }
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)

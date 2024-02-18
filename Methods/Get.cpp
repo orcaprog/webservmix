@@ -1,17 +1,18 @@
 #include "Get.hpp"
 #include <sys/stat.h>
 
-
 Get::Get(){
     set_extentions();
     end = 0;
     opened = 0;
 }
 
+
 Get::Get(const Get& oth){
     set_extentions();
     *this = oth;
 }
+
 
 Get& Get::operator=(const Get& oth){
     cout<<"GET COPY ASSIGNMENT"<<endl;
@@ -25,6 +26,7 @@ Get& Get::operator=(const Get& oth){
     }
     return *this;
 }
+
 
 void Get::set_extentions(){
     types["html"] = "text/html";
@@ -48,6 +50,7 @@ void Get::set_extentions(){
     types["gz"] = "application/gzip";
 }
 
+
 int Get::extension_search(const string& f_name){
     extension = "";
     size_t tmp = f_name.find(".");
@@ -62,6 +65,7 @@ int Get::extension_search(const string& f_name){
     }
     return 0;
 }
+
 
 int Get::set_content_type(const string& file_name){
     extension_search(file_name);
@@ -81,12 +85,8 @@ int Get::set_content_type(const string& file_name){
     return 1;
 }
 
-void Get::set_headers(){
+int Get::check_headers(){
     int hed = 0;
-    respons = "HTTP/1.1 " + serv.status;
-    respons += string("\r\nContent-Type: ");
-    respons += content_type+string("\r\n");
-    respons += string("Content-Length: ");
     string line;
     getline(src_file,line);
     head_size = line.size()+1;
@@ -96,6 +96,16 @@ void Get::set_headers(){
         if (line.size() && line == "\r")
             hed = 1;
     }
+    return hed;
+}
+
+void Get::set_headers(){
+    int hed = 0;
+    respons = "HTTP/1.1 " + serv.status;
+    respons += string("\r\nContent-Type: ");
+    respons += content_type+string("\r\n");
+    respons += string("Content-Length: ");
+    hed = check_headers();
     if (hed)
         file_len -= head_size;
     stringstream ss;
@@ -105,6 +115,7 @@ void Get::set_headers(){
         respons += "\r\n";
     src_file.seekg(0, std::ios::beg);
 }
+
 
 void Get::open_file(const string& file_name){
     if (!set_content_type(file_name))
@@ -120,13 +131,13 @@ void Get::open_file(const string& file_name){
     file_len = src_file.tellg();
     src_file.seekg(0, std::ios::beg);
     set_headers();
-    cout<<"content_len: "<<file_len<<endl;
-    cout<<"content_type: "<<content_type<<endl;
 }
 
+
 void Get::get(const string& file_name){
-    ssize_t r_len, max_r = 1000;
+    ssize_t r_len, max_r = 5;
     
+    respons.clear();
     if (!opened)
         open_file(file_name); 
     if (opened == 1 && !end){
@@ -140,20 +151,16 @@ void Get::get(const string& file_name){
             src_file.close();
             end = 1;
         }
-        // cout<<"res_size = "<<respons.size()<<"\nres: <<"<<respons<<">>"<<endl;
     }
-    if (opened == -1){
-        opened = 0;
+    if (opened == -1)
         end = 1;
-        get(serv.error_page["404"]);
-    }
 }
+
 
 int Get::process(string _body, int event){
     body = _body;
     if (event == EPOLLIN)
         return 0;
-    respons.clear();
     get(fullUri_path);
     return 0;
 }

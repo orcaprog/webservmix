@@ -13,8 +13,9 @@ enum errors{
     Method_Unkounu = 1,
     Httpv_Unkounu = 2,
     Invalid_Header = 4,
-    NotAllowedMethod = 8,
+    Not_Allowed_Method = 8,
     Uri_Too_Long = 16,
+    Headers_Too_Large = 32,
 };
 
 class Request

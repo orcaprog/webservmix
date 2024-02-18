@@ -24,15 +24,12 @@ Multiplexing::~Multiplexing()
 {
 }
 
-
-
 void Multiplexing::Out_Events(int n)
 {
-       
-    mClients[events[n].data.fd].process_req(string(""),events[n].events);
+    mClients[events[n].data.fd].process_req(string(""),EPOLLOUT);
     string res = mClients[events[n].data.fd].get_respons();
     write(events[n].data.fd , res.c_str(), res.size());
-    if (mClients[events[n].data.fd].method && mClients[events[n].data.fd].method->end)
+    if (mClients[events[n].data.fd].resp_done())
     {
         epoll_ctl(epollfd,EPOLL_CTL_DEL,events[n].data.fd,&ev);
         close(events[n].data.fd);
@@ -47,10 +44,10 @@ void Multiplexing::In_Events(int n)
     char buffer[1024];
     ssize_t bytesRead = 0;
 
-    std::cout<<"Enter clinet "<<events[n].data.fd<<" \n";
+    // std::cout<<"Enter clinet "<<events[n].data.fd<<" \n";
     bytesRead = read(events[n].data.fd,buffer,1024);
     
-    std::cout<<"size :"<<bytesRead<<std::endl;
+    // std::cout<<"size :"<<bytesRead<<std::endl;
     if (bytesRead == -1)
     {
         perror("Error read\n");
@@ -67,9 +64,9 @@ void Multiplexing::In_Events(int n)
         if (iter2 != mClients.end())
         {
             
-            mClients[events[n].data.fd].process_req(string("").append(buffer, bytesRead),events[n].events);
-            string res = mClients[events[n].data.fd].get_respons();
-            write(events[n].data.fd , res.c_str(), res.size());
+            mClients[events[n].data.fd].process_req(string("").append(buffer, bytesRead),EPOLLIN);
+            // string res = mClients[events[n].data.fd].get_respons();
+            // write(events[n].data.fd , res.c_str(), res.size());
         }
     }
 }
@@ -110,7 +107,7 @@ void Multiplexing::Connect_And_Add(int n)
         //     cout<<"close connections Hup:"<<events[n].data.fd<<endl;
         // }
         // else
-        if (events[n].events & EPOLLIN) 
+        if (events[n].events & EPOLLIN && !mClients[events[n].data.fd].error) 
         {
             In_Events(n);
             // mClients[events[n].data.fd].first.startTime = clock();

@@ -62,17 +62,22 @@ int Request::spl_reqh_body(string s1)
         body_size += body.size();
         return 0;
     }
-    if (s1.find("\r\n\r\n", 0) != s1.npos)
+    size_t pos = s1.find("\r\n\r\n", 0);
+    if (pos != s1.npos)
     {
-        body = s1.substr(s1.find("\r\n\r\n", 0) + 4);
+        body = s1.substr(pos + 4);
         cout << "--_______Lheaders Te9raw Kolhom________--\n" << endl;
-        req_h += s1.substr(0, s1.find("\r\n\r\n", 0));
+        req_h += s1.substr(0, pos);
         body_state = 1;
         body_size = body.size();
-        return 1;
     }
-    req_h += s1;
-    return 0;
+    else
+        req_h += s1;
+    if (req_h.length() > 10000){
+        error = error | Headers_Too_Large;
+        return 0;
+    }
+    return body_state;
 }
 
 int Request::parce_key(const string &key)
@@ -125,12 +130,11 @@ int Request::parce_line(const string &line)
     value.clear();
     getline(ss, value, '\r');
     if (!parce_key(key) && value.size()){
-        error |= Invalid_Header;
+        error = error | Invalid_Header;
         return 0;
     }
     if (value.size() == 0){
-        cout << "ERROR: No Value For Key " << key << endl;
-        error |= Invalid_Header;
+        error = error | Invalid_Header;
         return 0;
     }
     headers[key] = value;
@@ -157,45 +161,44 @@ int Request::parce_req(const string &req)
     set_serv();
     serv.FillData(uri,type);
     if (!(serv.UriLocation.permession & method_type)){
-        error = error | NotAllowedMethod;
+        error = error | Not_Allowed_Method;
         return 0;
     }
     method = create_method(type);
-    cgi.set_arg(serv, type);
+    cgi.set_arg(serv, type, headers);
     return 1;
 }
 
 void Request::check_for_error(){
-    if (!error)
+    if (!error || error_resp.size())
         return;
+    
+    cout<<"ERROR: "<<error<<endl;
+    string err_page_name;
     Get get;
-    if (error == Method_Unkounu || error == Invalid_Header){
-        get.serv.status = "400";
-        get.get(serv.error_page["400"]);
-    }
-    else if (error & Httpv_Unkounu){
-        get.serv.status = "505";
-        get.get(serv.error_page["505"]);
-    }
-    else if (error & Uri_Too_Long){
-        get.serv.status = "414";
-        get.get(serv.error_page["414"]);
-    }
-    else if (error & NotAllowedMethod){
-        get.serv.status = "405";
-        get.get(serv.error_page["405"]);
-    }
+    if (error == Method_Unkounu || error == Invalid_Header)
+        err_page_name = "400";
+    else if (error & Not_Allowed_Method)
+        err_page_name = "405";
+    else if (error & Uri_Too_Long)
+        err_page_name = "414";
+    else if (error & Httpv_Unkounu)
+        err_page_name = "505";
+    else if (error & Headers_Too_Large)
+        err_page_name = "413";
+    get.serv.status = err_page_name;
+    get.get(serv.error_page[err_page_name]);
     error_resp = get.respons;
 }
 
 void    Request::process_req(const string &req, int event){
-    if (!parce_req(req)){
+    if (!parce_req(req) || error){
         check_for_error();
         return ;
     }
     if (body_state && method){
         if (serv.Is_cgi)
-            cgi.execute(method);
+            cgi.execute(method, event);
         else{
             if (type == "GET")
                 method->process(body, event);
@@ -209,8 +212,10 @@ int Request::resp_done(){
     if (error)
         return 1;
     if (serv.Is_cgi && type == "GET"){
-        if (cgi.resp_done)
+        if (cgi.resp_done){
+            cout<<"cgi_done"<<endl;
             return 1;
+        }
     }
     else{
         if (method && method->end)

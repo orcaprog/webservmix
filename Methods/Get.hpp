@@ -24,6 +24,7 @@ int set_content_type(const string& file_name);
 void set_extentions();
 void open_file(const string& file_name);
 void set_headers();
+int check_headers();
 int extension_search(const string& f_name);
 public:
     Get();

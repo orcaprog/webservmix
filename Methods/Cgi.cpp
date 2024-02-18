@@ -6,11 +6,16 @@ Cgi::Cgi(){
     cmds[0] = NULL;
     cmds[1] = NULL;
     cmds[2] = NULL;
-    env = new char *[4];
+    env = new char *[10];
     env[0] = NULL;
     env[1] = NULL;
     env[2] = NULL;
-    env[3] = NULL;
+    env[4] = NULL;
+    env[5] = NULL;
+    env[6] = NULL;
+    env[7] = NULL;
+    env[8] = NULL;
+    env[9] = NULL;
     cgi_execueted = 0;
     resp_done = 0;
     is_run = 0;
@@ -23,11 +28,16 @@ Cgi::Cgi(Servers _serv, const string& m_type){
     cmds[0] = NULL;
     cmds[1] = NULL;
     cmds[2] = NULL;
-    env = new char *[4];
+     env = new char *[10];
     env[0] = NULL;
     env[1] = NULL;
     env[2] = NULL;
-    env[3] = NULL;
+    env[4] = NULL;
+    env[5] = NULL;
+    env[6] = NULL;
+    env[7] = NULL;
+    env[8] = NULL;
+    env[9] = NULL;
     cgi_execueted = 0;
     resp_done = 0;
     is_run = 0;
@@ -41,9 +51,10 @@ Cgi& Cgi::operator=(const Cgi& oth){
     return *this;
 }
 
-void Cgi::set_arg(Servers srv, const string& mtype){
+void Cgi::set_arg(Servers srv, const string& mtype, map<string, string> h){
     serv = srv;
     method_type = mtype;
+    headers = h;
 }
 
 int Cgi::extension_search(const string& f_name){
@@ -86,6 +97,7 @@ void Cgi::exec_cgi(const string& fullUri_path){
         cgi_execueted = 1;
     else{
         if ((clock()-start_time)/CLOCKS_PER_SEC > 10){
+            std::remove(out_file.c_str());
             kill(pid,SIGKILL);
             cgi_execueted = 1;
             get.get(serv.error_page["408"]);
@@ -94,7 +106,9 @@ void Cgi::exec_cgi(const string& fullUri_path){
     }
 }
 
-void Cgi::execute(Method *method){
+void Cgi::execute(Method *method, int event){
+    if (event == EPOLLIN)
+        return ;
     if (!cgi_execueted){
         exec_cgi(method->fullUri_path);
     }
@@ -106,6 +120,7 @@ void Cgi::execute(Method *method){
         }
     }
 }
+
 
 void Cgi::generate_file_name(){
     time_t currentTime = std::time(NULL);
@@ -127,6 +142,20 @@ void Cgi::set_env(const string& fullUri_path){
     senv += fullUri_path;
     env[1] = new char[senv.length()+1];
     strcpy(env[1],senv.c_str());
+    senv = "REQUEST_METHOD=GET";
+    env[2] = new char[senv.length()+1];
+    strcpy(env[2],senv.c_str());
+    senv = "SCRIPT_FILENAME=" + fullUri_path;
+    env[3] = new char[senv.length()+1];
+    strcpy(env[3],senv.c_str());
+    senv = "SERVER_PROTOCOL=HTTP/1.1";
+    env[4] = new char[senv.length()+1];
+    strcpy(env[4],senv.c_str());
+    senv = "REDIRECT_STATUS=HTTP/1.1 200 OK";
+    env[5] = new char[senv.length()+1];
+    strcpy(env[5],senv.c_str());
+
+
 }
 
 void Cgi::set_cmd(const string& fullUri_path){
@@ -137,7 +166,6 @@ void Cgi::set_cmd(const string& fullUri_path){
     it = serv.UriLocation.cgi_path.find(extension);
     if (it == serv.UriLocation.cgi_path.end()){
         cerr<<"No Cgi Command"<<endl;
-        // get(serv.error_page["404"]);
         return ;
     }
     string cmdCgi = it->second;
