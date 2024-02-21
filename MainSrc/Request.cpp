@@ -6,6 +6,7 @@ Request::Request()
     body_state = 0;
     body_size = 0;
     error = 0;
+    is_cgi = 0;
 }
 
 
@@ -15,6 +16,7 @@ Request::Request(const vector<Servers>& vser){
     body_size = 140;
     error = 0;
     ser_vec = vser;
+    is_cgi = 0;
 }
 
 Request::Request(const Request& req1){
@@ -36,23 +38,27 @@ Request& Request::operator=(const Request& oth){
         headers = oth.headers;
         uri = oth.uri;
         ser_vec = oth.ser_vec;
+        is_cgi = oth.is_cgi;
     }
     return *this;
 }
 
-void Request::set_serv(){
+int Request::set_serv(){
     string serv_name;
     if (headers.find("Host") == headers.end()){
-        serv = ser_vec[0];
-        return ;
+        error |= Invalid_Header;
+        return 0;
     }
     serv_name = headers.find("Host")->second;
+    if (serv_name.find(":") != string::npos)
+        serv_name = serv_name.substr(0,serv_name.find(":"));
     vector<Servers>::iterator it;
     it = find(ser_vec.begin(), ser_vec.end(), serv_name);
     if (it != ser_vec.end())
         serv = *it;
     else
         serv = ser_vec[0];
+    return 1;
 }
 
 int Request::spl_reqh_body(string s1)
@@ -68,6 +74,7 @@ int Request::spl_reqh_body(string s1)
         body = s1.substr(pos + 4);
         cout << "--_______Lheaders Te9raw Kolhom________--\n" << endl;
         req_h += s1.substr(0, pos);
+        cout<<"h: "<<req_h<<"|||\n";
         body_state = 1;
         body_size = body.size();
     }
@@ -158,14 +165,16 @@ int Request::parce_req(const string &req)
         if (line.size() && !parce_line(line))
             return 0;
     }
-    set_serv();
-    serv.FillData(uri,type);
+    if (set_serv())
+        serv.FillData(uri,type);
     if (!(serv.UriLocation.permession & method_type)){
         error = error | Not_Allowed_Method;
         return 0;
     }
     method = create_method(type);
     cgi.set_arg(serv, type, headers);
+    if (serv.Is_cgi && !cgi.get.is_tpye_supported(serv.rootUri))
+        is_cgi = 1;
     return 1;
 }
 
@@ -176,7 +185,7 @@ void Request::check_for_error(){
     cout<<"ERROR: "<<error<<endl;
     string err_page_name;
     Get get;
-    if (error == Method_Unkounu || error == Invalid_Header)
+    if (error & Method_Unkounu || error & Invalid_Header)
         err_page_name = "400";
     else if (error & Not_Allowed_Method)
         err_page_name = "405";
@@ -197,21 +206,21 @@ void    Request::process_req(const string &req, int event){
         return ;
     }
     if (body_state && method){
-        if (serv.Is_cgi)
-            cgi.execute(method, event);
-        else{
-            if (type == "GET")
-                method->process(body, event);
+        if (type == "GET"){
+            if (is_cgi)
+                cgi.execute(method, event);
             else
                 method->process(body, event);
         }
+        else
+            method->process(body, event);
     }
 }
 
-int Request::resp_done(){
+int Request::resp_done() const{
     if (error)
         return 1;
-    if (serv.Is_cgi && type == "GET"){
+    if (is_cgi && type == "GET"){
         if (cgi.resp_done){
             cout<<"cgi_done"<<endl;
             return 1;
@@ -249,7 +258,7 @@ string Request::get_respons() const{
         return error_resp;
     if (!method)
         return("");
-    if (serv.Is_cgi)
+    if (is_cgi)
         return cgi.get.respons;
     return (method->respons);
 }

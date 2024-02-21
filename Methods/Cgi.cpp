@@ -57,16 +57,11 @@ void Cgi::set_arg(Servers srv, const string& mtype, map<string, string> h){
     headers = h;
 }
 
-int Cgi::extension_search(const string& f_name){
-    extension = "";
-    size_t tmp = f_name.find(".");
-    pos = tmp;
-    while (tmp != string::npos){
-        pos = tmp;
-        tmp = f_name.find(".",pos+1);
-    }
-    if (pos != string::npos && pos+1 < f_name.size()){
-        extension = f_name.substr(pos+1);
+int Cgi::is_cookies(){
+    map<string, string>::iterator it;
+    it = headers.find("Cookie");
+    if (it != headers.end()){
+        cookies = it->second;
         return 1;
     }
     return 0;
@@ -74,15 +69,20 @@ int Cgi::extension_search(const string& f_name){
 
 void Cgi::exec_cgi(const string& fullUri_path){
     if (!is_run){
-        set_cmd(fullUri_path);
+        if (!set_cmd(fullUri_path)){
+            cgi_execueted = 1;
+            get.serv.status = "415";
+            get.get(serv.error_page["415"]);
+            return ;
+        }
         set_env(fullUri_path);
         cmd = cmds[0];
         is_run = 1;
         start_time = clock();
         pid = fork();
         if(pid < 0){
-          perror("fork fail");
-          exit(EXIT_FAILURE);
+            perror("fork fail");
+            exit(EXIT_FAILURE);
         }
         if (pid == 0){
             file = fopen(out_file.c_str(), "w");
@@ -93,25 +93,31 @@ void Cgi::exec_cgi(const string& fullUri_path){
             }
         }
     }
+    waiting();
+}
+
+void Cgi::waiting(){
     if (waitpid(pid,&exit_stat,WNOHANG)>0)
         cgi_execueted = 1;
     else{
         if ((clock()-start_time)/CLOCKS_PER_SEC > 10){
+            cout<<"timeout\n";
             std::remove(out_file.c_str());
             kill(pid,SIGKILL);
             cgi_execueted = 1;
-            get.get(serv.error_page["408"]);
+            get.serv.status = "504";
+            get.get(serv.error_page["504"]);
             resp_done = 1;
         }
     }
+
 }
 
 void Cgi::execute(Method *method, int event){
     if (event == EPOLLIN)
         return ;
-    if (!cgi_execueted){
+    if (!cgi_execueted)
         exec_cgi(method->fullUri_path);
-    }
     else{
         get.get(string(out_file));
         if (get.end){
@@ -121,14 +127,22 @@ void Cgi::execute(Method *method, int event){
     }
 }
 
+int Cgi::set_cmd(const string& fullUri_path){
 
-void Cgi::generate_file_name(){
-    time_t currentTime = std::time(NULL);
-    std::tm* tm = std::localtime(&currentTime);
-    char time_B[80];
-    std::strftime(time_B, sizeof(time_B), "%Y-%m-%d-%H-%M-%S", tm);
-    out_file = time_B;
-    out_file += string(".html");
+    extension = get.extension_search(fullUri_path);
+    cout<<"cgi_exten: "<<extension<<endl;
+    map<string,string>::iterator it;
+    it = serv.UriLocation.cgi_path.find(extension);
+    if (it == serv.UriLocation.cgi_path.end()){
+        cerr<<"No Cgi Command"<<endl;
+        return 0;
+    }
+    string cmdCgi = it->second;
+    cmds[0] =  new char[cmdCgi.length() + 1];
+    strcpy(cmds[0],cmdCgi.c_str());
+    cmds[1] = new char[ fullUri_path.length() + 1];
+    strcpy(cmds[1],fullUri_path.c_str());
+    return 1;
 }
 
 void Cgi::set_env(const string& fullUri_path){
@@ -154,25 +168,21 @@ void Cgi::set_env(const string& fullUri_path){
     senv = "REDIRECT_STATUS=HTTP/1.1 200 OK";
     env[5] = new char[senv.length()+1];
     strcpy(env[5],senv.c_str());
-
-
+    if (is_cookies()){
+        cout<<"cookie"<<endl;
+        senv = "HTTP_COOKIE=" + cookies;
+        env[6] = new char[senv.length()+1];
+        strcpy(env[6],senv.c_str());    
+    }
 }
 
-void Cgi::set_cmd(const string& fullUri_path){
-
-    extension_search(fullUri_path);
-    cout<<"cgi_exten: "<<extension<<endl;
-    map<string,string>::iterator it;
-    it = serv.UriLocation.cgi_path.find(extension);
-    if (it == serv.UriLocation.cgi_path.end()){
-        cerr<<"No Cgi Command"<<endl;
-        return ;
-    }
-    string cmdCgi = it->second;
-    cmds[0] =  new char[cmdCgi.length() + 1];
-    strcpy(cmds[0],cmdCgi.c_str());
-    cmds[1] = new char[ fullUri_path.length() + 1];
-    strcpy(cmds[1],fullUri_path.c_str());
+void Cgi::generate_file_name(){
+    time_t currentTime = std::time(NULL);
+    std::tm* tm = std::localtime(&currentTime);
+    char time_B[80];
+    std::strftime(time_B, sizeof(time_B), "%Y-%m-%d-%H-%M-%S", tm);
+    out_file = time_B;
+    out_file += string(".html");
 }
 
 Cgi::~Cgi(){

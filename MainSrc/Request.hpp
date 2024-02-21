@@ -20,6 +20,7 @@ enum errors{
 
 class Request
 {
+int is_cgi;
 string req_h;
 string error_resp;
 Cgi cgi;
@@ -30,7 +31,7 @@ int parce_key(const string& key);
 int spl_reqh_body(string s1);
 Method* create_method(const string &type);
 void check_for_error();
-void set_serv();
+int set_serv();
 public:
     Servers serv;
     vector<Servers> ser_vec;
@@ -52,7 +53,7 @@ public:
     Request& operator=(const Request& oth);
     void process_req(const string &req, int event);
     string get_respons() const;
-    int resp_done();
+    int resp_done() const;
     ~Request();
 };
 

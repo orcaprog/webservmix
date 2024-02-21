@@ -586,6 +586,7 @@ void Servers::SetDefaultError()
     error_page["416"] =  "error_pages/416.html";
     error_page["417"] =  "error_pages/417.html";
     error_page["500"] =  "error_pages/500.html";
+    error_page["504"] =  "error_pages/504.html";
     error_page["505"] =  "error_pages/505.html";
     
 }

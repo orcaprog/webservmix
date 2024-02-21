@@ -18,10 +18,12 @@ int main(int ac , char **av)
 {
     (void)ac;
 
+    // Get g;
+    // g.set_content_length("Content-Length: dgfdfg");
     try
     {
         Multiplexing mult(av[1]);
-        mult.CreatMUltiplex(); 
+        mult.CreatMUltiplex();
     }
     catch(std::string  e)
     {
