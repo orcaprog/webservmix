@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/15 15:39:42 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/21 14:31:32 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ Post::Post()
     first_run = 0;
     cgi_exe = 0;
     error = 0;
+    error_time = 0;
     mimeType();
 }
 
@@ -76,7 +77,7 @@ std::string Post::creat_file_name(int ret)
         return currentTimeString;
     if (serv.Is_cgi)
     {
-        
+        std::cout << "chose 1\n";
         size_t i;
         if (!fullUri_path.size())
         {
@@ -90,9 +91,12 @@ std::string Post::creat_file_name(int ret)
         if (!i)
             i = fullUri_path.size();
         root = fullUri_path.substr(0, i);
+        std::cout << "full uri " << fullUri_path << std::endl;
+        std::cout << "root is " << root << std::endl;
     }
     else
         root = serv.rootUri;
+    std::cout << "root " << root << std::endl;
     return  root + "/"+ currentTimeString;
 }
 void Post::mimeType()
@@ -245,10 +249,12 @@ void Post::openFile(std::string body, size_t body_size)
         if (mime.find( headers.find("Content-Type")->second) != mime.end())
 		{
 			mimeVal = mime.find((headers.find("Content-Type")->second))->second;
+            content_type = headers.find("Content-Type")->second;
 		}
 		else
 		{
 			mimeVal = "x";
+            content_type = "application/octet-stream";
 		}
     }
     else if (MethodType != 3)
@@ -267,19 +273,20 @@ void Post::openFile(std::string body, size_t body_size)
 		fileName = time_B + dot;
 		fileName = fileName + mimeVal;
         the_file = fileName;
-        content_type = mimeVal;
 		outFile.open(fileName.c_str(), std::ios::out | std::ios::binary);
         if (!outFile.is_open())
         {
             error = 4;
             end = 1;
-            std::cout << "Could not open the output file"<< the_file << std::endl << outFile.is_open()<<std::endl;
+            std::cout << "Could not open the output file "<< the_file << std::endl << outFile.is_open()<<std::endl;
             return ;
         }
 	}
     if (headers.find("Content-Length") != headers.end())
     {
-        size_len =  (size_t)std::atoi((headers.find("Content-Length")->second).c_str());
+        std::stringstream ss;
+        ss << headers.find("Content-Length")->second;
+        ss >> size_len;        
     }
     else
     {
@@ -287,12 +294,11 @@ void Post::openFile(std::string body, size_t body_size)
         {
             end = 1;
             error = 3;
+            return ;
         }
-        return ;
     }
 	if (MethodType != 3 && outFile.is_open())
 	{
-        std::cout << "lll >>> " << body.size()<<std::endl;
         crfile = 1;
         body_size =  body.size();
         if (MethodType == 2)
@@ -308,6 +314,7 @@ void Post::normalFile(std::string body, size_t body_size)
     std::cout << "in normal\n";
     std::cout << "is file open " << outFile.is_open() << std::endl;
     std::cout << "the file " << the_file<< std::endl;
+    std::cout << "the size " << total_Body << "big size " << size_len << std::endl;
 	outFile.write(body.c_str(), body.size());
     total_Body += body.size();
     if (total_Body >= size_len)
@@ -327,7 +334,7 @@ void Post::chunk_write(std::string body, size_t body_size)
         // std::cout << "Me1\n";
         (void)body_size;
         outFile.write(body.c_str(), body.size());
-
+        total_Body += body.size();
         buffer = "";
         left_over = 0;
         if ((int)body.size() == chunk_ctl)
@@ -340,8 +347,6 @@ void Post::chunk_write(std::string body, size_t body_size)
     }
     else
     {
-                // std::cout << "Me2\n";
-
         std::string tmp = "";
         std::string chunks_s;
         std::stringstream ss;
@@ -351,7 +356,7 @@ void Post::chunk_write(std::string body, size_t body_size)
         if (body.size() - chunk_ctl == 1)
         {
             outFile.write(tmp.c_str(), tmp.size());
-
+            total_Body += tmp.size();
             buff_chunk = body.substr(chunk_ctl, 1);
             left_over = 1;
             chunk_ctl = 0;
@@ -368,6 +373,7 @@ void Post::chunk_write(std::string body, size_t body_size)
             if (!chunk_ctl)
             {
                 outFile.write(tmp.c_str(), tmp.size());
+                total_Body += tmp.size();
                 outFile.close();
                 crfile = -2;
                 end = 1;
@@ -376,11 +382,13 @@ void Post::chunk_write(std::string body, size_t body_size)
             }
             tmp.append(buffer, 0, buffer.size());
             outFile.write(tmp.c_str(), tmp.size());
+            total_Body += tmp.size();
             chunk_ctl = chunk_ctl - buffer.size();
         }
         else
         {
             outFile.write(tmp.c_str(), tmp.size());
+            total_Body += tmp.size();
             buff_chunk = buffer;
             left_over = buffer.size();
             chunk_ctl = 0;
@@ -554,7 +562,7 @@ void    Post::ft_boundary(std::string& body)
 				std::string file = body.substr(pos + strlen("name=") + 1, pos1 - ( strlen("name=") + 1) - pos);
                 if (!file[0])
                 {
-                    std::string time_B = creat_file_name(0);
+                    std::string time_B = creat_file_name(1);
                     file = time_B;
                 }
                 else if (body.find("Content-Type:") != std::string::npos)
@@ -570,6 +578,7 @@ void    Post::ft_boundary(std::string& body)
                 }
 	            else
                     mimeVal = "txt";
+                file = fullUri_path + file;
                 file = file + ".";
                 file += mimeVal;
                 if (access(file.c_str(),F_OK ) == 0)
@@ -919,45 +928,64 @@ char **Post::set_cmd(std::string& ext_path)
 char **Post::set_env()
 {
     std::string script_name;
+    std::string script_name1;
     std::string content_len;
     std::string cont_type;
     std::string info_path;
     // std::string query_str;
     std::string serv_prt;
-    std::stringstream ss; 
+    std::stringstream ss;
+    std::string cookie;
+    int is_cokie = 0;
     
-	char **env = new char*[7];
+    if (headers.find("Cookie") != headers.end())
+    {
+        is_cokie = 1;
+        cookie = headers.find("Cookie")->second;
+    }
+	char **env = new char*[8 + is_cokie];
     env[0] = new char[strlen("REDIRECT_STATUS=HTTP/1.1 200 OK") + 1];
     std::strcpy(env[0], "REDIRECT_STATUS=HTTP/1.1 200 OK");
-    // env[1] = new char[strlen("REQUEST_METHOD=Post") + 1];
-    // std::strcpy(env[1], "REQUEST_METHOD=POST");
-    script_name = "SCRIPT_NAME=" + fullUri_path;
-    env[1] = new char[script_name.size() + 1];
-    std::strcpy(env[1], script_name.c_str());
+    env[1] = new char[strlen("REQUEST_METHOD=Post") + 1];
+    std::strcpy(env[1], "REQUEST_METHOD=POST");
+    script_name = "SCRIPT_FILENAME=" + fullUri_path;
+    env[2] = new char[script_name.size() + 1];
+    std::strcpy(env[2], script_name.c_str());
     ss << total_Body;
+    std::cout << ss.str() <<  std::endl;
     ss >> content_len;
     content_len =  "CONTENT_LENGTH=" + content_len;
-    env[2] = new char[content_len.size() + 1];
-    std::strcpy(env[2], content_len.c_str());
+    env[3] = new char[content_len.size() + 1];
+    std::strcpy(env[3], content_len.c_str());
     cont_type = "CONTENT_TYPE=" + content_type;
-    env[3] = new char[cont_type.size() + 1];
-    std::strcpy(env[3], cont_type.c_str());
+    env[4] = new char[cont_type.size() + 1];
+    std::strcpy(env[4], cont_type.c_str());
     info_path = "PATH_INFO=" + fullUri_path;
-    env[4] = new char[info_path.size() + 1];
-    std::strcpy(env[4], info_path.c_str());
+    env[5] = new char[info_path.size() + 1];
+    std::strcpy(env[5], info_path.c_str());
     serv_prt = "SERVER_PROTOCOL=HTTP/1.1";
-    env[5] = new char[serv_prt.size() + 1];
-    std::strcpy(env[5], serv_prt.c_str());
-    env[6] = NULL;
+    env[6] = new char[serv_prt.size() + 1];
+    std::strcpy(env[6], serv_prt.c_str());
+    if (is_cokie)
+    {
+        cookie = "HTTP_COOKIE=" + cookie;
+        env[7] = new char[cookie.size() + 1];
+        std::strcpy(env[7], cookie.c_str());
+    }
+    env[7+ is_cokie] = NULL;
     return env;
 }
+
 void Post::exe_cgi()
 {
+    char **env;
+    char **cmd;
+    std::cout << "cgi \n";
+    env = set_env();
     if (!first_run)
     {
+        std::cout << "first run is in cgi" << std::endl;
         std::string ext_path;
-        char **cmd;
-        char **env;
 
         end = 0;
         first_run = 1;
@@ -971,7 +999,6 @@ void Post::exe_cgi()
         {
             std::string ext_path = (serv.UriLocation.cgi_path.find(ext))->second;
             cmd = set_cmd(ext_path);
-            env = set_env();
         }
         else
         {
@@ -1000,6 +1027,7 @@ void Post::exe_cgi()
                 exit(1) ;
                 //Error pages for problem
             }
+            std::cout << " in child process\n";
             dup2(infile->_fileno, STDIN_FILENO);
             dup2(outfile->_fileno, STDOUT_FILENO);
             if (execve(cmd[0], cmd, env) == -1)
@@ -1011,16 +1039,25 @@ void Post::exe_cgi()
     }
     if (waitpid(pid, &exit_status, WNOHANG) > 0)
     {
-        cgi_exe = 1;
+        int exit_status1 = WEXITSTATUS(exit_status);
+        if (exit_status1)
+            error = 4;
+        else
+            cgi_exe = 1;
         int rem = std::remove(the_file.c_str());
         if (rem)
         {
             std::cout << " couldn't remove the TMP file \n";
             error = 4;
-            return ;
         }
+        for (int i = 0; env[i]; i++)
+            delete[] env[i];
+        delete[] env;
+        // for (int i = 0; cmd[i]; i++)
+        //     delete[] cmd[i];
+        // delete[] cmd;
     }
-    else if ((clock() - start_time) / CLOCKS_PER_SEC > 5)
+    else if ((clock() - start_time) / CLOCKS_PER_SEC > 10)
     {
         kill(pid, SIGKILL);
         std::cout << "there is time out \n";
@@ -1030,87 +1067,96 @@ void Post::exe_cgi()
         {
             std::cout << " couldn't remove the TMP file \n";
             error = 4;
+            for (int i = 0; env[i]; i++)
+                delete[] env[i];
+            delete[] env;
+            // for (int i = 0; cmd[i]; i++)
+            //     delete[] cmd[i];
+            // delete[] cmd;
             return ;
         }
-        cgi_exe = 1;
+        for (int i = 0; env[i]; i++)
+            delete[] env[i];
+        delete[] env;
+        // for (int i = 0; cmd[i]; i++)
+        //     delete[] cmd[i];
+        // delete[] cmd;
         error = 2;
     }
+    std::cout << "-+++++++++++++++++++++left cgi++++++++++++++++++\n";
 }
+
+
+void Post::ft_error()
+{
+    std::cout << "in error "<< error << std::endl;
+    if (access(the_file.c_str(),F_OK ) == 0&& !error_time)
+    {
+        int rem = std::remove(the_file.c_str());
+        if (rem)
+        {
+            std::cout << " couldn't remove the TMP file \n";
+            error = 4;
+            error_time = 1;
+        }
+    }
+    if (serv.Is_cgi && !error_time)
+    {
+        if (access(ran_file.c_str(),F_OK ) == 0)
+        {
+            int rem = std::remove(ran_file.c_str());
+            if (rem)
+            {
+                std::cout << " couldn't remove the TMP file \n";
+                error = 4;
+            }
+            error_time = 1;
+        }
+    }
+    if (error == 2)
+    {
+        get.serv.status = "408";
+        get.get("error_pages/408.html");
+        serv.status = "408";
+    }
+    else if (error == 3)
+    {
+        get.serv.status = "400";
+        get.get("error_pages/400.html");
+        serv.status = "400";
+    }
+    else if (error == 4)
+    {
+        get.serv.status = "509";
+        get.get("error_pages/417.html");
+        serv.status = "417";
+    }
+    respons = get.respons;
+    if (get.end)
+        end = 1;
+}
+
 
 int Post::process(std::string body, size_t body_size)
 {
-    // std::cout << "Post \n"<<std::endl;
-    // std::cout << "body is " << body << "." << std::endl<< std::endl;
-    // std::cout << "body size " << body.size() << std::endl<< std::endl;
-    //  std::cout << "body size1 " << body.size() << std::endl<< std::endl;
-    // std::cout << "rare " << rare << std::endl<< std::endl;
-    // std::cout << "left over " << left_over<< std::endl<< std::endl;
-    // std::cout << "buffer " << buffer << "."<<std::endl<< std::endl;
-    // std::cout << "chunk ctl " << chunk_ctl <<std::endl<< std::endl;
-    // std::cout << "****************************************************************\n";
-    // if (!body.size() )
-    // {
-    //     std::cout << "nothing to do\n";
-    // }
-        // exit(1);
+    std::cout << "*************************************\nPost\n*************************************\n";
     if (error)
     {
-        if (serv.Is_cgi)
-        {
-            if (access(the_file.c_str(),F_OK ) == 0)
-            {
-                int rem = std::remove(the_file.c_str());
-                if (rem)
-                {
-                    std::cout << " couldn't remove the TMP file \n";
-                    error = 4;
-                    return 0;
-                }
-            }
-            if (access(ran_file.c_str(),F_OK ) == 0)
-            {
-                 int rem = std::remove(ran_file.c_str());
-                if (rem)
-                {
-                    std::cout << " couldn't remove the TMP file \n";
-                    error = 4;
-                    return 0;
-                }
-            }
-        }
-        std::cout << "Error " <<error << std::endl;
-        if (error == 2)
-        {
-            get.serv.status = "408";
-            get.get("error_pages/408.html");
-            serv.status = "408";
-        }
-        else if (error == 3)
-        {
-            get.serv.status = "400";
-            get.get("error_pages/400.html");
-            serv.status = "400";
-        }
-        else if (error == 4)
-        {
-            get.serv.status = "509";
-            get.get("error_pages/417.html");
-            serv.status = "417";
-        }
-        respons = get.respons;
-             if (get.end)
-                end = 1;
-        std::cout << "Found error\n";
+        std::cout << "the end is " <<end <<std::endl;
+        std::cout << "get end is " << get.end<<std::endl;
+        ft_error();
         return 1;
     }
     if (crfile > 0 && body_size == 2 && MethodType == 1)
     {
+        std::cout << "in special\n";
         buff_chunk += body;
         left_over += body.size();
         return 1;
     } 
-	 if (crfile > 0)
+	if (crfile > 0)
     {
+        std::cout << "chosing Method\n";
 		if (MethodType == 2)
 			normalFile(body, body_size);
 		else if (MethodType == 1)
@@ -1121,11 +1167,18 @@ int Post::process(std::string body, size_t body_size)
             ft_boundary_cgi(body);
     }
 	else if (!crfile)
+    {
+        std::cout << "opening Method\n";
 		openFile(body, body_size);
+    }
     if (end && !cgi_exe)
         enter_cgi = 1;
-    if (enter_cgi && serv.Is_cgi&& !error)
-        exe_cgi();
+    if (enter_cgi && serv.Is_cgi && !error)
+    {
+        std::cout << "exicuting cgi\n";
+            exe_cgi();
+    }
+    
     if (cgi_exe && body_size == EPOLLOUT && !error)
     {
         std::cout << "in get\n";
@@ -1146,6 +1199,7 @@ int Post::process(std::string body, size_t body_size)
     }
     if (end && !serv.Is_cgi&& !error)
     {
+        std::cout << "response: "<<std::endl;
         std::cout << "in Post resp\n";
         serv.status = "201";
         respons = "HTTP/1.1 " + serv.status;
@@ -1154,7 +1208,11 @@ int Post::process(std::string body, size_t body_size)
         respons += "\r\n\r\n";
         respons += "File created\n";
     }
-    
-    // std::cout << " >> " << body.size() << "recv read " << body_size << "chunked is " << chunk_ctl<<std::endl;
+    // std::cout << "chunk " << chunk_ctl << std::endl;
+    // std::cout << "total size " << total_Body << std::endl;
+    std::cout << "error " << error << std::endl;
+    std::cout << "cgi " << cgi_exe << std::endl;
+    std::cout << "end " << end<< std::endl;
+    std::cout << "--------------------------------\nend\n--------------------------------\n";
     return 1; 
 }
