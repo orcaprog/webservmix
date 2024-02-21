@@ -20,7 +20,7 @@ int Delete::process(string body, int event)
         RemoveAllPath(serv.rootUri);
         deleted = 0;
     }
-    else if(event & EPOLLOUT)
+    else if(event == EPOLLOUT)
     {
         Get get;
         cout<<"status :"<<status<<endl;

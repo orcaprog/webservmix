@@ -202,10 +202,6 @@ void Location::SetPath()
          throw "invalid location directive \n";
     }
     arg = vlocation[i][1];
-    // if (!pathExists(arg))
-    // {
-    //     throw ("Path '"+arg+"' does not exist.\n");
-    // }
     path.push_back(arg);
 }
 

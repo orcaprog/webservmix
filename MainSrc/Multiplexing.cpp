@@ -15,7 +15,7 @@
 Multiplexing::Multiplexing(std::string  configfile)
 {
     server.TakeAndParce(configfile);
-    SocketTimeout = 3;
+    SocketTimeout = 5;
     
 
 }
@@ -24,20 +24,19 @@ Multiplexing::~Multiplexing()
 {
 }
 
-
-
 void Multiplexing::Out_Events(int n)
 {
        
-    mClients[events[n].data.fd].process_req(string(""),events[n].events);
+    mClients[events[n].data.fd].process_req(string(""),EPOLLOUT);
     string res = mClients[events[n].data.fd].get_respons();
-    write(events[n].data.fd , res.c_str(), res.size());
-    if (mClients[events[n].data.fd].method && mClients[events[n].data.fd].method->end)
+    ssize_t bytesWritten = write(events[n].data.fd , res.c_str(), res.size());
+    
+    if (bytesWritten <= 0 && ( mClients[events[n].data.fd].method && mClients[events[n].data.fd].method->end))
     {
         epoll_ctl(epollfd,EPOLL_CTL_DEL,events[n].data.fd,&ev);
         close(events[n].data.fd);
         mClients.erase(events[n].data.fd);
-        cout<<"close connections :"<<events[n].data.fd<<endl;
+        cout<<"connections with client["<<events[n].data.fd<<"]  is closed from server"<<endl;
     }
     
 }
@@ -47,22 +46,15 @@ void Multiplexing::In_Events(int n)
     char buffer[1024];
     ssize_t bytesRead = 0;
 
-    std::cout<<"Enter clinet "<<events[n].data.fd<<" \n";
+    // std::cout<<"Enter clinet "<<events[n].data.fd<<" \n";
     bytesRead = read(events[n].data.fd,buffer,1024);
-    
-    std::cout<<"size :"<<bytesRead<<std::endl;
-    if (bytesRead == -1)
+
+    if (bytesRead <= 0) 
     {
-        // close(events[n].data.fd);
-        //  mClients.erase(events[n].data.fd);
-        perror("Error read\n");
-        return ;
-    }
-    if (bytesRead == 0) 
-    {
+        std::cout<<"Connection closed by client ["<<events[n].data.fd<<"]\n"; 
+        epoll_ctl(epollfd,EPOLL_CTL_DEL,events[n].data.fd,&ev);
         close(events[n].data.fd);
         mClients.erase(events[n].data.fd);
-        std::cout<<"Connection closed by client\n"; 
     }
     else 
     {
@@ -70,9 +62,7 @@ void Multiplexing::In_Events(int n)
         if (iter2 != mClients.end())
         {
             cout<<"==========  :"<<buffer<<endl;
-            mClients[events[n].data.fd].process_req(string("").append(buffer, bytesRead),events[n].events);
-            string res = mClients[events[n].data.fd].get_respons();
-            write(events[n].data.fd , res.c_str(), res.size());
+            mClients[events[n].data.fd].process_req(string("").append(buffer, bytesRead),EPOLLIN);
         }
     }
 }
@@ -83,6 +73,7 @@ void Multiplexing::Connect_And_Add(int n)
     std::map<int, vector<Servers> >::iterator iter = server.msockets.find(events[n].data.fd );
     if (iter != server.msockets.end()) 
     {   
+        std::cout<<"Fd Server :"<<iter->first<<std::endl;
         adrlen = sizeof(iter->second[0].address);
         conn_sock = accept(iter->first, (struct sockaddr *)&iter->second[0].address, (socklen_t*)&adrlen);
         if (conn_sock == -1) 
@@ -91,14 +82,12 @@ void Multiplexing::Connect_And_Add(int n)
             exit(EXIT_FAILURE);
         }
 
-        // mClients[conn_sock].first = iter->second[0];
-        // mClients[conn_sock].first.startTime = clock();
         Request req(iter->second[0]);
         mClients[conn_sock] = req;
         mClients[conn_sock].startTime = clock();
-        std::cout<<"Fd Server :"<<iter->first<<std::endl;
         ev.events = EPOLLIN | EPOLLOUT | EPOLLHUP;
         ev.data.fd = conn_sock;
+
         if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock,&ev) == -1) 
         {
             perror("epoll_ctl: conn_sock");
@@ -109,9 +98,10 @@ void Multiplexing::Connect_And_Add(int n)
     {
         if(events[n].events & EPOLLHUP)
         {
+            std::cout<<"HUP : Connection closed by client ["<<events[n].data.fd<<"]\n";
+            epoll_ctl(epollfd,EPOLL_CTL_DEL,events[n].data.fd,&ev);
             close(events[n].data.fd);
             mClients.erase(events[n].data.fd);
-            cout<<"close connections Hup:"<<events[n].data.fd<<endl;
         }
         else if (events[n].events & EPOLLIN) 
         {
@@ -145,6 +135,7 @@ void Multiplexing::CheckTimeOut()
         iter++;
     }
 }
+
 void Multiplexing::CreatMUltiplex()
 {
     std::map<int,vector<Servers> >::iterator iter;
@@ -155,7 +146,6 @@ void Multiplexing::CreatMUltiplex()
     }
     for (iter = server.msockets.begin(); iter != server.msockets.end(); iter++)
     {
-
             ev.events = EPOLLIN;
             ev.data.fd = iter->first;
             if (epoll_ctl(epollfd, EPOLL_CTL_ADD, iter->first, &ev) == -1) 
@@ -171,15 +161,14 @@ void Multiplexing::CreatMUltiplex()
             perror("epoll_wait");
             exit(EXIT_FAILURE);
         }
-        cout<<"EPOLLIN  :"<<EPOLLIN<<endl;
-        cout<<"EPOLLOUT :"<<EPOLLOUT<<endl;
+        // cout<<"EPOLLIN  :"<<EPOLLIN<<endl;
+        // cout<<"EPOLLOUT :"<<EPOLLOUT<<endl;
         for (int n = 0; n < nfds ; ++n) 
         {
-            cout<<"fd  : ["<<events[n].data.fd<<"]  : ";
-            cout<<"event  : ["<<events[n].events<<"]"<<endl;
+            // cout<<"fd  : ["<<events[n].data.fd<<"]  : ";
+            // cout<<"event  : ["<<events[n].events<<"]"<<endl;
             Connect_And_Add(n);
         }
         CheckTimeOut();
     }
-
 }

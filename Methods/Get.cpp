@@ -14,7 +14,7 @@ Get::Get(const Get& oth){
 }
 
 Get& Get::operator=(const Get& oth){
-    cout<<"GET COPY ASSIGNMENT"<<endl;
+    // cout<<"GET COPY ASSIGNMENT"<<endl;
     if (this != &oth){
         serv = oth.serv;
         http_v = oth.http_v;
@@ -68,7 +68,7 @@ void Get::set_content_type(const string& file_name){
     if (serv.Is_cgi){
         content_type = "text/html";
     }
-    cout<<"extension1: "<<extension<<endl;
+    // cout<<"extension1: "<<extension<<endl;
     if (types.find(extension) != types.end())
         content_type = types.find(extension)->second;
     else if (extension == "")
@@ -77,10 +77,9 @@ void Get::set_content_type(const string& file_name){
 
 void Get::set_headers(const string& file_name){
     int hed = 0;
+    respons = "HTTP/1.1 " + serv.status + string("\r\n");
     set_content_type(file_name);
-    respons = "HTTP/1.1 " + serv.status;
-    
-    respons += string("\r\nContent-Type: ");
+    respons += "Content-Type: ";
     respons += content_type+string("\r\n");
     respons += string("Content-Length: ");
     string line;
@@ -103,10 +102,16 @@ void Get::set_headers(const string& file_name){
 }
 
 void Get::open_file(const string& file_name){
+     if (file_name == ""){
+        respons = "HTTP/1.1 " + serv.status + string("\r\n\r\n");
+        opened = 2;
+        return;
+        
+    }
     src_file.open(file_name.c_str(), ios::in);
     opened = 1;
     if (!src_file.is_open()){
-        cout<<"can't open file: "<<file_name<<endl;
+        // cout<<"can't open file: "<<file_name<<endl;
         opened = -1;
         return;
     }
@@ -114,8 +119,8 @@ void Get::open_file(const string& file_name){
     file_len = src_file.tellg();
     src_file.seekg(0, std::ios::beg);
     set_headers(file_name);
-    cout<<"content_len: "<<file_len<<endl;
-    cout<<"content_type: "<<content_type<<endl;
+    // cout<<"content_len: "<<file_len<<endl;
+    // cout<<"content_type: "<<content_type<<endl;
 }
 
 void Get::get(const string& file_name){
@@ -123,6 +128,8 @@ void Get::get(const string& file_name){
     
     if (!opened)
         open_file(file_name); 
+    if (opened == 2)
+        end = 1;
     if (opened == 1 && !end){
         string res;
         res.resize(max_r);
@@ -136,11 +143,8 @@ void Get::get(const string& file_name){
         }
         // cout<<"res_size = "<<respons.size()<<"\nres: <<"<<respons<<">>"<<endl;
     }
-    if (opened == -1){
-        opened = 0;
+    if (opened == -1)
         end = 1;
-        // get(serv.error_page["404"])
-    }
 }
 
 int Get::process(string _body, int event){

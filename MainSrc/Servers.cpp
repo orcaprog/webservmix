@@ -474,7 +474,7 @@ void Servers::CreatSocketServer(std::map<int, vector<Servers> > &msockets)
         perror("bind failed");
         return;
     }
-    if (listen(server_fd, 10) < 0)
+    if (listen(server_fd, SOMAXCONN) < 0)
     {
         perror("“In listen”");
         exit(EXIT_FAILURE);
@@ -714,7 +714,7 @@ void Servers::FillData(string uri, string mehtod)
     else
     {
         std::cout << "Path of location :" << locations[in].path[0] << endl;
-        if (fillFromLocation(in, uri, mehtod) && locations[in].path[0] == "/cgi")
+        if (fillFromLocation(in, uri, mehtod) && (locations[in].path[0] == "/cgi" ||locations[in].path[0] == "/cgi/"))
         {
             Is_cgi = true;
         }
