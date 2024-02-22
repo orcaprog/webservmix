@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/21 14:31:32 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/22 14:06:34 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -293,7 +293,7 @@ void Post::openFile(std::string body, size_t body_size)
         if (headers.find("Transfer-Encoding") == headers.end())
         {
             end = 1;
-            error = 3;
+            error = 5;
             return ;
         }
     }
@@ -943,7 +943,7 @@ char **Post::set_env()
         is_cokie = 1;
         cookie = headers.find("Cookie")->second;
     }
-	char **env = new char*[8 + is_cokie];
+	char **env = new char*[9 + is_cokie];
     env[0] = new char[strlen("REDIRECT_STATUS=HTTP/1.1 200 OK") + 1];
     std::strcpy(env[0], "REDIRECT_STATUS=HTTP/1.1 200 OK");
     env[1] = new char[strlen("REQUEST_METHOD=Post") + 1];
@@ -966,14 +966,31 @@ char **Post::set_env()
     serv_prt = "SERVER_PROTOCOL=HTTP/1.1";
     env[6] = new char[serv_prt.size() + 1];
     std::strcpy(env[6], serv_prt.c_str());
+    env[7] = new char[name_of_script.size() + 1];
+    std::strcpy(env[7], name_of_script.c_str());
     if (is_cokie)
     {
         cookie = "HTTP_COOKIE=" + cookie;
-        env[7] = new char[cookie.size() + 1];
-        std::strcpy(env[7], cookie.c_str());
+        env[8] = new char[cookie.size() + 1];
+        std::strcpy(env[8], cookie.c_str());
     }
-    env[7+ is_cokie] = NULL;
+    env[8 + is_cokie] = NULL;
     return env;
+}
+
+void Post::script_name()
+{
+    size_t i = fullUri_path.find(".");
+    size_t find;
+    while (i != std::string::npos)
+    {
+        find = i;
+        i = fullUri_path.find(".", i + 1);
+    }
+    while (find >= 0 && fullUri_path[find] != '/')
+        find--; 
+    name_of_script = fullUri_path.substr(find + 1, fullUri_path.size() - find);
+    my_root = fullUri_path.substr(0, fullUri_path.size() - name_of_script.size());
 }
 
 void Post::exe_cgi()
@@ -989,8 +1006,8 @@ void Post::exe_cgi()
 
         end = 0;
         first_run = 1;
-        ran_file = creat_file_name(1);
-        ran_file = ran_file + ".html";
+        std::cout << "my_root = " << my_root << std::endl;
+        std::cout << "ran_file = " << ran_file << std::endl;
         std::string ext = find_ext();
         if (!ext.size())
             return ;//error page before
@@ -1006,6 +1023,9 @@ void Post::exe_cgi()
             error = 3;
             return ;
         }
+        script_name();
+        ran_file =  creat_file_name(1);
+        ran_file = my_root + ran_file + ".html";
         start_time = clock();
         pid = fork();
         if (pid < 0)
@@ -1019,11 +1039,18 @@ void Post::exe_cgi()
             FILE *infile;
             FILE *outfile;
 
+            if (!chdir(my_root.c_str()))
+            {
+                char s[100];
+                printf("%s\n", getcwd(s, 100));
+                std::cout << "script name " << name_of_script << std::endl;
+            }
             infile = fopen(the_file.c_str(), "r");
             outfile = fopen(ran_file.c_str(), "w");
+            std::cout << "name of out is " << ran_file << "the name of input " << the_file<< std::endl;
             if (!infile || !outfile)
             {
-                std::cout << "Problem in opening the File\n";
+                std::cout << "\n\n\n\n\n\nProblem in opening the File\n\n\n\n\n\n";
                 exit(1) ;
                 //Error pages for problem
             }
@@ -1131,6 +1158,12 @@ void Post::ft_error()
         get.get("error_pages/417.html");
         serv.status = "417";
     }
+    if (error == 5)
+    {
+        get.serv.status = "411";
+        get.get("error_pages/411.html");
+        serv.status = "411";
+    }
     respons = get.respons;
     if (get.end)
         end = 1;
@@ -1140,6 +1173,7 @@ void Post::ft_error()
 int Post::process(std::string body, size_t body_size)
 {
     std::cout << "*************************************\nPost\n*************************************\n";
+        std::cout << "ran fi;le " <<ran_file << std::endl;
     if (error)
     {
         std::cout << "the end is " <<end <<std::endl;
@@ -1189,7 +1223,7 @@ int Post::process(std::string body, size_t body_size)
         {
             end = 1;
             int x =  std::remove(ran_file.c_str());
-            if (!x)
+            if (x)
             {
                 std::cout << "Erro in deleting file\n";
                 error = 4;
