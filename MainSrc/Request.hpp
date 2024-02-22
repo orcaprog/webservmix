@@ -2,7 +2,6 @@
 #define REQUEST_HPP
 
 // #include "../Methods/Post.hpp"
-#include "../Methods/Delete.hpp"
 #include "../Methods/Cgi.hpp"
 
 using namespace std;
@@ -31,6 +30,7 @@ int spl_reqh_body(string s1);
 Method* create_method(const string &type);
 void check_for_error();
 public:
+clock_t    startTime;
     Servers serv;
     int error;
     int method_type;
@@ -51,7 +51,6 @@ public:
     void process_req(const string &req, int event);
     string get_respons() const;
     int resp_done();
-        clock_t startTime ;
     ~Request();
 };
 
