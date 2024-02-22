@@ -124,6 +124,7 @@ void Get::open_file(const string& file_name){
 }
 
 void Get::get(const string& file_name){
+    // cout<<"file naem :"<<file_name<<endl;
     ssize_t r_len, max_r = 1000;
     
     if (!opened)

@@ -35,7 +35,8 @@
 #include <iostream>
 #include<cstring>
 #include <ctime>
-
+#include <stdlib.h>
+#include <limits.h>
 
 
 class Servers
@@ -112,6 +113,9 @@ public:
     Location UriLocation;
     /*====================================*/
     void FillLocation();
+
+    void HandlPath(int & in,string &uri,string & hold  );
+    bool MatchingWithRoot(string & rootPlusUri,string &rootPath);
 
     ~Servers();
 };

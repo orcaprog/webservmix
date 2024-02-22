@@ -371,15 +371,15 @@ Location Servers::FirstFill(size_t &index)
 
 void Servers::FillLocation()
 {
-    size_t index = GetIndex("location");
+    size_t ind = GetIndex("location");
 
-    if (index == servconf.size())
+    if (ind == servconf.size())
     {
         return;
     }
-    while (index < servconf.size() && servconf[index][0] != "}")
+    while (ind < servconf.size() && servconf[ind][0] != "}")
     {
-        locations.push_back(FirstFill(index));
+        locations.push_back(FirstFill(ind));
     }
 }
 /*=======================================================================*/
@@ -589,21 +589,24 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
 {
     rootUri = uri;
     rootUri.replace(0, locations[in].path[0].length(), locations[in].root[0]);
-    string &hold = rootUri;
-    if (pathIsFile(rootUri) == 3 && method == "GET")
+    string hold = rootUri;
+    if (pathIsFile(rootUri) == 3 )
     {
-        cout << rootUri << endl;
         if (rootUri[rootUri.size() - 1] != '/')
         {
             rootUri = "";
             status = "301 Moved Permanently  \r\nLocation: " + uri + "/";
+            return 0;
         }
-        else
+        else if (MatchingWithRoot(rootUri,locations[in].root[0]))
+        {
+            rootUri = error_page["403"];
+            status = "403";
+            return 0;
+        }
+        else if(method == "GET" || method == "DELETE")
         {
             rootUri += locations[in].index[0];
-            cout << "from location :\n\n"
-                 << rootUri << endl
-                 << endl;
             if (!pathExists(rootUri))
             {
                 if (locations[in].permession & AUTOINDEX)
@@ -630,29 +633,25 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
 }
 void Servers::SetUriRoot(int i, string &uri)
 {
-    rootUri = locations[i].root[0] + uri;
-    if (pathIsFile(rootUri) == 3)
+    if (rootUri[rootUri.size() - 1] != '/')
     {
-        if (rootUri[rootUri.size() - 1] != '/')
+        rootUri = "";
+        status = "301 Moved Permanently  \r\nLocation: " + uri + "/";
+    }
+    else
+    {
+        rootUri += locations[i].index[0];
+        if (!pathExists(rootUri))
         {
-            rootUri = "";
-            status = "301 Moved Permanently  \r\nLocation: " + uri + "/";
-        }
-        else
-        {
-            rootUri += locations[i].index[0];
-            if (!pathExists(rootUri))
+            if (locations[i].permession & AUTOINDEX)
             {
-                if (locations[i].permession & AUTOINDEX)
-                {
-                    SetIndex_Of(locations[i].root[0] + "/" + uri);
-                    rootUri = "index_of.html";
-                }
-                else
-                {
-                    rootUri = error_page["404"];
-                    status = "404";
-                }
+                SetIndex_Of(locations[i].root[0] + "/" + uri);
+                rootUri = "index_of.html";
+            }
+            else
+            {
+                rootUri = error_page["404"];
+                status = "404";
             }
         }
     }
@@ -679,6 +678,18 @@ void Servers::FillQuerys(string &uri)
         uri.erase(pos, len);
     }
 }
+bool Servers::MatchingWithRoot(string & rootPlusUri,string &rootPath)
+{
+    char resolvedPath[PATH_MAX];
+    size_t pos;
+    realpath(rootPlusUri.c_str(),resolvedPath);
+    string hold = resolvedPath;
+    hold+= "/";
+    pos = hold.find(rootPath);
+    if (pos != string::npos && pos == 0) 
+        return 0;
+    return 1;
+}
 void Servers::FillData(string uri, string mehtod)
 {
     FillQuerys(uri);
@@ -691,9 +702,18 @@ void Servers::FillData(string uri, string mehtod)
         if (def != -1)
         {
             rootUri = locations[def].root[0] + uri;
-            if (pathIsFile(rootUri) == 3 && mehtod == "GET")
+            if (pathIsFile(rootUri) == 3)
             {
-                SetUriRoot(def, uri);
+                if (MatchingWithRoot(rootUri,locations[def].root[0]))
+                {
+                    rootUri = error_page["403"];
+                    status = "403";
+            
+                }
+                else if (mehtod == "GET" || mehtod == "DELETE")
+                {
+                    SetUriRoot(def, uri);
+                }
             }
             else if (!pathExists(rootUri))
             {
@@ -713,7 +733,7 @@ void Servers::FillData(string uri, string mehtod)
     }
     else
     {
-        std::cout << "Path of location :" << locations[in].path[0] << endl;
+        // std::cout << "Path of location :" << locations[in].path[0] << endl;
         if (fillFromLocation(in, uri, mehtod) && (locations[in].path[0] == "/cgi" ||locations[in].path[0] == "/cgi/"))
         {
             Is_cgi = true;
