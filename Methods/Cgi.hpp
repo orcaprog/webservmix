@@ -22,6 +22,7 @@ string extension;
 string out_file;
 string method_type;
 string cookies;
+string cgi_dir;
 map<string, string> headers;
 Servers serv;
 void set_env(const string& fullUri_path);

@@ -29,7 +29,7 @@ int check_headers();
 void read_file();
 void set_content_length(string line);
 public:
-    string extension_search(const string& file_name);
+    string extension_search(const string& file_name, int spl);
     Get();
     Get(const Get& oth);
     Get& operator=(const Get& oth);

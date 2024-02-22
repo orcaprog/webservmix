@@ -28,7 +28,7 @@ Cgi::Cgi(Servers _serv, const string& m_type){
     cmds[0] = NULL;
     cmds[1] = NULL;
     cmds[2] = NULL;
-     env = new char *[10];
+    env = new char *[10];
     env[0] = NULL;
     env[1] = NULL;
     env[2] = NULL;
@@ -87,21 +87,25 @@ void Cgi::exec_cgi(const string& fullUri_path){
         if (pid == 0){
             file = fopen(out_file.c_str(), "w");
             dup2(file->_fileno,STDOUT_FILENO);
-            if(execve(cmd,cmds,env) == -1){
-                std::cout<<"Cannot execute cgi scripte\n";
+            if(chdir(cgi_dir.c_str()) || execve(cmd,cmds,env) == -1)
                 exit(1);
-            }
         }
     }
     waiting();
 }
 
 void Cgi::waiting(){
-    if (waitpid(pid,&exit_stat,WNOHANG)>0)
+    if (waitpid(pid,&exit_stat,WNOHANG)>0){
         cgi_execueted = 1;
+        if (WEXITSTATUS(exit_stat)){
+            resp_done = 1;
+            get.serv.status = "500";
+            get.get(serv.error_page["500"]);
+        }
+
+    }
     else{
         if ((clock()-start_time)/CLOCKS_PER_SEC > 10){
-            cout<<"timeout\n";
             std::remove(out_file.c_str());
             kill(pid,SIGKILL);
             cgi_execueted = 1;
@@ -129,8 +133,8 @@ void Cgi::execute(Method *method, int event){
 
 int Cgi::set_cmd(const string& fullUri_path){
 
-    extension = get.extension_search(fullUri_path);
-    cout<<"cgi_exten: "<<extension<<endl;
+    extension = get.extension_search(fullUri_path, '.');
+    cgi_dir = get.extension_search(fullUri_path, '/');
     map<string,string>::iterator it;
     it = serv.UriLocation.cgi_path.find(extension);
     if (it == serv.UriLocation.cgi_path.end()){

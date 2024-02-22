@@ -74,7 +74,7 @@ int Request::spl_reqh_body(string s1)
         body = s1.substr(pos + 4);
         cout << "--_______Lheaders Te9raw Kolhom________--\n" << endl;
         req_h += s1.substr(0, pos);
-        cout<<"h: "<<req_h<<"|||\n";
+        // cout<<"h: "<<req_h<<"|||\n";
         body_state = 1;
         body_size = body.size();
     }
