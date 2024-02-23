@@ -182,7 +182,6 @@ void Request::check_for_error(){
     if (!error || error_resp.size())
         return;
     
-    cout<<"ERROR: "<<error<<endl;
     string err_page_name;
     Get get;
     if (error & Method_Unkounu || error & Invalid_Header)
@@ -206,12 +205,8 @@ void    Request::process_req(const string &req, int event){
         return ;
     }
     if (body_state && method){
-        if (type == "GET"){
-            if (is_cgi)
-                cgi.execute(method, event);
-            else
-                method->process(body, event);
-        }
+        if (type == "GET" && is_cgi)
+            cgi.execute(method, event);
         else
             method->process(body, event);
     }
