@@ -12,8 +12,6 @@
 
 #include "Location.hpp"
 
-
-
 void Location::FillValid()
 {
      Vstrvalid.push_back("listen");
@@ -33,6 +31,7 @@ void Location::FillValid()
      Vstrvalid.push_back("upload");
      Vstrvalid.push_back("cgi_path");
 }
+
 void Location::checkValidation()
 {
     std::vector<std::string>::iterator iter;
@@ -67,10 +66,8 @@ int Location::pathIsFile(std::string path)
         return 0;
 }
 
-int Location::pathExists(std::string path) {
-    struct stat fileStat;
-    return stat(path.c_str(), &fileStat) == 0;
-}
+
+
 size_t Location::GetIndex(std::string dir)
 {
     size_t i ;
@@ -83,6 +80,7 @@ size_t Location::GetIndex(std::string dir)
     }
     return (i);
 }
+
 int Location::checkDup(std::string der,int & index)
 {
     int dup = 0;
@@ -103,6 +101,7 @@ int Location::checkDup(std::string der,int & index)
     }
     return (dup);
 }
+
 void Location::desplayLocation()
 {
 
@@ -119,6 +118,7 @@ void Location::desplayLocation()
 
     std::cout<<"index  :"<<index[0]<<std::endl;
 }
+
 void Location::SetAllDir()
 {
     FillValid();
@@ -131,6 +131,7 @@ void Location::SetAllDir()
     SetIndex();
     SetPath();
 }
+
 void Location::SetIndex()
 {
     int i;
@@ -148,23 +149,12 @@ void Location::SetIndex()
     arg = vlocation[i][1];
     index.push_back(arg);
 }
-void Location::Printtwodom(const std::vector<std::vector<std::string> > & matrix,std::string data)
-{
-    std::cout<<data<<"   :\n";
-    for (std::vector<std::vector<std::string> >::const_iterator row = matrix.begin(); row != matrix.end(); ++row) {
-        
-    for (std::vector<std::string>::const_iterator value = row->begin(); value != row->end(); ++value) {
-        std::cout <<"   :"<< *value << "|";
-    }
-    std::cout << std::endl;
-    } 
-}
 
- void Location::SetIndexRoot(string root,string index)
- {
+void Location::SetIndexRoot(string root,string index)
+{
     Servindex = index;
     ServRoot = root;
- }
+}
 
 void Location::SetRoot()
 {
@@ -181,12 +171,13 @@ void Location::SetRoot()
          throw "invalid root directive \n";
     }
     arg = vlocation[i][1];
-    if (!pathExists(arg)) 
+    if (!pathIsFile(arg)) 
     {
         throw ("Path '"+arg+"' does not exist.\n");
     }
     root.push_back(arg);
 }
+
 void Location::SetPath()
 {
     int i;
@@ -199,7 +190,7 @@ void Location::SetPath()
     }
     if (vlocation[i].size() != 2 )
     {
-         throw "invalid location directive \n";
+        throw "Invalid number of arguments in 'client_max_body_size' directive \n";
     }
     arg = vlocation[i][1];
     path.push_back(arg);
@@ -229,6 +220,7 @@ void Location::CheckMethods(std::string methd)
     if (methd == "DELETE")
         dele = 1;
 }
+
 void Location::SetAllowMethods()
 {
     int i;
@@ -244,7 +236,8 @@ void Location::SetAllowMethods()
     }
     if (vlocation[i].size() > 4 || vlocation[i].size() < 2 )
     {
-         throw "invalid methods arguments directive \n";
+         throw "Invalid number of arguments in 'allow_methods' directive \n";
+
     }
     vallow =  vlocation[i];
 
@@ -259,6 +252,7 @@ void Location::SetAllowMethods()
         iter++;
     }    
 }
+
 void Location::SetAutoindex()
 {
     int i;
@@ -275,11 +269,12 @@ void Location::SetAutoindex()
     arg = vlocation[i][1];
     if (arg != "on" &&  arg != "off")
     {
-        throw "The argument  '"+arg+ "' is not valid\n";
+        throw "invalid  '" + arg + "' in auotindex  directive \n";
     }
     if (arg == "on")
         permession += AUTOINDEX;
 }
+
 void Location::SetUpload()
 {
     int i;
@@ -296,22 +291,11 @@ void Location::SetUpload()
     arg = vlocation[i][1];
     if (arg != "on" &&  arg != "off")
     {
-        throw "The argument  '"+arg+ "' is not valid\n";
+       throw "invalid  '" + arg + "' in upload  directive \n";
     }
     if (arg == "on")
         permession += UPLOAD;
 }
-// void Location::check_Status(std::string status)
-// {
-//     std::vector<std::string>::iterator iter;
-
-//     iter = std::find(s_erorr.begin(),s_erorr.end(),status);
-//     if (iter == s_erorr.end())
-//     {
-//         throw "Error : Invalid status '"+status +"' code  Derecties\n";
-//     }
-// }
-
 
 void Location::SetCgiPath()
 {
@@ -328,7 +312,7 @@ void Location::SetCgiPath()
             extantion = vlocation[i][1];
             path = vlocation[i][2];
             // check_extantion(extantion);
-            if (!pathExists(path)) 
+            if (!pathIsFile(path)) 
             {
                 throw ("Path '"+path+"' does not exist.\n");
             }

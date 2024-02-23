@@ -50,11 +50,6 @@ int Servers::pathIsFile(std::string path)
         return 0;
 }
 
-int Servers::pathExists(std::string path)
-{
-    struct stat fileStat;
-    return stat(path.c_str(), &fileStat) == 0;
-}
 
 bool Servers::check_isdigit(std::string str)
 {
@@ -69,43 +64,11 @@ bool Servers::check_isdigit(std::string str)
     }
     return (1);
 }
-
-// void Servers::Printtwodom(const std::vector<std::vector<std::string>> &matrix, std::string data)
-// {
-//     for (std::vector<std::vector<std::string>>::const_iterator row = matrix.begin(); row != matrix.end(); ++row)
-//     {
-//         std::cout << data << "   :";
-//         for (std::vector<std::string>::const_iterator value = row->begin(); value != row->end(); ++value)
-//         {
-//             std::cout << *value << "|";
-//         }
-//         std::cout << std::endl;
-//     }
-// }
-
 /*_____________________________________________________________*/
 /*_________________________SET_________________________________*/
 /*_____________________________________________________________*/
 
-void Servers::parceIp(std::string ip)
-{
-    std::stringstream ss;
-    ss << ip;
-    std::string line;
-    int net = 0;
-    int len = 0;
-    while (getline(ss, line, '.'))
-    {
-        net = std::atoi(line.c_str());
-        if (line.size() > 3 || !check_isdigit(line) || net > 255 || net < 0)
-        {
-            throw "error invalid ip host " + ip + " \n";
-        }
-        len++;
-    }
-    if (len != 4)
-        throw "error invalid ip host " + ip + " \n";
-}
+
 int Servers::checkDup(std::string der, int &index)
 {
     int dup = 0;
@@ -211,7 +174,7 @@ void Servers::SetRoot()
         throw "Invalid number of arguments in 'root' directive \n";
     }
     arg = servconf[i][1];
-    if (!pathExists(arg))
+    if (!pathIsFile(arg))
     {
         throw("Root path :'" + arg + "' does not exist.\n");
     }
@@ -232,11 +195,6 @@ void Servers::SetIndex()
         throw "Invalid number of arguments in 'index' directive \n";
     }
     arg = servconf[i][1];
-    // std::cout<<"index   :"<<arg<<endl;
-    // if (pathIsFile(arg) != 2 )
-    // {
-    //     throw("Path '" + arg + "' does not exist or is not a file.\n");
-    // }
     index.push_back(arg);
 }
 void Servers::SetClient_max_body_size()
@@ -309,7 +267,6 @@ void Servers::SetAllDir(vector<string> & ser_names)
     FillValid();
     FillLocation();
     // checkValidation();
-
     SetHost();
     SetRoot();
     SetPorts();
@@ -417,7 +374,6 @@ void Servers::desplay()
         cout << "error Page :'" << iter->first << "' '" << iter->second << "'\n";
         iter++;
     }
-
     cout << "Client_max_body_size :" << endl;
     cout << "Index :" << index[0] << endl;
     size_t i = 0;
@@ -453,6 +409,7 @@ void Servers::CreatSocketServer(std::map<int, vector<Servers> > &msockets)
     }
     else
     {
+        server_fd = ser->server_fd;
         cout << "this is already exist\n";
         return;
     }
@@ -556,7 +513,7 @@ void Servers::SetDefaultError()
     error_page["415"] = "error_pages/415.html";
     error_page["416"] = "error_pages/416.html";
     error_page["417"] = "error_pages/417.html";
-    error_page["500"] = "error_pages/500.html";
+    error_page["500"] = "error_pages/500.html"; 
 }
 bool Servers::operator==(const Servers &ser)
 {
@@ -612,7 +569,7 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
         else if(method == "GET" || method == "DELETE")
         {
             rootUri += locations[in].index[0];
-            if (!pathExists(rootUri))
+            if (pathIsFile(rootUri) != 2)
             {
                 if (locations[in].permession & AUTOINDEX)
                 {
@@ -628,7 +585,7 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
             }
         }
     }
-    else if (!pathExists(rootUri))
+    else if (!pathIsFile(rootUri))
     {
         rootUri = error_page["404"];
         status = "404";
@@ -646,7 +603,7 @@ void Servers::SetUriRoot(int i, string &uri)
     else
     {
         rootUri += locations[i].index[0];
-        if (!pathExists(rootUri))
+        if (pathIsFile(rootUri) != 2)
         {
             if (locations[i].permession & AUTOINDEX)
             {
@@ -720,7 +677,7 @@ void Servers::FillData(string uri, string mehtod)
                     SetUriRoot(def, uri);
                 }
             }
-            else if (!pathExists(rootUri))
+            else if (!pathIsFile(rootUri))
             {
                 rootUri = error_page["404"];
                 status = "404";

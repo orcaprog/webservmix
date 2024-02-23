@@ -39,7 +39,7 @@ public:
     Method();
     Method(const Method& oth);
     Method& operator=(const Method& oth);
-    virtual int process(string body, int event) = 0;
+    virtual int process(std::string body, int event) = 0;
     virtual ~Method();
 };
 

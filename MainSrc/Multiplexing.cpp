@@ -52,7 +52,7 @@ void Multiplexing::In_Events(int n)
     ssize_t bytesRead = 0;
 
     // std::cout<<"Enter clinet "<<events[n].data.fd<<" \n";
-    bytesRead = read(events[n].data.fd,buffer,1024);
+    bytesRead = recv(events[n].data.fd,buffer,1024,0);
 
     if (bytesRead <= 0) 
     {
@@ -102,9 +102,7 @@ void Multiplexing::Connect_And_Add(int n)
         if(events[n].events & EPOLLHUP)
         {
             std::cout<<"HUP : Connection closed by client ["<<events[n].data.fd<<"]\n";
-            epoll_ctl(epollfd,EPOLL_CTL_DEL,events[n].data.fd,&ev);
-            close(events[n].data.fd);
-            mClients.erase(events[n].data.fd);
+            CloseClient(n);
         }
         else if (events[n].events & EPOLLIN) 
         {

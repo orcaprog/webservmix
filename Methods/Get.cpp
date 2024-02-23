@@ -210,7 +210,7 @@ void Get::read_file(){
     //     cout<<"\n\nres:"<<respons<<"\n\n"<<endl;
 }
 
-int Get::process(string _body, int event){
+int Get::process(std::string _body, int event){
     body = _body;
     if (event == EPOLLIN)
         return 0;
