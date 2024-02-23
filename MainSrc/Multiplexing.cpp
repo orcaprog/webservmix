@@ -24,6 +24,14 @@ Multiplexing::~Multiplexing()
 {
 }
 
+
+void Multiplexing::CloseClient(int & n)
+{
+    epoll_ctl(epollfd,EPOLL_CTL_DEL,events[n].data.fd,&ev);
+    close(events[n].data.fd);
+    mClients.erase(events[n].data.fd);
+    cout<<"connections with client["<<events[n].data.fd<<"]  is closed from server"<<endl;
+}
 void Multiplexing::Out_Events(int n)
 {
        
@@ -33,10 +41,7 @@ void Multiplexing::Out_Events(int n)
     
     if (bytesWritten <= 0 && ( mClients[events[n].data.fd].method && mClients[events[n].data.fd].method->end))
     {
-        epoll_ctl(epollfd,EPOLL_CTL_DEL,events[n].data.fd,&ev);
-        close(events[n].data.fd);
-        mClients.erase(events[n].data.fd);
-        cout<<"connections with client["<<events[n].data.fd<<"]  is closed from server"<<endl;
+        CloseClient(n);
     }
     
 }
@@ -52,9 +57,7 @@ void Multiplexing::In_Events(int n)
     if (bytesRead <= 0) 
     {
         std::cout<<"Connection closed by client ["<<events[n].data.fd<<"]\n"; 
-        epoll_ctl(epollfd,EPOLL_CTL_DEL,events[n].data.fd,&ev);
-        close(events[n].data.fd);
-        mClients.erase(events[n].data.fd);
+        CloseClient(n);
     }
     else 
     {
@@ -82,7 +85,7 @@ void Multiplexing::Connect_And_Add(int n)
             exit(EXIT_FAILURE);
         }
 
-        Request req(iter->second[0]);
+        Request req(iter->second);
         mClients[conn_sock] = req;
         mClients[conn_sock].startTime = clock();
         ev.events = EPOLLIN | EPOLLOUT | EPOLLHUP;

@@ -34,6 +34,7 @@ public:
     void Out_Events(int n);
     void CheckTimeOut();
     int setnonblocking(int sockfd) ;
+    void CloseClient(int & n);
 };
 
 

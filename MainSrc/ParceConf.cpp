@@ -147,10 +147,12 @@ void ParceConf::desplay()
 {
     FillServers();
     size_t i = 0;
-    vector<Servers> vec;
+    // vector<Servers> vec;
+    vector<string> ser_names;
     while (i < Vservers.size())
     {
-        Vservers[i].SetAllDir();
+        Vservers[i].SetAllDir(ser_names);
+        ser_names.push_back(Vservers[i].server_name[0]);
         Vservers[i].CreatSocketServer(msockets);
         msockets[Vservers[i].server_fd].push_back(Vservers[i]);
 

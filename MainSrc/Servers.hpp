@@ -56,7 +56,7 @@ private:
     Location FirstFill(size_t & index);
     
     void SetPorts (); // done ~
-    void SetServerName(); // done ~
+    void SetServerName(vector<string> & ser_names); // done ~
     void SetHost();  // done ~
     void SetRoot();  // done ~
     void SetError_page(); // done ~
@@ -91,7 +91,7 @@ public:
     std::vector<Location> locations;
 
     //________________________//
-    void SetAllDir();
+    void SetAllDir(vector<string> & ser_names);
     void desplay();
     
 

@@ -148,7 +148,7 @@ void Servers::SetPorts()
     port.push_back(myport);
 }
 
-void Servers::SetServerName()
+void Servers::SetServerName(vector<string> & ser_names)
 {
     int i;
     int num = checkDup("server_name", i);
@@ -162,9 +162,14 @@ void Servers::SetServerName()
     {
         throw "Invalid number of arguments in 'server_name' directive \n";
     }
+    
     arg = servconf[i][1];
 
     // check hna laykon chi check
+    if (find(ser_names.begin(),ser_names.end(),arg) != ser_names.end())
+    {
+        throw "Invalid arguments'server_name' directive is already exist in other server \n";
+    }
     server_name.push_back(arg);
 }
 
@@ -298,7 +303,7 @@ void Servers::SetError_page()
     }
 }
 
-void Servers::SetAllDir()
+void Servers::SetAllDir(vector<string> & ser_names)
 {
     // ParceServers();
     FillValid();
@@ -309,7 +314,7 @@ void Servers::SetAllDir()
     SetRoot();
     SetPorts();
     SetIndex();
-    SetServerName();
+    SetServerName(ser_names);
     SetError_page();
     SetClient_max_body_size();
 
