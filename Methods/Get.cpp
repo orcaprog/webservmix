@@ -168,11 +168,6 @@ void Get::open_file(const string& file_name){
 
 void Get::get(const string& file_name){
     // cout <<"file_name: "<<file_name<<";"<<endl;
-    if (file_name == ""){
-        serv.status = "301";
-        get(serv.error_page["301"]);
-        return ;
-    }
     respons.clear();
     if (file_name == ""){
         respons = "HTTP/1.1 " + serv.status + "\r\n\r\n";
