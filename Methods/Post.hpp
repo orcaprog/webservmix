@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/21 15:17:18 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/23 14:30:34 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ class Post : public Method
         int chunk_ctl;
 		size_t size_len;
         size_t total_Body;
+        size_t pre_total_body;
         size_t chunk_left;
         int find_sep;
         int file_hang;
@@ -79,6 +80,7 @@ class Post : public Method
         int cgi_exe;
         std::string my_root;
         std::string name_of_script;
+        int time_out;
         
         Get get;
         
