@@ -3,6 +3,7 @@
 
 // #include "../Methods/Post.hpp"
 #include "../Methods/Cgi.hpp"
+#include "../Methods/Post.hpp"
 
 using namespace std;
 
