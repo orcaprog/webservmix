@@ -1,5 +1,3 @@
-
-
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
@@ -37,7 +35,8 @@
 #include <iostream>
 #include<cstring>
 #include <ctime>
-
+#include <stdlib.h>
+#include <limits.h>
 
 
 class Servers
@@ -57,7 +56,7 @@ private:
     Location FirstFill(size_t & index);
     
     void SetPorts (); // done ~
-    void SetServerName(); // done ~
+    void SetServerName(vector<string> & ser_names); // done ~
     void SetHost();  // done ~
     void SetRoot();  // done ~
     void SetError_page(); // done ~
@@ -68,9 +67,9 @@ private:
 
 public:
 
-    clock_t startTime ;
+
     std::vector<int> port;
-    std::vector<std::string> server_name;
+    std::vector<std::string> server_name; 
     std::vector<std::string> host; 
     std::vector<std::string> root;
     std::vector<std::string> index;
@@ -92,16 +91,10 @@ public:
     std::vector<Location> locations;
 
     //________________________//
-    void SetAllDir();
+    void SetAllDir(vector<string> & ser_names);
     void desplay();
     
-    const int & GetPorts (); 
-    const std::string & GetServerName(); 
-    const std::string & GetHost();  
-    const std::string & GetRoot();  
-    const std::vector<std::vector<std::string> >&  GetError_page(); 
-    const long long int  &  GetClient_max_body_size(); 
-    const std::string & GetIndex(); 
+
 
     int getLocation(std::string path);
     void SetDefaultError();
@@ -120,6 +113,9 @@ public:
     Location UriLocation;
     /*====================================*/
     void FillLocation();
+
+    void HandlPath(int & in,string &uri,string & hold  );
+    bool MatchingWithRoot(string & rootPlusUri,string &rootPath);
 
     ~Servers();
 };
