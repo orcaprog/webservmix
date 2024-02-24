@@ -26,7 +26,6 @@ void ParceConf::FillValid()
     Vstrvalid.push_back("location");
     Vstrvalid.push_back("{");
     Vstrvalid.push_back("}");
-    Vstrvalid.push_back("#");
     Vstrvalid.push_back("allow_methods");
     Vstrvalid.push_back("autoindex");
     Vstrvalid.push_back("upload");
@@ -41,8 +40,14 @@ std::vector<std::string> ParceConf::Split_line(std::string line)
     std::string chunks;
     while (std::getline(ss, chunks, ' '))
     {
-        if (!chunks.empty() )
+        if (!chunks.empty())
+        {
+            if(strncmp(chunks.c_str(),"#",1) == 0)
+            {
+                break;
+            }
             vline.push_back(chunks);
+        }
     }
     return vline;
 }
@@ -142,10 +147,12 @@ void ParceConf::desplay()
 {
     FillServers();
     size_t i = 0;
-    vector<Servers> vec;
+    // vector<Servers> vec;
+    vector<string> ser_names;
     while (i < Vservers.size())
     {
-        Vservers[i].SetAllDir();
+        Vservers[i].SetAllDir(ser_names);
+        ser_names.push_back(Vservers[i].server_name[0]);
         Vservers[i].CreatSocketServer(msockets);
         msockets[Vservers[i].server_fd].push_back(Vservers[i]);
 
