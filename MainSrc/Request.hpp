@@ -33,6 +33,7 @@ Method* create_method(const string &type);
 void check_for_error();
 int set_serv();
 public:
+    clock_t startTime;
     Servers serv;
     vector<Servers> ser_vec;
     int error;
