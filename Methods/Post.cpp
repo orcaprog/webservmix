@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/25 14:23:37 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/25 17:13:19 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,7 +164,6 @@ void Post::mimeType()
     "application/xhtml+xml                            xhtml\n"
     "application/xspf+xml                             xspf\n"
     "application/zip                                  zip\n"
-    "application/octet-stream bin\n"
     "audio/midi  midi\n"
     "audio/mpeg mp3\n"
     "audio/ogg ogg\n"
@@ -194,14 +193,25 @@ void Post::mimeType()
 void Post::openFile(std::string body, size_t body_size)
 {
 	std::string mimeVal;
+    // int is_xsom = 0;
 
 	if (headers.find("Transfer-Encoding") != headers.end() && headers.find("Content-Type") != headers.end())
     {
         std::string tmp_C = (headers.find("Content-Type"))->second;
         if ((headers.find("Transfer-Encoding"))->second == "chunked"&& tmp_C.find("boundary=") == std::string::npos)
-		{
 			MethodType = 1;
-		}
+        else if ((headers.find("Transfer-Encoding"))->second == "chunked"&& tmp_C.find("boundary=") != std::string::npos)
+        {
+            std::cout << "Transfer-Encoding\n";
+            error = 6;
+            return ;
+        }
+        else if ((headers.find("Transfer-Encoding"))->second != "chunked")
+        {
+            std::cout << "Transfer-Encoding1\n";
+            error = 6;
+            return ;
+        }
     }
     else if (!MethodType && headers.find("Content-Type") != headers.end() && !serv.Is_cgi)
     {
@@ -215,8 +225,6 @@ void Post::openFile(std::string body, size_t body_size)
             sep_end = sep + "--";
 			buffer = "";
 			crfile = 1;
-			// ft_boundary(body);
-			// return ;
 		}
     }
     else if (!MethodType && headers.find("Content-Type") != headers.end() && serv.Is_cgi)
@@ -231,8 +239,6 @@ void Post::openFile(std::string body, size_t body_size)
             sep_end = sep + "--";
 			buffer = "";
 			crfile = 1;
-            // ft_boundary_cgi(body);
-			// return ;
 		}
     }
     if (!MethodType)
@@ -243,13 +249,14 @@ void Post::openFile(std::string body, size_t body_size)
     {
         if (mime.find( headers.find("Content-Type")->second) != mime.end())
 		{
+            std::cout << "content-type is  "<< headers.find("Content-Type")->second<<std::endl;
 			mimeVal = mime.find((headers.find("Content-Type")->second))->second;
             content_type = headers.find("Content-Type")->second;
 		}
 		else
 		{
-			mimeVal = "x";
-            content_type = "application/octet-stream";
+            error = 6;
+            return ;
 		}
     }
     else if (MethodType != 3)
@@ -410,14 +417,8 @@ void Post::chunked_file(std::string body, size_t body_size)
 {
     std::stringstream ss;
         
-    if (total_Body >= size_len)
-    {
-        end = 1;
-        return ;
-    }
     if (!body.size()&& !left_over)
         return ;
-    // std::cout << "in chunked\n";
     if (left_over)
     {
         buffer = "";
@@ -466,11 +467,11 @@ void    Post::ft_boundary(std::string& body)
     size_t pos1;
 
 
-    if (total_Body >= size_len)
-    {
-        end = 1;
-        return ;
-    }
+    // if (total_Body >= size_len)
+    // {
+    //     end = 1;
+    //     return ;
+    // }
     if (left_over)
     {
         // I add the new body with  what remain of the previous call 
@@ -1014,9 +1015,11 @@ void Post::exe_cgi()
         first_run = 1;
         std::string ext = find_ext();
         if (!ext.size())
-            return ;//error page before
+        {
+            error = 3;
+            return ;
+        }
         script_name();
-        // std::cout << ext<<std::endl;
         if (serv.UriLocation.cgi_path.find(ext) != serv.UriLocation.cgi_path.end())
         {
             std::string ext_path = (serv.UriLocation.cgi_path.find(ext))->second;
@@ -1159,6 +1162,12 @@ void Post::ft_error()
         get.get("error_pages/411.html");
         serv.status = "411";
     }
+    if (error == 6)
+    {
+        get.serv.status = "501";
+        get.get("error_pages/501.html");
+        serv.status = "501";
+    }
     respons = get.respons;
     if (get.end)
         end = 1;
@@ -1168,7 +1177,7 @@ void Post::ft_error()
 int Post::process(std::string body, size_t body_size)
 {
     pre_total_body = total_Body;
-    if (error)
+     if (error)
     {
         ft_error();
         return 1;
