@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/23 14:30:34 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/25 14:01:27 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,8 @@ class Post : public Method
         std::string my_root;
         std::string name_of_script;
         int time_out;
+        char **cmd;
+
         
         Get get;
         

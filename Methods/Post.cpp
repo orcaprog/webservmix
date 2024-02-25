@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/23 17:59:42 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/25 14:23:37 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,8 +215,8 @@ void Post::openFile(std::string body, size_t body_size)
             sep_end = sep + "--";
 			buffer = "";
 			crfile = 1;
-			ft_boundary(body);
-			return ;
+			// ft_boundary(body);
+			// return ;
 		}
     }
     else if (!MethodType && headers.find("Content-Type") != headers.end() && serv.Is_cgi)
@@ -231,8 +231,8 @@ void Post::openFile(std::string body, size_t body_size)
             sep_end = sep + "--";
 			buffer = "";
 			crfile = 1;
-            ft_boundary_cgi(body);
-			return ;
+            // ft_boundary_cgi(body);
+			// return ;
 		}
     }
     if (!MethodType)
@@ -289,14 +289,18 @@ void Post::openFile(std::string body, size_t body_size)
             return ;
         }
     }
-	if (MethodType != 3 && outFile.is_open())
+	if (MethodType == 3 || outFile.is_open())
 	{
         crfile = 1;
         body_size =  body.size();
         if (MethodType == 2)
             normalFile(body, body_size);
-        else
-            chunked_file(body, body_size);        
+        else if (MethodType == 1)
+            chunked_file(body, body_size);
+        else if (MethodType == 3)
+            ft_boundary(body);
+        else if (MethodType == 4)
+            ft_boundary_cgi(body);        
     }
 }
 
@@ -461,6 +465,12 @@ void    Post::ft_boundary(std::string& body)
     size_t pos;
     size_t pos1;
 
+
+    if (total_Body >= size_len)
+    {
+        end = 1;
+        return ;
+    }
     if (left_over)
     {
         // I add the new body with  what remain of the previous call 
@@ -505,6 +515,7 @@ void    Post::ft_boundary(std::string& body)
             // I check if pos and pos1 equal which will mean that sep_end was the only seprator
             //in this case there is something to be writen before closing
             out.write(body.c_str(), pos - 2);
+            total_Body += pos - 2;
             out.close();
             end = 1;
             return ;
@@ -539,13 +550,13 @@ void    Post::ft_boundary(std::string& body)
                 left_over = body.size() - pos;
                 body = buff_tmp;
                 out.write(body.c_str(), body.size());
+                total_Body += body.size();
                 out.close();
                 return ;
             }
         }
         if (body.find("\r\n\r\n") != std::string::npos)
 		{
-            
 			sep_found = body.substr(pos, sep.size());
             if (out.is_open())
             {
@@ -553,6 +564,7 @@ void    Post::ft_boundary(std::string& body)
                 {
                     buffer = body.substr(0, pos - 2);
                     out.write(buffer.c_str(), buffer.size());
+                    total_Body += buffer.size();
                     buffer = body.substr(pos, body.size() - pos);
                     left_over = buffer.size();
                     out.close();
@@ -643,6 +655,7 @@ void    Post::ft_boundary(std::string& body)
                 end_sep -= 2;
 			buff_chunk.append(body, pos + 4, end_sep);
             out.write(buff_chunk.c_str(), buff_chunk.size() );
+            total_Body += buff_chunk.size();
             here_is = 0;
 		}
 		else
@@ -665,6 +678,7 @@ void    Post::ft_boundary(std::string& body)
         if (out.is_open())
         {
             out.write(body.c_str(), body.size() );
+            total_Body += body.size();
         }
         here_is = 0;
     }
@@ -912,10 +926,10 @@ char **Post::set_cmd(std::string& ext_path)
 {
     char **cmd = new char*[3];
     cmd[0] = new char[ext_path.size() + 1];
-    cmd[1] = new char[fullUri_path.size() + 1];
+    cmd[1] = new char[name_of_script.size() + 1];
     cmd[2] = NULL;
     std::strcpy(cmd[0], ext_path.c_str());
-    std::strcpy(cmd[1], fullUri_path.c_str());
+    std::strcpy(cmd[1], name_of_script.c_str());
     return cmd;
 }
 
@@ -985,13 +999,12 @@ void Post::script_name()
     while (find >= 0 && fullUri_path[find] != '/')
         find--; 
     name_of_script = fullUri_path.substr(find + 1, fullUri_path.size() - find);
-    my_root = fullUri_path.substr(0, fullUri_path.size() - name_of_script.size());
+    my_root = fullUri_path.substr(0, fullUri_path.size() - name_of_script.size() - 1);
 }
 
 void Post::exe_cgi()
 {
     char **env;
-    char **cmd;
     env = set_env();
     if (!first_run)
     {
@@ -1002,7 +1015,8 @@ void Post::exe_cgi()
         std::string ext = find_ext();
         if (!ext.size())
             return ;//error page before
-        std::cout << ext<<std::endl;
+        script_name();
+        // std::cout << ext<<std::endl;
         if (serv.UriLocation.cgi_path.find(ext) != serv.UriLocation.cgi_path.end())
         {
             std::string ext_path = (serv.UriLocation.cgi_path.find(ext))->second;
@@ -1014,7 +1028,6 @@ void Post::exe_cgi()
             error = 3;
             return ;
         }
-        script_name();
         ran_file =  creat_file_name(1);
         ran_file = my_root + ran_file + ".html";
         start_time = clock();
@@ -1023,25 +1036,26 @@ void Post::exe_cgi()
         {
             perror("Fork failed");
              error = 4;
-            exit(1);
         }
         if (pid == 0)
         {
             FILE *infile;
-            FILE *outfile;
-
-            if (!chdir(my_root.c_str()))
-                exit(1);
+            FILE *outfile;  
+            if (chdir(my_root.c_str()))
+                exit(3);
             infile = fopen(the_file.c_str(), "r");
             outfile = fopen(ran_file.c_str(), "w");
             if (!infile || !outfile)
             {
-                exit(1) ;
+                std::cout << "couldnt create file \n";
+                exit(2) ;
             }
+
             dup2(infile->_fileno, STDIN_FILENO);
             dup2(outfile->_fileno, STDOUT_FILENO);
             if (execve(cmd[0], cmd, env) == -1)
             {
+                dup2(1, STDOUT_FILENO);
                 std::cout << "Failed to execute\n";
                 exit(1);
             }
@@ -1050,7 +1064,7 @@ void Post::exe_cgi()
     if (waitpid(pid, &exit_status, WNOHANG) > 0)
     {
         int exit_status1 = WEXITSTATUS(exit_status);
-        if (exit_status1)
+        if (exit_status1) 
             error = 4;
         else
             cgi_exe = 1;
@@ -1063,13 +1077,14 @@ void Post::exe_cgi()
         for (int i = 0; env[i]; i++)
             delete[] env[i];
         delete[] env;
-        // for (int i = 0; cmd[i]; i++)
-        //     delete[] cmd[i];
-        // delete[] cmd;
+        for (int i = 0; cmd[i]; i++)
+            delete[] cmd[i];
+        delete[] cmd;
     }
     else if ((clock() - start_time) / CLOCKS_PER_SEC > 10)
     {
         kill(pid, SIGKILL);
+        waitpid(pid, &exit_status, 0);
         int rem = std::remove(the_file.c_str());
         int ram = std::remove(ran_file.c_str());
         if (rem || ram)
@@ -1079,17 +1094,17 @@ void Post::exe_cgi()
             for (int i = 0; env[i]; i++)
                 delete[] env[i];
             delete[] env;
-            // for (int i = 0; cmd[i]; i++)
-            //     delete[] cmd[i];
-            // delete[] cmd;
+            for (int i = 0; cmd[i]; i++)
+                delete[] cmd[i];
+            delete[] cmd;
             return ;
         }
         for (int i = 0; env[i]; i++)
             delete[] env[i];
         delete[] env;
-        // for (int i = 0; cmd[i]; i++)
-        //     delete[] cmd[i];
-        // delete[] cmd;
+        for (int i = 0; cmd[i]; i++)
+            delete[] cmd[i];
+        delete[] cmd;
         error = 2;
     }
 }
@@ -1122,9 +1137,9 @@ void Post::ft_error()
     }
     if (error == 2)
     {
-        get.serv.status = "408";
-        get.get("error_pages/408.html");
-        serv.status = "408";
+        get.serv.status = "504";
+        get.get("error_pages/504.html");
+        serv.status = "504";
     }
     else if (error == 3)
     {
@@ -1176,24 +1191,16 @@ int Post::process(std::string body, size_t body_size)
             ft_boundary_cgi(body);
     }
 	else if (!crfile)
-    {
-        std::cout << "opening Method\n";
 		openFile(body, body_size);
-    }
     if (end && !cgi_exe)
         enter_cgi = 1;
     if (enter_cgi && serv.Is_cgi && !error)
-    {
-        std::cout << "exicuting cgi\n";
-            exe_cgi();
-    }
+        exe_cgi();
     
     if (cgi_exe && body_size == EPOLLOUT && !error)
     {
-        std::cout << "in get\n";
         get.get(ran_file);
         respons = get.respons;
-        std::cout << "response: " << respons<<std::endl;
         if (get.end)
         {
             end = 1;
@@ -1204,7 +1211,6 @@ int Post::process(std::string body, size_t body_size)
                 error = 4;
             }
         }
-        std::cout << "out of get\n";   
     }
     if (end && !serv.Is_cgi&& !error)
     {
@@ -1218,12 +1224,12 @@ int Post::process(std::string body, size_t body_size)
         respons += "File created\n";
     }
     if (total_Body == pre_total_body && !error && !enter_cgi)
-    {
+    { 
         if (time_out)
         {
             if ((clock() - start_time) / CLOCKS_PER_SEC > 5)
             {
-                error = 4;
+                error = 2;
             }   
         }
         else
