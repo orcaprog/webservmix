@@ -7,16 +7,18 @@ Request::Request()
     body_size = 0;
     error = 0;
     is_cgi = 0;
+    valid_uri = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!%$&'()*+,;=";
 }
 
 
 Request::Request(const vector<Servers>& vser){
     method = NULL;
     body_state = 0;
-    body_size = 140;
+    body_size = 0;
     error = 0;
     ser_vec = vser;
     is_cgi = 0;
+    valid_uri = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!%$&'()*+,;=";
 }
 
 Request::Request(const Request& req1){
@@ -32,13 +34,13 @@ Request& Request::operator=(const Request& oth){
         body_state = oth.body_state;
         body_size = oth.body_size;
         type = oth.type;
-        r_path = oth.r_path;
         http_v = oth.http_v;
         body = oth.body;
         headers = oth.headers;
         uri = oth.uri;
         ser_vec = oth.ser_vec;
         is_cgi = oth.is_cgi;
+        valid_uri = oth.valid_uri;
     }
     return *this;
 }
@@ -99,6 +101,14 @@ int Request::parce_key(const string &key)
     return 1;
 }
 
+int Request::is_uri_valid(string _uri){
+    for (size_t i = 0; i < _uri.size(); i++){
+        if (valid_uri.find(_uri[i]) == string::npos)
+            return 0;
+    }
+    return 1;  
+}
+
 int Request::parce_rline(const string &rline){
     stringstream ss;
     string tmp;
@@ -112,6 +122,10 @@ int Request::parce_rline(const string &rline){
     type = tmp;
     getline(ss, tmp, ' ');
     uri = tmp;
+    if (!is_uri_valid(uri)){
+        error |= Invalid_Header;
+        return 0;
+    }
     if (uri.size() > 1000){
         error = Uri_Too_Long;
         return 0;

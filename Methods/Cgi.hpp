@@ -8,7 +8,6 @@
 
 class Cgi
 {
-// execve faild
 int pid;
 int is_run;
 int cgi_execueted;
@@ -31,6 +30,7 @@ int set_cmd(const string& fullUri_path);
 void exec_cgi(const string& fullUri_path);
 int is_cookies();
 void waiting();
+void kill_proc(int return_error);
 
 public:
     int resp_done;

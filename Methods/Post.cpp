@@ -575,7 +575,7 @@ int Post::process(std::string body, int body_size)
 {
     // std::cout << "IN post \n";
 	// std::cout << MethodType << " << is "<<std::endl;
-	std::cout << "Body is \n" <<body<<"."<<std::endl;
+	std::cout << "Body is1 \n" <<body<<"."<<std::endl;
     // std::cout  << serv.rootUri<<std::endl;
     // std::cout << serv.UriLocation.upload<<std::endl;
     // std::cout << serv.root[0]<<std::endl;

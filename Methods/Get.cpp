@@ -17,7 +17,6 @@ Get::Get(const Get& oth){
 
 
 Get& Get::operator=(const Get& oth){
-    cout<<"GET COPY ASSIGNMENT"<<endl;
     if (this != &oth){
         serv = oth.serv;
         http_v = oth.http_v;
@@ -167,12 +166,7 @@ void Get::open_file(const string& file_name){
 
 
 void Get::get(const string& file_name){
-    cout <<"file_name: "<<file_name<<";"<<endl;
-    if (file_name == ""){
-        serv.status = "301";
-        get(serv.error_page["301"]);
-        return ;
-    }
+    // cout<<"get in\n";
     respons.clear();
     if (file_name == ""){
         respons = "HTTP/1.1 " + serv.status + "\r\n\r\n";
@@ -185,10 +179,11 @@ void Get::get(const string& file_name){
         read_file();
     if (opened == -1)
         end = 1;
+    // cout<<"get out\n";
 }
 
 void Get::read_file(){
-    ssize_t r_len, max_r = 1000;
+    ssize_t r_len, max_r = 1024;
     string res;
 
     if (content_len != -1 && content_len > max_r)
