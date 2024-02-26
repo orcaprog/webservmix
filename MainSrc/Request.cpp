@@ -187,7 +187,7 @@ int Request::parce_req(const string &req)
     }
     method = create_method(type);
     cgi.set_arg(serv, type, headers);
-    if (serv.Is_cgi && !cgi.get.is_tpye_supported(serv.rootUri))
+    if (serv.Is_cgi && !cgi.get.is_tpye_supported(serv.rootUri) && type == "GET")
         is_cgi = 1;
     return 1;
 }
