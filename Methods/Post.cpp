@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/26 09:06:47 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/26 17:29:37 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,24 +77,8 @@ std::string Post::creat_file_name(int ret)
     std::string root;
     if (ret)
         return currentTimeString;
-    if (serv.Is_cgi)
-    {
-        size_t i;
-        if (!fullUri_path.size())
-        {
-            std::cout << "extention Problem\n";
-            return std::string("");       
-        }
-        for (i = fullUri_path.size() - 1; i >= 0 && fullUri_path[i]!= '.'; i--);
-        
-        if (fullUri_path[i] == '.')
-            for (i -= 1 ; i >= 0 && fullUri_path[i]!= '/'; i--);
-        if (!i)
-            i = fullUri_path.size();
-        root = fullUri_path.substr(0, i);
-    }
     else
-        root = serv.rootUri;
+        root = serv.UriLocation.upload_path;
     return  root + "/"+ currentTimeString;
 }
 void Post::mimeType()
@@ -190,7 +174,7 @@ void Post::mimeType()
     
 }
 
-void Post::openFile(std::string body, size_t body_size)
+void Post::openFile(std::string body, int body_size)
 {
 	std::string mimeVal;
     // int is_xsom = 0;
@@ -311,7 +295,7 @@ void Post::openFile(std::string body, size_t body_size)
     }
 }
 
-void Post::normalFile(std::string body, size_t body_size)
+void Post::normalFile(std::string body, int body_size)
 {
     if (total_Body >= size_len)
     {
@@ -332,7 +316,7 @@ void Post::normalFile(std::string body, size_t body_size)
     else
     {
         body_size = size_len - total_Body;
-        if (body.size() < body_size)
+        if (body.size() < (size_t)body_size)
             body_size = body.size();
         outFile.write(body.c_str(), body_size);
         total_Body += body_size;
@@ -343,7 +327,7 @@ void Post::normalFile(std::string body, size_t body_size)
 }
 
 
-void Post::chunk_write(std::string body, size_t body_size)
+void Post::chunk_write(std::string body, int body_size)
 {
     if (chunk_ctl >= (int)body.size())
     {
@@ -413,7 +397,7 @@ void Post::chunk_write(std::string body, size_t body_size)
 
 }
 
-void Post::chunked_file(std::string body, size_t body_size)
+void Post::chunked_file(std::string body, int body_size)
 {
     std::stringstream ss;
         
@@ -466,12 +450,6 @@ void    Post::ft_boundary(std::string& body)
     size_t pos;
     size_t pos1;
 
-
-    // if (total_Body >= size_len)
-    // {
-    //     end = 1;
-    //     return ;
-    // }
     if (left_over)
     {
         // I add the new body with  what remain of the previous call 
@@ -585,10 +563,10 @@ void    Post::ft_boundary(std::string& body)
 				std::string file = body.substr(pos + strlen("name=") + 1, pos1 - ( strlen("name=") + 1) - pos);
                 if (!file[0])
                 {
-                    std::string time_B = creat_file_name(1);
+                    std::string time_B = creat_file_name(0);
                     file = time_B;
                 }
-                else if (body.find("Content-Type:") != std::string::npos)
+                if (body.find("Content-Type:") != std::string::npos)
                 {
                     std::string ext;
                     pos = body.find("Content-Type:");
@@ -597,17 +575,20 @@ void    Post::ft_boundary(std::string& body)
                     if (mime.find(ext) != mime.end())
 	            		mimeVal = mime.find(ext)->second;
                     else
-                        mimeVal = "x";
+                    {
+                        error = 6;
+                        return ; 
+                    }
                 }
 	            else
                     mimeVal = "txt";
-                file = fullUri_path + file;
+                file = serv.UriLocation.upload_path + "/" +  file;
                 file = file + ".";
                 file += mimeVal;
+                std::cout << " case 001 " << file<<std::endl;
                 if (access(file.c_str(),F_OK ) == 0)
                 {
                     //in case of duplcate ********************************************
-                    end = 1;
                     crfile = -2;
                     error = 3;
                     return ;
@@ -631,6 +612,7 @@ void    Post::ft_boundary(std::string& body)
                 std::string dot  = ".";
                 file = file +  dot;
                 file = file + "txt";
+                std::cout << "in case 03 " << file << std::endl;
                 ss1.str("");
                 out.open(file.c_str(), std::ios::out | std::ios::binary);
 				if (!out.is_open())
@@ -1032,22 +1014,22 @@ void Post::exe_cgi()
             return ;
         }
         ran_file =  creat_file_name(1);
-        ran_file = my_root + ran_file + ".html";
+        ran_file = my_root + "/" + ran_file + ".html";
         start_time = clock();
         pid = fork();
         if (pid < 0)
         {
-            perror("Fork failed");
-             error = 4;
+            std::cout << "fork failed" << std::endl;
+            error = 4;
         }
         if (pid == 0)
         {
             FILE *infile;
             FILE *outfile;  
-            if (chdir(my_root.c_str()))
-                exit(3);
             infile = fopen(the_file.c_str(), "r");
             outfile = fopen(ran_file.c_str(), "w");
+            if (chdir(my_root.c_str()))
+                exit(3);
             if (!infile || !outfile)
             {
                 std::cout << "couldnt create file \n";
@@ -1058,7 +1040,6 @@ void Post::exe_cgi()
             dup2(outfile->_fileno, STDOUT_FILENO);
             if (execve(cmd[0], cmd, env) == -1)
             {
-                dup2(1, STDOUT_FILENO);
                 std::cout << "Failed to execute\n";
                 exit(1);
             }
@@ -1067,8 +1048,11 @@ void Post::exe_cgi()
     if (waitpid(pid, &exit_status, WNOHANG) > 0)
     {
         int exit_status1 = WEXITSTATUS(exit_status);
-        if (exit_status1) 
+        if (exit_status1)
+        {
             error = 4;
+            std::cout << "Failed to "<<std::endl;
+        }
         else
             cgi_exe = 1;
         int rem = std::remove(the_file.c_str());
@@ -1147,7 +1131,9 @@ void Post::ft_error()
     else if (error == 3)
     {
         get.serv.status = "400";
+        std::cout << "Problem\n";
         get.get("error_pages/400.html");
+        std::cout << "Problem end" << std::endl;
         serv.status = "400";
     }
     else if (error == 4)
@@ -1174,22 +1160,47 @@ void Post::ft_error()
         get.get("error_pages/413.html");
         serv.status = "413";
     }
+    if (error == 8)
+    {
+        get.serv.status = "403";
+        get.get("error_pages/403.html");
+        serv.status = "403";
+    }
     respons = get.respons;
     if (get.end)
         end = 1;
 }
 
 
-int Post::process(std::string body, size_t body_size)
+int Post::process(std::string body, int body_size)
 {
     pre_total_body = total_Body;
-    if ((serv.UriLocation.permession & UPLOAD))
+    std::cout << "thre file " << the_file << std::endl;
+    std::cout << "this path " << serv.UriLocation.upload_path<< std::endl;
+    std::cout << "ran file " << ran_file << std::endl;
+    std::cout << fullUri_path << std::endl;
+    std::cout << "end is " << end << std::endl;
+    std::cout << " chi exe " << cgi_exe << std::endl;
+    std::cout << "error is " << error << std::endl;
+    std::cout << "enter cgi " << enter_cgi<<std::endl;
+    std::cout << "my root " << my_root<<std::endl;
+    if (!(serv.UriLocation.permession & UPLOAD))
+        error = 8;
+    else
     {
         
+        if (serv.UriLocation.upload_path.find("./") != std::string::npos)
+        {
+            std::cout << "CHANGE on path\n";
+            size_t find = serv.UriLocation.upload_path.find("./");
+            serv.UriLocation.upload_path = serv.UriLocation.upload_path.substr(find + 2,  serv.UriLocation.upload_path.size() - find);   
+        }  
     }
-    if (serv.client_max_body_size[0] >= total_Body)
+    if (serv.client_max_body_size[0] < (long long int)total_Body)
+    {
         error = 7;
-    if (error)
+    }
+    if (error && body_size == EPOLLOUT)
     {
         ft_error();
         return 1;

@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/25 14:01:27 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/26 17:29:26 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,7 @@ class Post : public Method
         int here_is;
         int first_time;
         int enter_cgi;
+        std::string post_dir;
         std::string the_file;
         std::string buffer;
         std::string buff_chunk;
@@ -95,12 +96,12 @@ class Post : public Method
         std::string creat_file_name(int ret);
         char **set_cmd(std::string& ext_path);
         char **set_env();
-        int process(std::string body, size_t body_size);
-		void openFile(std::string body, size_t body_size);
-		void normalFile(std::string body, size_t body_size);
+        int process(std::string body, int body_size);
+		void openFile(std::string body, int body_size);
+		void normalFile(std::string body, int body_size);
         
-        void chunked_file(std::string body, size_t body_size);
-        void chunk_write(std::string body, size_t body_size);
+        void chunked_file(std::string body, int body_size);
+        void chunk_write(std::string body, int body_size);
 
         void    ft_boundary(std::string& body);
 
