@@ -25,11 +25,20 @@ void Location::FillValid()
      Vstrvalid.push_back("location");
      Vstrvalid.push_back("{");
      Vstrvalid.push_back("}");
-     Vstrvalid.push_back("#");
+     Vstrvalid.push_back("return");
      Vstrvalid.push_back("allow_methods");
      Vstrvalid.push_back("autoindex");
      Vstrvalid.push_back("upload");
      Vstrvalid.push_back("cgi_path");
+
+    rStatus.push_back("300");
+    rStatus.push_back("301");
+    rStatus.push_back("302");
+    rStatus.push_back("303");
+    rStatus.push_back("304");
+    rStatus.push_back("305");
+    rStatus.push_back("306");
+    rStatus.push_back("307");
 }
 
 void Location::checkValidation()
@@ -126,6 +135,8 @@ void Location::SetAllDir()
     SetRoot();
     SetAllowMethods();
     SetUpload();
+    SetUpload_path();
+    SetReturn();
     SetCgiPath();
     SetAutoindex();
     SetIndex();
@@ -320,7 +331,55 @@ void Location::SetCgiPath()
         }
     }
 }
+void Location::SetUpload_path()
+{
+     int i;
+    int num = checkDup("upload_path",i);
+    std::string arg;
+    if (num == 0)
+    {
+        if (permession & UPLOAD)
+            throw "Error : Upload in active mode  need to set upload_path \n";
+        return ;
+    }
+    if (vlocation[i].size() != 2 )
+    {
+         throw "invalid upload_path directive \n";
+    }
+    if (!(permession & UPLOAD))
+    {
+        throw "Error : Upload path need to set upload in active mode \n";
+    }
+    arg = vlocation[i][1];
+    if (pathIsFile(arg) != 3)
+    {
+        throw "Error : Path is not valid to upload or is not a directory\n";
+    }
+    upload_path = arg;
+}
 
+void Location::SetReturn()
+{
+    int i;
+    int num = checkDup("return",i);
+    std::string arg;
+    if (num == 0)
+    {
+        return ;
+    }
+    if (vlocation[i].size() != 3 )
+    {
+         throw "invalid return directive \n";
+    }
+    arg = vlocation[i][1];
+    if (find(rStatus.begin(),rStatus.end(),arg) == rStatus.end())
+    {
+        throw "Error : status "+arg+" is not valid  Redirection\n";
+    }
+    redirect.push_back(arg);
+    redirect.push_back(vlocation[i][2]);
+    
+}
 /*__________________________________________*/
 /*__________________________________________*/
 /*__________________________________________*/
@@ -329,6 +388,7 @@ void Location::SetCgiPath()
 Location::Location()
 {
     permession = 0;
+    
 }
 
 Location::~Location()

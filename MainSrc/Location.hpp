@@ -50,15 +50,19 @@ private:
         void SetAllowMethods();
         void SetAutoindex();
         void SetUpload();
+        void SetUpload_path();
         void SetCgiPath();
         void SetRoot();
-        void Printtwodom(const std::vector<std::vector<std::string> > & matrix,std::string data);
-        int pathExists(std::string path);
+        void SetReturn();
 public:
         std::vector<std::string> path;
+        string  upload_path;
         std::vector<std::string> root;
         std::vector<std::string> index;
         map<string ,string> cgi_path;
+        vector<string> redirect;
+        vector<string> rStatus;
+
         bool get;
         bool post;
         bool dele;

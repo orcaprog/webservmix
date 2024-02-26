@@ -96,6 +96,7 @@ void Cgi::exec_cgi(const string& fullUri_path){
 
 void Cgi::waiting(){
     if (waitpid(pid,&exit_stat,WNOHANG)>0){
+         std::remove(out_file.c_str());
         cgi_execueted = 1;
         if (WEXITSTATUS(exit_stat)){
             resp_done = 1;

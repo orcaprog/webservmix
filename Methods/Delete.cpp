@@ -124,7 +124,8 @@ void Delete::RemoveAllPath(std::string path)
     }
     
     struct dirent *entry;
-    while ((entry = readdir(dir)) != NULL) {
+    while ((entry = readdir(dir)) != NULL) 
+    {
         if (entry->d_type == DT_DIR)
         {
             if (std::strcmp(entry->d_name  , ".") && std::strcmp(entry->d_name ,"..") )

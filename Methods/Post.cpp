@@ -1174,6 +1174,10 @@ int Post::process(std::string body, int body_size)
 {
     // std::cout << "*************************************\nPost\n*************************************\n";
     //     std::cout << "ran fi;le " <<ran_file << std::endl;
+    if(serv.UriLocation.permession & UPLOAD)
+    {
+
+    }
     if (error)
     {
         // std::cout << "the end is " <<end <<std::endl;

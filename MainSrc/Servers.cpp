@@ -15,7 +15,7 @@ bool isValidIpAddress(string &ipAddress)
 {
     struct sockaddr_in sa;
     int result = inet_pton(AF_INET, ipAddress.c_str(), &(sa.sin_addr));
-    return result != 0;
+    return result <= 0;
 }
 int Servers::getLocation(std::string path)
 {
@@ -95,6 +95,7 @@ void Servers::SetPorts()
     std::string arg;
     if (num == 0)
     {
+        throw("Error :Exepected existence of listen derective \n");
         port.push_back(0);
         return;
     }
@@ -131,7 +132,7 @@ void Servers::SetServerName(vector<string> & ser_names)
     // check hna laykon chi check
     if (find(ser_names.begin(),ser_names.end(),arg) != ser_names.end())
     {
-        throw "Invalid arguments'server_name' directive is already exist in other server \n";
+        throw "conflicting server name '"+arg+"' \n";
     }
     server_name.push_back(arg);
 }
@@ -143,6 +144,7 @@ void Servers::SetHost()
     std::string arg;
     if (num == 0)
     {
+        throw("Error :Exepected existence of host derective \n");
         host.push_back("");
         return;
     }
@@ -151,7 +153,7 @@ void Servers::SetHost()
         throw "Invalid number of arguments in 'host' directive \n";
     }
     arg = servconf[i][1];
-    if (!isValidIpAddress(arg))
+    if (isValidIpAddress(arg))
     {
         throw "invalid host ip address \n";
     }
@@ -166,6 +168,7 @@ void Servers::SetRoot()
     std::string arg;
     if (num == 0)
     {
+        throw("Error :Exepected existence of root derective \n");
         root.push_back("");
         return;
     }
@@ -187,6 +190,7 @@ void Servers::SetIndex()
     std::string arg;
     if (num == 0)
     {
+        throw("ve \n");
         index.push_back("");
         return;
     }
@@ -354,17 +358,27 @@ void Servers::FillValid()
     Vstrvalid.push_back("location");
     Vstrvalid.push_back("{");
     Vstrvalid.push_back("}");
+    Vstrvalid.push_back("return");
+    Vstrvalid.push_back("upload_path");
     Vstrvalid.push_back("allow_methods");
     Vstrvalid.push_back("autoindex");
     Vstrvalid.push_back("upload");
     Vstrvalid.push_back("cgi_path");
+    rStatus.push_back("300");
+    rStatus.push_back("301");
+    rStatus.push_back("302");
+    rStatus.push_back("303");
+    rStatus.push_back("304");
+    rStatus.push_back("305");
+    rStatus.push_back("306");
+    rStatus.push_back("307");
 }
 
 void Servers::desplay()
 {
     // std::vector<std::vector<std::string> > matrix = servconf;
 
-    cout << "Ports :" << port[0] << endl;
+    cout << "Ports :"<< port[0] << endl;
     cout << "ServerName  :" << server_name[0] << endl;
     cout << "Host :" << host[0] << endl;
     cout << "Root :" << root[0] << endl;
@@ -513,7 +527,8 @@ void Servers::SetDefaultError()
     error_page["415"] = "error_pages/415.html";
     error_page["416"] = "error_pages/416.html";
     error_page["417"] = "error_pages/417.html";
-    error_page["500"] = "error_pages/500.html"; 
+    error_page["500"] = "error_pages/500.html";
+    error_page["505"] = "error_pages/505.html";
 }
 bool Servers::operator==(const Servers &ser)
 {
@@ -578,8 +593,8 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
                 }
                 else
                 {
-                    rootUri = error_page["404"];
-                    status = "404";
+                    rootUri = error_page["403"];
+                    status = "403";
                 }
                 return 0;
             }
@@ -652,6 +667,11 @@ bool Servers::MatchingWithRoot(string & rootPlusUri,string &rootPath)
         return 0;
     return 1;
 }
+void Servers::SetRederectionResp(vector<string> & redirect)
+{
+    rootUri = "";
+    status = redirect[0] + "  \r\nLocation: " + redirect[1] + "/";
+}
 void Servers::FillData(string uri, string mehtod)
 {
     FillQuerys(uri);
@@ -663,24 +683,35 @@ void Servers::FillData(string uri, string mehtod)
         def = getLocation("/");
         if (def != -1)
         {
-            rootUri = locations[def].root[0] + uri;
-            if (pathIsFile(rootUri) == 3)
+            if (!locations[def].redirect.empty())
             {
-                if (MatchingWithRoot(rootUri,locations[def].root[0]))
-                {
-                    rootUri = error_page["403"];
-                    status = "403";
-            
-                }
-                else if (mehtod == "GET" || mehtod == "DELETE")
-                {
-                    SetUriRoot(def, uri);
-                }
+               SetRederectionResp(locations[def].redirect);
             }
-            else if (!pathIsFile(rootUri))
+            else if (!redirect.empty())
             {
-                rootUri = error_page["404"];
-                status = "404";
+               SetRederectionResp(redirect);
+            }
+            else
+            {
+                rootUri = locations[def].root[0] + uri;
+                if (pathIsFile(rootUri) == 3)
+                {
+                    if (MatchingWithRoot(rootUri,locations[def].root[0]))
+                    {
+                        rootUri = error_page["403"];
+                        status = "403";
+                
+                    }
+                    else if (mehtod == "GET" || mehtod == "DELETE")
+                    {
+                        SetUriRoot(def, uri);
+                    }
+                }
+                else if (!pathIsFile(rootUri))
+                {
+                    rootUri = error_page["404"];
+                    status = "404";
+                }
             }
             UriLocation = locations[def];
         }
@@ -714,6 +745,28 @@ void Servers::FillData(string uri, string mehtod)
     cout << "      ========\n";
 }
 
+void Servers::SetReturn()
+{
+    int i;
+    int num = checkDup("return",i);
+    std::string arg;
+    if (num == 0)
+    {
+        return ;
+    }
+    if (servconf[i].size() != 3 )
+    {
+         throw "invalid return directive \n";
+    }
+    arg = servconf[i][1];
+    if (find(rStatus.begin(),rStatus.end(),arg) == rStatus.end())
+    {
+        throw "Error : status "+arg+" is not valid  Redirection\n";
+    }
+    redirect.push_back(arg);
+    redirect.push_back(servconf[i][2]);
+    
+}
 Servers::Servers()
 {
     // root.push_back("");

@@ -63,11 +63,13 @@ private:
     void SetClient_max_body_size(); // done ~
     void SetIndex(); // done ~
     void FillQuerys(string & uri);
-    void Printtwodom(const std::vector<std::vector<std::string> > & matrix,std::string data);
+    void SetReturn();
+    void SetRederectionResp(vector<string> & redirect);
 
 public:
 
-
+    vector<string> redirect;
+    vector<string> rStatus;
     std::vector<int> port;
     std::vector<std::string> server_name; 
     std::vector<std::string> host; 

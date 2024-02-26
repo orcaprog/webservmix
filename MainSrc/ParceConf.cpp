@@ -26,6 +26,8 @@ void ParceConf::FillValid()
     Vstrvalid.push_back("location");
     Vstrvalid.push_back("{");
     Vstrvalid.push_back("}");
+    Vstrvalid.push_back("return");
+    Vstrvalid.push_back("upload_path");
     Vstrvalid.push_back("allow_methods");
     Vstrvalid.push_back("autoindex");
     Vstrvalid.push_back("upload");
@@ -106,6 +108,7 @@ Servers ParceConf::FirstFill()
     index++;
     bracket++;
 
+
     while (index < Vconf.size() && bracket)
     {
         if (Vconf[index][0] == "{" )
@@ -129,7 +132,10 @@ Servers ParceConf::FirstFill()
         index++;
     }
 
-
+    if(bracket != 0)
+    {
+        throw "Error :unexpected end of file , expecting '}'";
+    }
     return server;
 }
 void ParceConf::FillServers()
