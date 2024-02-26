@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/26 17:29:37 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/26 19:02:46 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,10 @@ Post::Post()
     cgi_exe = 0;
     error = 0;
     error_time = 0;
+    cmd = NULL;
+    env = NULL;
+    exit_status = 0;
+     check = 0;
     mimeType();
 }
 
@@ -938,7 +942,7 @@ char **Post::set_env()
 	char **env = new char*[9 + is_cokie];
     env[0] = new char[strlen("REDIRECT_STATUS=HTTP/1.1 200 OK") + 1];
     std::strcpy(env[0], "REDIRECT_STATUS=HTTP/1.1 200 OK");
-    env[1] = new char[strlen("REQUEST_METHOD=Post") + 1];
+    env[1] = new char[strlen("REQUEST_METHOD=POST") + 1];
     std::strcpy(env[1], "REQUEST_METHOD=POST");
     script_name = "SCRIPT_FILENAME=" + fullUri_path;
     env[2] = new char[script_name.size() + 1];
@@ -958,8 +962,9 @@ char **Post::set_env()
     serv_prt = "SERVER_PROTOCOL=HTTP/1.1";
     env[6] = new char[serv_prt.size() + 1];
     std::strcpy(env[6], serv_prt.c_str());
-    env[7] = new char[name_of_script.size() + 1];
-    std::strcpy(env[7], name_of_script.c_str());
+    std::string nameScript = "SCRIPT_NAME=" + name_of_script;
+    env[7] = new char[nameScript.size() + 1];
+    std::strcpy(env[7], nameScript.c_str());
     if (is_cokie)
     {
         cookie = "HTTP_COOKIE=" + cookie;
@@ -987,11 +992,10 @@ void Post::script_name()
 
 void Post::exe_cgi()
 {
-    char **env;
-    env = set_env();
     if (!first_run)
     {
         std::string ext_path;
+        check = 1;
 
         end = 0;
         first_run = 1;
@@ -1002,6 +1006,7 @@ void Post::exe_cgi()
             return ;
         }
         script_name();
+        env = set_env();
         if (serv.UriLocation.cgi_path.find(ext) != serv.UriLocation.cgi_path.end())
         {
             std::string ext_path = (serv.UriLocation.cgi_path.find(ext))->second;
@@ -1032,6 +1037,12 @@ void Post::exe_cgi()
                 exit(3);
             if (!infile || !outfile)
             {
+                if (!infile && !outfile)
+                    exit(5);
+                else if (!infile)
+                    exit(6);
+                else if (!outfile)
+                    exit(7);
                 std::cout << "couldnt create file \n";
                 exit(2) ;
             }
@@ -1051,7 +1062,8 @@ void Post::exe_cgi()
         if (exit_status1)
         {
             error = 4;
-            std::cout << "Failed to "<<std::endl;
+            std::cout << "Failed to "<< exit_status1 << std::endl;
+            exit_status = exit_status1;
         }
         else
             cgi_exe = 1;
@@ -1175,15 +1187,6 @@ void Post::ft_error()
 int Post::process(std::string body, int body_size)
 {
     pre_total_body = total_Body;
-    std::cout << "thre file " << the_file << std::endl;
-    std::cout << "this path " << serv.UriLocation.upload_path<< std::endl;
-    std::cout << "ran file " << ran_file << std::endl;
-    std::cout << fullUri_path << std::endl;
-    std::cout << "end is " << end << std::endl;
-    std::cout << " chi exe " << cgi_exe << std::endl;
-    std::cout << "error is " << error << std::endl;
-    std::cout << "enter cgi " << enter_cgi<<std::endl;
-    std::cout << "my root " << my_root<<std::endl;
     if (!(serv.UriLocation.permession & UPLOAD))
         error = 8;
     else
@@ -1191,7 +1194,6 @@ int Post::process(std::string body, int body_size)
         
         if (serv.UriLocation.upload_path.find("./") != std::string::npos)
         {
-            std::cout << "CHANGE on path\n";
             size_t find = serv.UriLocation.upload_path.find("./");
             serv.UriLocation.upload_path = serv.UriLocation.upload_path.substr(find + 2,  serv.UriLocation.upload_path.size() - find);   
         }  
