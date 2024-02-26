@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/25 17:13:19 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/26 09:06:47 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1168,6 +1168,12 @@ void Post::ft_error()
         get.get("error_pages/501.html");
         serv.status = "501";
     }
+    if (error == 7)
+    {
+        get.serv.status = "413";
+        get.get("error_pages/413.html");
+        serv.status = "413";
+    }
     respons = get.respons;
     if (get.end)
         end = 1;
@@ -1177,7 +1183,13 @@ void Post::ft_error()
 int Post::process(std::string body, size_t body_size)
 {
     pre_total_body = total_Body;
-     if (error)
+    if ((serv.UriLocation.permession & UPLOAD))
+    {
+        
+    }
+    if (serv.client_max_body_size[0] >= total_Body)
+        error = 7;
+    if (error)
     {
         ft_error();
         return 1;
@@ -1223,8 +1235,6 @@ int Post::process(std::string body, size_t body_size)
     }
     if (end && !serv.Is_cgi&& !error)
     {
-        std::cout << "response: "<<std::endl;
-        std::cout << "in Post resp\n";
         serv.status = "201";
         respons = "HTTP/1.1 " + serv.status;
         respons += string("\r\nContent-Type: text/html\r\n");
