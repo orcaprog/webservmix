@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/21 15:17:18 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/26 14:19:32 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ class Post : public Method
         int chunk_ctl;
 		size_t size_len;
         size_t total_Body;
+        size_t pre_total_body;
         size_t chunk_left;
         int find_sep;
         int file_hang;
@@ -60,6 +61,7 @@ class Post : public Method
         int here_is;
         int first_time;
         int enter_cgi;
+        std::string post_dir;
         std::string the_file;
         std::string buffer;
         std::string buff_chunk;
@@ -79,6 +81,9 @@ class Post : public Method
         int cgi_exe;
         std::string my_root;
         std::string name_of_script;
+        int time_out;
+        char **cmd;
+
         
         Get get;
         
@@ -92,11 +97,11 @@ class Post : public Method
         char **set_cmd(std::string& ext_path);
         char **set_env();
         int process(std::string body, int body_size);
-		void openFile(std::string body, size_t body_size);
-		void normalFile(std::string body, size_t body_size);
+		void openFile(std::string body, int body_size);
+		void normalFile(std::string body, int body_size);
         
-        void chunked_file(std::string body, size_t body_size);
-        void chunk_write(std::string body, size_t body_size);
+        void chunked_file(std::string body, int body_size);
+        void chunk_write(std::string body, int body_size);
 
         void    ft_boundary(std::string& body);
 

@@ -62,7 +62,7 @@ int Get::is_tpye_supported(const string& file_name){
 }
 
 string Get::extension_search(const string& f_name, int spl){
-    string extnsion = "";
+    string extnsion1 = "";
     size_t tmp = f_name.find(spl);
     pos = tmp;
     while (tmp != string::npos){
@@ -71,17 +71,17 @@ string Get::extension_search(const string& f_name, int spl){
     }
     if (pos != string::npos && pos+1 < f_name.size()){
         if (spl == '/')
-            extnsion = f_name.substr(0,pos);
+            extnsion1 = f_name.substr(0,pos);
         else
-            extnsion = f_name.substr(pos+1);
+            extnsion1 = f_name.substr(pos+1);
     }
-    return extnsion;
+    std::cout << extnsion1 <<std::endl;
+    return extnsion1;
 }
 
 
 int Get::set_content_type(const string& file_name){
     extension = extension_search(file_name, '.');
-    cout<<"extension: "<<extension<<endl;
     if (types.find(extension) != types.end())
         content_type = types.find(extension)->second;
     else if (extension == "")
