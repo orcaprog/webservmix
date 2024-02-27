@@ -152,7 +152,6 @@ void Servers::SetHost()
     {
         throw "invalid host ip address \n";
     }
-    // parceIp(arg);
     host[0]= arg;
 }
 

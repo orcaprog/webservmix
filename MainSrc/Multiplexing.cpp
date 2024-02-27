@@ -58,7 +58,7 @@ void Multiplexing::In_Events(int n)
         std::map<int ,Request >::iterator iter2 = mClients.find(events[n].data.fd);
         if (iter2 != mClients.end())
         {
-            cout<<"==========  :"<<buffer<<endl;
+            // cout<<"==========  :"<<buffer<<endl;
             mClients[events[n].data.fd].process_req(string("").append(buffer, bytesRead),EPOLLIN);
         }
     }
@@ -70,7 +70,7 @@ void Multiplexing::Connect_And_Add(int n)
     std::map<int, vector<Servers> >::iterator iter = server.msockets.find(events[n].data.fd );
     if (iter != server.msockets.end()) 
     {   
-        std::cout<<"Fd Server :"<<iter->first<<std::endl;
+        // std::cout<<"Fd Server :"<<iter->first<<std::endl;
         adrlen = sizeof(iter->second[0].address);
         conn_sock = accept(iter->first, (struct sockaddr *)&iter->second[0].address, (socklen_t*)&adrlen);
         if (conn_sock == -1) 
@@ -78,7 +78,7 @@ void Multiplexing::Connect_And_Add(int n)
             perror("accept");
             exit(EXIT_FAILURE);
         }
-        std::cout<<"Fd Clinet :"<<conn_sock<<std::endl;
+        // std::cout<<"Fd Clinet :"<<conn_sock<<std::endl;
 
         Request req(iter->second);
         mClients[conn_sock] = req;
@@ -101,7 +101,7 @@ void Multiplexing::Connect_And_Add(int n)
         }
         else if (events[n].events & EPOLLIN) 
         {
-            cout<<"Enter in clinet event eollin comming \n";
+            // cout<<"Enter in clinet event eollin comming \n";
             In_Events(n);
             mClients[events[n].data.fd].startTime = clock();
 
