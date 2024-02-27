@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/26 19:02:46 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/27 09:01:42 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,18 @@ Post& Post::operator=(const Post& post)
 Post::~Post()
 {
 
+    if (env)
+    {
+        for (int i = 0; env[i]; i++)
+            delete[] env[i];
+        delete[] env;
+    }
+    if (cmd)
+    {
+        for (int i = 0; cmd[i]; i++)
+            delete[] cmd[i];
+        delete[] cmd;
+    }
 }
 
 
@@ -928,7 +940,7 @@ char **Post::set_env()
     std::string content_len;
     std::string cont_type;
     std::string info_path;
-    // std::string query_str;
+    std::string query_str;
     std::string serv_prt;
     std::stringstream ss;
     std::string cookie;
@@ -939,7 +951,7 @@ char **Post::set_env()
         is_cokie = 1;
         cookie = headers.find("Cookie")->second;
     }
-	char **env = new char*[9 + is_cokie];
+	char **env = new char*[10 + is_cokie];
     env[0] = new char[strlen("REDIRECT_STATUS=HTTP/1.1 200 OK") + 1];
     std::strcpy(env[0], "REDIRECT_STATUS=HTTP/1.1 200 OK");
     env[1] = new char[strlen("REQUEST_METHOD=POST") + 1];
@@ -965,13 +977,16 @@ char **Post::set_env()
     std::string nameScript = "SCRIPT_NAME=" + name_of_script;
     env[7] = new char[nameScript.size() + 1];
     std::strcpy(env[7], nameScript.c_str());
+    query_str = "QUERY_STRING=" + serv.querys;
+    env[8] = new char[query_str.size() + 1];
+    std::strcpy(env[8], query_str.c_str());
     if (is_cokie)
     {
         cookie = "HTTP_COOKIE=" + cookie;
-        env[8] = new char[cookie.size() + 1];
-        std::strcpy(env[8], cookie.c_str());
+        env[9] = new char[cookie.size() + 1];
+        std::strcpy(env[9], cookie.c_str());
     }
-    env[8 + is_cokie] = NULL;
+    env[9 + is_cokie] = NULL;
     return env;
 }
 
@@ -1059,6 +1074,7 @@ void Post::exe_cgi()
     if (waitpid(pid, &exit_status, WNOHANG) > 0)
     {
         int exit_status1 = WEXITSTATUS(exit_status);
+        std::cout << "gooooooo" <<  exit_status1 <<std::endl;
         if (exit_status1)
         {
             error = 4;
@@ -1070,18 +1086,13 @@ void Post::exe_cgi()
         int rem = std::remove(the_file.c_str());
         if (rem)
         {
-            std::cout << " couldn't remove the TMP file \n";
+            std::cout << "** couldn't remove the TMP file \n";
             error = 4;
         }
-        for (int i = 0; env[i]; i++)
-            delete[] env[i];
-        delete[] env;
-        for (int i = 0; cmd[i]; i++)
-            delete[] cmd[i];
-        delete[] cmd;
     }
     else if ((clock() - start_time) / CLOCKS_PER_SEC > 10)
     {
+        std::cout << "failed in time out \n";
         kill(pid, SIGKILL);
         waitpid(pid, &exit_status, 0);
         int rem = std::remove(the_file.c_str());
@@ -1090,20 +1101,8 @@ void Post::exe_cgi()
         {
             std::cout << " couldn't remove the TMP file \n";
             error = 4;
-            for (int i = 0; env[i]; i++)
-                delete[] env[i];
-            delete[] env;
-            for (int i = 0; cmd[i]; i++)
-                delete[] cmd[i];
-            delete[] cmd;
             return ;
         }
-        for (int i = 0; env[i]; i++)
-            delete[] env[i];
-        delete[] env;
-        for (int i = 0; cmd[i]; i++)
-            delete[] cmd[i];
-        delete[] cmd;
         error = 2;
     }
 }
@@ -1187,6 +1186,7 @@ void Post::ft_error()
 int Post::process(std::string body, int body_size)
 {
     pre_total_body = total_Body;
+    std::cout << "lll " << exit_status<<std::endl;
     if (!(serv.UriLocation.permession & UPLOAD))
         error = 8;
     else
@@ -1213,7 +1213,7 @@ int Post::process(std::string body, int body_size)
         left_over += body.size();
         return 1;
     } 
-	if (crfile > 0)
+	if (crfile > 0 && !enter_cgi)
     {
 		if (MethodType == 2)
 			normalFile(body, body_size);
@@ -1224,17 +1224,21 @@ int Post::process(std::string body, int body_size)
         else
             ft_boundary_cgi(body);
     }
-	else if (!crfile)
+	else if (!crfile && !enter_cgi)
 		openFile(body, body_size);
     if (end && !cgi_exe)
         enter_cgi = 1;
-    if (enter_cgi && serv.Is_cgi && !error)
+    std::cout << "cgi exe " << cgi_exe << std::endl;
+    std::cout << "error " << error << std::endl;
+    std::cout << "enter_cgi " << enter_cgi << std::endl;
+    std::cout << "exit status " << exit_status << std::endl;
+    if (enter_cgi && serv.Is_cgi && !error && !cgi_exe)
         exe_cgi();
-    
     if (cgi_exe && body_size == EPOLLOUT && !error)
     {
         get.get(ran_file);
         respons = get.respons;
+        std::cout << "response " << respons << std::endl;
         if (get.end)
         {
             end = 1;
@@ -1262,6 +1266,8 @@ int Post::process(std::string body, int body_size)
             if ((clock() - start_time) / CLOCKS_PER_SEC > 5)
             {
                 error = 2;
+                        exit(error);
+
             }   
         }
         else
