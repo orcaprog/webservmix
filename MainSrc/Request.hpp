@@ -1,7 +1,6 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-// #include "../Methods/Post.hpp"
 #include "../Methods/Cgi.hpp"
 
 using namespace std;

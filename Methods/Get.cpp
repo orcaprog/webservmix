@@ -112,12 +112,14 @@ int Get::check_headers(){
     int hed = 0;
     string line;
     getline(src_file,line);
+    res_h += line + "\n";
     head_size = line.size()+1;
     while (line.size() && line[line.size()-1] == '\r' && !hed){
         getline(src_file,line);
+        res_h += line + "\n";
         set_content_length(line);
         head_size += line.size()+1;
-        if (head_size > 10000)
+        if (head_size > 5000)
             break;
         if (line.size() && line == "\r")
             hed = 1;
@@ -134,7 +136,7 @@ void Get::set_headers(){
     hed = check_headers();
     if (hed)
         file_len -= head_size;
-    if (content_len != -1){
+    if (content_len > 0){
         if ((size_t)content_len < file_len)
             file_len = content_len;
         content_len += head_size;
@@ -142,9 +144,12 @@ void Get::set_headers(){
     stringstream ss;
     ss<<file_len;
     respons += ss.str()+string("\r\n");
-    if (!hed)
+    if (!hed){
         respons += "\r\n";
-    src_file.seekg(0, std::ios::beg);
+        respons += res_h;
+    }
+    else
+        respons += res_h;
 }
 
 
@@ -166,7 +171,6 @@ void Get::open_file(const string& file_name){
 
 
 void Get::get(const string& file_name){
-    // cout<<"get in\n";
     respons.clear();
     if (file_name == ""){
         respons = "HTTP/1.1 " + serv.status + "\r\n\r\n";
@@ -175,11 +179,10 @@ void Get::get(const string& file_name){
     }
     if (!opened)
         open_file(file_name);
-    if (opened == 1) // && !end
+    if (opened == 1 && file_len && !end)
         read_file();
-    if (opened == -1)
+    if (opened == -1 || !file_len)
         end = 1;
-    // cout<<"get out\n";
 }
 
 void Get::read_file(){
@@ -197,12 +200,12 @@ void Get::read_file(){
     r_len = src_file.gcount();
     res.resize(r_len);
     respons += res;
-    if (src_file.eof() || !content_len){
+    if (r_len < max_r || !content_len){
         src_file.close();
         end = 1;
     }
     // if (respons.size())
-    //     cout<<"\n\nres:"<<respons<<"\n\n"<<endl;
+    //     cout<<"\n\nres:"<<respons<<"\nres_end\n"<<endl;
 }
 
 int Get::process(string _body, int event){
@@ -212,7 +215,6 @@ int Get::process(string _body, int event){
     get(fullUri_path);
     return 0;
 }
-
 
 Get::~Get(){
 }

@@ -219,7 +219,7 @@ void    Request::process_req(const string &req, int event){
         return ;
     }
     if (body_state && method){
-        if (type == "GET" && is_cgi)
+        if (is_cgi)
             cgi.execute(method, event);
         else
             method->process(body, event);

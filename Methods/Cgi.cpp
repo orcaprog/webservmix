@@ -111,7 +111,6 @@ void Cgi::waiting(){
 }
 
 void Cgi::kill_proc(int return_err_page){
-    cout<<"process killed\n";
     std::remove(out_file.c_str());
     kill(pid,SIGKILL);
     waitpid(pid,&exit_stat,0);
@@ -143,10 +142,8 @@ int Cgi::set_cmd(const string& fullUri_path){
     cgi_dir = get.extension_search(fullUri_path, '/');
     map<string,string>::iterator it;
     it = serv.UriLocation.cgi_path.find(extension);
-    if (it == serv.UriLocation.cgi_path.end()){
-        cerr<<"No Cgi Command"<<endl;
+    if (it == serv.UriLocation.cgi_path.end())
         return 0;
-    }
     string cmdCgi = it->second;
     cmds[0] =  new char[cmdCgi.length() + 1];
     strcpy(cmds[0],cmdCgi.c_str());
@@ -179,7 +176,6 @@ void Cgi::set_env(const string& fullUri_path){
     env[5] = new char[senv.length()+1];
     strcpy(env[5],senv.c_str());
     if (is_cookies()){
-        cout<<"cookie"<<endl;
         senv = "HTTP_COOKIE=" + cookies;
         env[6] = new char[senv.length()+1];
         strcpy(env[6],senv.c_str());    
