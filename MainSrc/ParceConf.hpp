@@ -56,7 +56,7 @@ public:
     void TakeAndParce(std::string confgfile);
     void FillValid();
     std::vector<std::string> Vstrvalid;
-
+    void DefaultServer();
     ParceConf();
     ~ParceConf();
 };

@@ -48,7 +48,6 @@ public:
     std::string http_v;
     std::string body;
     std::map<std::string, std::string> headers;
-
     Request();
     Request(const vector<Servers>& ser);
     Request(const Request& req);

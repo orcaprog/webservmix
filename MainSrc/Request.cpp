@@ -237,8 +237,8 @@ Method* Request::create_method(const string &type){
     Method* m = NULL;
     if (type == "GET")
         m = new Get();
-    else if (type == "POST")
-        m = new Post();
+    // else if (type == "POST")
+    //     m = new Post();
     //else if (type == "DELETE")
     //     m = new Delete();
     else

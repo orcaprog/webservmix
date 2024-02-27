@@ -104,7 +104,7 @@ int Location::checkDup(std::string der,int & index)
         }
         if (dup > 1)
         {
-           throw "Error duplicate derective \n";
+           throw "Error duplicate derective '"+vlocation[i][0]+"'  \n";
         }
         i++;
     }
@@ -150,7 +150,7 @@ void Location::SetIndex()
     std::string arg;
     if (num == 0)
     {
-        index.push_back(Servindex);
+        index[0]= Servindex;
         return;
     }
     if (vlocation[i].size() != 2)
@@ -158,7 +158,7 @@ void Location::SetIndex()
         throw "invalid port in of the server_name directive \n";
     }
     arg = vlocation[i][1];
-    index.push_back(arg);
+    index[0]= arg;
 }
 
 void Location::SetIndexRoot(string root,string index)
@@ -171,10 +171,11 @@ void Location::SetRoot()
 {
     int i;
     int num = checkDup("root",i);
+    char resolvedPath[PATH_MAX];
     std::string arg;
     if (num == 0)
     {
-        root.push_back(ServRoot);
+        root[0] =  ServRoot;
         return ;
     }
     if (vlocation[i].size() != 2 )
@@ -186,7 +187,9 @@ void Location::SetRoot()
     {
         throw ("Path '"+arg+"' does not exist.\n");
     }
-    root.push_back(arg);
+
+    realpath(arg.c_str(),resolvedPath);
+    root[0] = resolvedPath;
 }
 
 void Location::SetPath()
@@ -196,7 +199,6 @@ void Location::SetPath()
     std::string arg;
     if (num == 0)
     {
-        path.push_back("");
         return ;
     }
     if (vlocation[i].size() != 2 )
@@ -204,7 +206,7 @@ void Location::SetPath()
         throw "Invalid number of arguments in 'client_max_body_size' directive \n";
     }
     arg = vlocation[i][1];
-    path.push_back(arg);
+    path[0] = arg;
 }
 
 void Location::CheckMethods(std::string methd)
@@ -384,11 +386,13 @@ void Location::SetReturn()
 /*__________________________________________*/
 /*__________________________________________*/
 
-
 Location::Location()
 {
-    permession = 0;
-    
+    permession = 23;
+    root.push_back("");
+    index.push_back("");
+    upload_path = "";
+    path.push_back("/");
 }
 
 Location::~Location()

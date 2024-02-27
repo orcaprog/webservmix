@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Multiplexing.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
+/*   By: abouassi <abouassi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/22 18:04:44 by abouassi          #+#    #+#             */
-/*   Updated: 2024/02/26 14:17:07 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/01/29 16:30:35 by abouassi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@ Multiplexing::~Multiplexing()
 {
 }
 
-
 void Multiplexing::CloseClient(int & n)
 {
     epoll_ctl(epollfd,EPOLL_CTL_DEL,events[n].data.fd,&ev);
@@ -34,9 +33,9 @@ void Multiplexing::Out_Events(int n)
        
     mClients[events[n].data.fd].process_req(string(""),EPOLLOUT);
     string res = mClients[events[n].data.fd].get_respons();
-    write(events[n].data.fd , res.c_str(), res.size());
-    // ssize_t bytesWritten = 
-    if (mClients[events[n].data.fd].resp_done())
+     ssize_t bytesWritten = write(events[n].data.fd , res.c_str(), res.size());
+
+    if (bytesWritten < 0 || mClients[events[n].data.fd].resp_done())
     {
         cout<<"connections with client["<<events[n].data.fd<<"]  is closed from server"<<endl;
         CloseClient(n);
@@ -59,7 +58,7 @@ void Multiplexing::In_Events(int n)
         std::map<int ,Request >::iterator iter2 = mClients.find(events[n].data.fd);
         if (iter2 != mClients.end())
         {
-            // cout<<"==========  :"<<buffer<<endl;
+            cout<<"==========  :"<<buffer<<endl;
             mClients[events[n].data.fd].process_req(string("").append(buffer, bytesRead),EPOLLIN);
         }
     }
@@ -102,7 +101,7 @@ void Multiplexing::Connect_And_Add(int n)
         }
         else if (events[n].events & EPOLLIN) 
         {
-            // cout<<"Enter in clinet event eollin comming \n";
+            cout<<"Enter in clinet event eollin comming \n";
             In_Events(n);
             mClients[events[n].data.fd].startTime = clock();
 

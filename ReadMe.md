@@ -23,3 +23,7 @@ Think of the IP address as the street address of a hotel, and the port number as
 decent analogy; maybe later I’ll come up with one involving the automobile industry.
 Say you want to have a computer that handles incoming mail AND web services—how do you differentiate
 between the two on a computer with a single IP address?>
+
+
+chof cgi_path ila makanch
+chof ila kano port b7al b7al w mkinch servername

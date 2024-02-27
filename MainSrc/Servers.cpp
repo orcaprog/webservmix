@@ -95,8 +95,6 @@ void Servers::SetPorts()
     std::string arg;
     if (num == 0)
     {
-        throw("Error :Exepected existence of listen derective \n");
-        port.push_back(0);
         return;
     }
     if (servconf[i].size() != 2)
@@ -109,7 +107,7 @@ void Servers::SetPorts()
     {
         throw("invalid port in '" + arg + "' of the  directive \n");
     }
-    port.push_back(myport);
+    port[0] = myport;
 }
 
 void Servers::SetServerName(vector<string> & ser_names)
@@ -119,7 +117,6 @@ void Servers::SetServerName(vector<string> & ser_names)
     std::string arg;
     if (num == 0)
     {
-        server_name.push_back("");
         return;
     }
     if (servconf[i].size() != 2)
@@ -134,7 +131,7 @@ void Servers::SetServerName(vector<string> & ser_names)
     {
         throw "conflicting server name '"+arg+"' \n";
     }
-    server_name.push_back(arg);
+    server_name[0] =arg;
 }
 
 void Servers::SetHost()
@@ -144,8 +141,6 @@ void Servers::SetHost()
     std::string arg;
     if (num == 0)
     {
-        throw("Error :Exepected existence of host derective \n");
-        host.push_back("");
         return;
     }
     if (servconf[i].size() != 2)
@@ -158,18 +153,17 @@ void Servers::SetHost()
         throw "invalid host ip address \n";
     }
     // parceIp(arg);
-    host.push_back(arg);
+    host[0]= arg;
 }
 
 void Servers::SetRoot()
 {
     int i;
     int num = checkDup("root", i);
+    char resolvedPath[PATH_MAX];
     std::string arg;
     if (num == 0)
     {
-        throw("Error :Exepected existence of root derective \n");
-        root.push_back("");
         return;
     }
     if (servconf[i].size() != 2)
@@ -181,7 +175,8 @@ void Servers::SetRoot()
     {
         throw("Root path :'" + arg + "' does not exist.\n");
     }
-    root.push_back(arg);
+    realpath(arg.c_str(),resolvedPath);
+    root[0] = resolvedPath;
 }
 void Servers::SetIndex()
 {
@@ -190,8 +185,6 @@ void Servers::SetIndex()
     std::string arg;
     if (num == 0)
     {
-        throw("ve \n");
-        index.push_back("");
         return;
     }
     if (servconf[i].size() != 2)
@@ -199,7 +192,7 @@ void Servers::SetIndex()
         throw "Invalid number of arguments in 'index' directive \n";
     }
     arg = servconf[i][1];
-    index.push_back(arg);
+    index[0] = arg;
 }
 void Servers::SetClient_max_body_size()
 {
@@ -208,7 +201,6 @@ void Servers::SetClient_max_body_size()
     std::string arg;
     if (num == 0)
     {
-        client_max_body_size.push_back(0);
         return;
     }
     if (servconf[i].size() != 2)
@@ -221,7 +213,7 @@ void Servers::SetClient_max_body_size()
     {
         throw "invalid  '" + arg + "' in client_max_body_size  directive \n";
     }
-    client_max_body_size.push_back(body_size);
+    client_max_body_size[0]=body_size;
 }
 
 void Servers::check_Status(std::string status)
@@ -341,6 +333,8 @@ void Servers::FillLocation()
 
     if (ind == servconf.size())
     {
+        Location loc;
+        locations.push_back(loc);
         return;
     }
     while (ind < servconf.size() && servconf[ind][0] != "}")
@@ -569,6 +563,7 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
     string hold = rootUri;
     if (pathIsFile(rootUri) == 3 )
     {
+
         if (rootUri[rootUri.size() - 1] != '/')
         {
             rootUri = "";
@@ -586,7 +581,9 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
             rootUri += locations[in].index[0];
             if (pathIsFile(rootUri) != 2)
             {
-                if (locations[in].permession & AUTOINDEX)
+                if (!locations[in].redirect.empty())
+                    SetRederectionResp(locations[in].redirect);
+                else if (locations[in].permession & AUTOINDEX)
                 {
                     SetIndex_Of(hold);
                     rootUri = "index_of.html";
@@ -602,8 +599,13 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
     }
     else if (!pathIsFile(rootUri))
     {
-        rootUri = error_page["404"];
-        status = "404";
+        if (!locations[in].redirect.empty())
+            SetRederectionResp(locations[in].redirect);
+        else 
+        {
+            rootUri = error_page["404"];
+            status = "404";
+        }
         return 0;
     }
     return 1;
@@ -620,7 +622,11 @@ void Servers::SetUriRoot(int i, string &uri)
         rootUri += locations[i].index[0];
         if (pathIsFile(rootUri) != 2)
         {
-            if (locations[i].permession & AUTOINDEX)
+            if (!locations[i].redirect.empty())
+               SetRederectionResp(locations[i].redirect);
+            else if (!redirect.empty())
+               SetRederectionResp(redirect);
+            else if (locations[i].permession & AUTOINDEX)
             {
                 SetIndex_Of(locations[i].root[0] + "/" + uri);
                 rootUri = "index_of.html";
@@ -661,6 +667,8 @@ bool Servers::MatchingWithRoot(string & rootPlusUri,string &rootPath)
     size_t pos;
     realpath(rootPlusUri.c_str(),resolvedPath);
     string hold = resolvedPath;
+    cout<<hold<<endl;
+    cout<<rootPlusUri<<endl;
     hold+= "/";
     pos = hold.find(rootPath);
     if (pos != string::npos && pos == 0) 
@@ -683,31 +691,24 @@ void Servers::FillData(string uri, string mehtod)
         def = getLocation("/");
         if (def != -1)
         {
-            if (!locations[def].redirect.empty())
+            rootUri = locations[def].root[0] + uri;
+            if (pathIsFile(rootUri) == 3)
             {
-               SetRederectionResp(locations[def].redirect);
-            }
-            else if (!redirect.empty())
-            {
-               SetRederectionResp(redirect);
-            }
-            else
-            {
-                rootUri = locations[def].root[0] + uri;
-                if (pathIsFile(rootUri) == 3)
+                if (MatchingWithRoot(rootUri,locations[def].root[0]))
                 {
-                    if (MatchingWithRoot(rootUri,locations[def].root[0]))
-                    {
-                        rootUri = error_page["403"];
-                        status = "403";
-                
-                    }
-                    else if (mehtod == "GET" || mehtod == "DELETE")
-                    {
-                        SetUriRoot(def, uri);
-                    }
+                    rootUri = error_page["403"];
+                    status = "403";
                 }
-                else if (!pathIsFile(rootUri))
+                else if (mehtod == "GET" || mehtod == "DELETE")
+                    SetUriRoot(def, uri);
+            }
+            else if (!pathIsFile(rootUri))
+            {
+                if (!locations[def].redirect.empty())
+                    SetRederectionResp(locations[def].redirect);
+                else if (!redirect.empty())
+                    SetRederectionResp(redirect);
+                else
                 {
                     rootUri = error_page["404"];
                     status = "404";
@@ -715,18 +716,9 @@ void Servers::FillData(string uri, string mehtod)
             }
             UriLocation = locations[def];
         }
-        else
-        {
-            rootUri = root[0] + uri + "/" + index[0];
-            UriLocation.path.push_back("");
-            UriLocation.root.push_back(root[0]);
-            UriLocation.permession = 0;
-            UriLocation.index.push_back(index[0]);
-        }
     }
     else
     {
-        // std::cout << "Path of location :" << locations[in].path[0] << endl;
         if (fillFromLocation(in, uri, mehtod) && (locations[in].path[0] == "/cgi" ||locations[in].path[0] == "/cgi/"))
         {
             Is_cgi = true;
@@ -767,9 +759,17 @@ void Servers::SetReturn()
     redirect.push_back(servconf[i][2]);
     
 }
+
 Servers::Servers()
 {
-    // root.push_back("");
+    char resolvedPath[PATH_MAX];
+    realpath("./html",resolvedPath);
+    root.push_back(resolvedPath);
+    client_max_body_size.push_back( 100000);
+    host.push_back("0.0.0.0");
+    index.push_back("index.html");
+    port.push_back(8080);
+    server_name.push_back("");
     sercheck = 0;
     SetDefaultError();
     status = "200 OK";

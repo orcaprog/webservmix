@@ -3,7 +3,7 @@
 #include <limits.h>
 
 int main() {
-    const char *relativePath = "/nfs/homes/abouassi/Desktop/apk/content////////////////////////";
+    const char *relativePath = "./rootdir";
 
     // Allocate a buffer to store the absolute pathname
     char resolvedPath[PATH_MAX];

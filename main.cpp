@@ -16,10 +16,14 @@
 int main(int ac , char **av)
 {
     (void)ac;
-
+    string conf;
     try
     {
-        Multiplexing mult(av[1]);
+        if(ac != 2)
+            conf = "";
+        else 
+            conf = av[1];
+        Multiplexing mult(conf);
         mult.CreatMUltiplex();
     
     }
