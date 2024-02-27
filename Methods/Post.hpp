@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/05 19:02:57 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/26 18:23:37 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include "Get.hpp"
 
 class Post : public Method
 {
@@ -44,6 +45,7 @@ class Post : public Method
         /* data */
         
 		int crfile;
+        int error;
 		int MethodType;
         int special;
         int rare;
@@ -51,35 +53,69 @@ class Post : public Method
         int chunk_ctl;
 		size_t size_len;
         size_t total_Body;
+        size_t pre_total_body;
         size_t chunk_left;
         int find_sep;
         int file_hang;
         int is_first;
         int here_is;
+        int first_time;
+        int enter_cgi;
+        std::string post_dir;
+        std::string the_file;
         std::string buffer;
         std::string buff_chunk;
+        std::string content_type;
 		std::map<std::string, std::string> mime;
 		std::fstream outFile;
         std::fstream out;
         std::string sep;
         std::string sep_end;
         std::string sep_found;
+        time_t start_time; 
+        int pid;
+        int exit_status;
+        int first_run;
+        int error_time;
+        std::string ran_file;
+        int cgi_exe;
+        std::string my_root;
+        std::string name_of_script;
+        int time_out;
+        char **cmd;
+        char **env;
+        int check;
+
+        
+        Get get;
+        
     public:
         Post();
         Post(const Post& post);
         Post& operator=(const Post& post);
         ~Post();
 
-        std::string creat_file_name();
+        std::string creat_file_name(int ret);
+        char **set_cmd(std::string& ext_path);
+        char **set_env();
+        int process(std::string body, int body_size);
+		void openFile(std::string body, int body_size);
+		void normalFile(std::string body, int body_size);
         
-        int process(std::string body, int event);
-		void openFile(std::string body, size_t body_size);
-		void normalFile(std::string body, size_t body_size);
-        
-        void chunked_file(std::string body, size_t body_size);
-        void chunk_write(std::string body, size_t body_size);
+        void chunked_file(std::string body, int body_size);
+        void chunk_write(std::string body, int body_size);
 
         void    ft_boundary(std::string& body);
+
+        void    ft_boundary_cgi(std::string& body);
+        void    exe_cgi();
+        std::string find_path_info();
+        std::string find_ext();
+        void script_name();
+
+        void ft_error();
+
+
 
 };
 

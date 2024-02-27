@@ -14,8 +14,9 @@
 bool isValidIpAddress(string &ipAddress)
 {
     struct sockaddr_in sa;
+    // int result = inet_addr(ipAddress.c_str());
     int result = inet_pton(AF_INET, ipAddress.c_str(), &(sa.sin_addr));
-    return result != 0;
+    return result <= 0;
 }
 int Servers::getLocation(std::string path)
 {
@@ -50,11 +51,6 @@ int Servers::pathIsFile(std::string path)
         return 0;
 }
 
-int Servers::pathExists(std::string path)
-{
-    struct stat fileStat;
-    return stat(path.c_str(), &fileStat) == 0;
-}
 
 bool Servers::check_isdigit(std::string str)
 {
@@ -69,43 +65,11 @@ bool Servers::check_isdigit(std::string str)
     }
     return (1);
 }
-
-// void Servers::Printtwodom(const std::vector<std::vector<std::string>> &matrix, std::string data)
-// {
-//     for (std::vector<std::vector<std::string>>::const_iterator row = matrix.begin(); row != matrix.end(); ++row)
-//     {
-//         std::cout << data << "   :";
-//         for (std::vector<std::string>::const_iterator value = row->begin(); value != row->end(); ++value)
-//         {
-//             std::cout << *value << "|";
-//         }
-//         std::cout << std::endl;
-//     }
-// }
-
 /*_____________________________________________________________*/
 /*_________________________SET_________________________________*/
 /*_____________________________________________________________*/
 
-void Servers::parceIp(std::string ip)
-{
-    std::stringstream ss;
-    ss << ip;
-    std::string line;
-    int net = 0;
-    int len = 0;
-    while (getline(ss, line, '.'))
-    {
-        net = std::atoi(line.c_str());
-        if (line.size() > 3 || !check_isdigit(line) || net > 255 || net < 0)
-        {
-            throw "error invalid ip host " + ip + " \n";
-        }
-        len++;
-    }
-    if (len != 4)
-        throw "error invalid ip host " + ip + " \n";
-}
+
 int Servers::checkDup(std::string der, int &index)
 {
     int dup = 0;
@@ -132,7 +96,6 @@ void Servers::SetPorts()
     std::string arg;
     if (num == 0)
     {
-        port.push_back(0);
         return;
     }
     if (servconf[i].size() != 2)
@@ -145,7 +108,7 @@ void Servers::SetPorts()
     {
         throw("invalid port in '" + arg + "' of the  directive \n");
     }
-    port.push_back(myport);
+    port[0] = myport;
 }
 
 void Servers::SetServerName(vector<string> & ser_names)
@@ -155,7 +118,6 @@ void Servers::SetServerName(vector<string> & ser_names)
     std::string arg;
     if (num == 0)
     {
-        server_name.push_back("");
         return;
     }
     if (servconf[i].size() != 2)
@@ -168,9 +130,9 @@ void Servers::SetServerName(vector<string> & ser_names)
     // check hna laykon chi check
     if (find(ser_names.begin(),ser_names.end(),arg) != ser_names.end())
     {
-        throw "Invalid arguments'server_name' directive is already exist in other server \n";
+        throw "conflicting server name '"+arg+"' \n";
     }
-    server_name.push_back(arg);
+    server_name[0] =arg;
 }
 
 void Servers::SetHost()
@@ -180,7 +142,6 @@ void Servers::SetHost()
     std::string arg;
     if (num == 0)
     {
-        host.push_back("");
         return;
     }
     if (servconf[i].size() != 2)
@@ -188,22 +149,21 @@ void Servers::SetHost()
         throw "Invalid number of arguments in 'host' directive \n";
     }
     arg = servconf[i][1];
-    if (!isValidIpAddress(arg))
+    if (isValidIpAddress(arg))
     {
         throw "invalid host ip address \n";
     }
-    // parceIp(arg);
-    host.push_back(arg);
+    host[0]= arg;
 }
 
 void Servers::SetRoot()
 {
     int i;
     int num = checkDup("root", i);
+    char resolvedPath[PATH_MAX];
     std::string arg;
     if (num == 0)
     {
-        root.push_back("");
         return;
     }
     if (servconf[i].size() != 2)
@@ -211,11 +171,12 @@ void Servers::SetRoot()
         throw "Invalid number of arguments in 'root' directive \n";
     }
     arg = servconf[i][1];
-    if (!pathExists(arg))
+    if (!pathIsFile(arg))
     {
         throw("Root path :'" + arg + "' does not exist.\n");
     }
-    root.push_back(arg);
+    realpath(arg.c_str(),resolvedPath);
+    root[0] = resolvedPath;
 }
 void Servers::SetIndex()
 {
@@ -224,7 +185,6 @@ void Servers::SetIndex()
     std::string arg;
     if (num == 0)
     {
-        index.push_back("");
         return;
     }
     if (servconf[i].size() != 2)
@@ -232,12 +192,7 @@ void Servers::SetIndex()
         throw "Invalid number of arguments in 'index' directive \n";
     }
     arg = servconf[i][1];
-    // std::cout<<"index   :"<<arg<<endl;
-    // if (pathIsFile(arg) != 2 )
-    // {
-    //     throw("Path '" + arg + "' does not exist or is not a file.\n");
-    // }
-    index.push_back(arg);
+    index[0] = arg;
 }
 void Servers::SetClient_max_body_size()
 {
@@ -246,7 +201,6 @@ void Servers::SetClient_max_body_size()
     std::string arg;
     if (num == 0)
     {
-        client_max_body_size.push_back(0);
         return;
     }
     if (servconf[i].size() != 2)
@@ -259,7 +213,7 @@ void Servers::SetClient_max_body_size()
     {
         throw "invalid  '" + arg + "' in client_max_body_size  directive \n";
     }
-    client_max_body_size.push_back(body_size);
+    client_max_body_size[0]=body_size;
 }
 
 void Servers::check_Status(std::string status)
@@ -309,7 +263,6 @@ void Servers::SetAllDir(vector<string> & ser_names)
     FillValid();
     FillLocation();
     // checkValidation();
-
     SetHost();
     SetRoot();
     SetPorts();
@@ -380,6 +333,8 @@ void Servers::FillLocation()
 
     if (ind == servconf.size())
     {
+        Location loc;
+        locations.push_back(loc);
         return;
     }
     while (ind < servconf.size() && servconf[ind][0] != "}")
@@ -397,17 +352,27 @@ void Servers::FillValid()
     Vstrvalid.push_back("location");
     Vstrvalid.push_back("{");
     Vstrvalid.push_back("}");
+    Vstrvalid.push_back("return");
+    Vstrvalid.push_back("upload_path");
     Vstrvalid.push_back("allow_methods");
     Vstrvalid.push_back("autoindex");
     Vstrvalid.push_back("upload");
     Vstrvalid.push_back("cgi_path");
+    rStatus.push_back("300");
+    rStatus.push_back("301");
+    rStatus.push_back("302");
+    rStatus.push_back("303");
+    rStatus.push_back("304");
+    rStatus.push_back("305");
+    rStatus.push_back("306");
+    rStatus.push_back("307");
 }
 
 void Servers::desplay()
 {
     // std::vector<std::vector<std::string> > matrix = servconf;
 
-    cout << "Ports :" << port[0] << endl;
+    cout << "Ports :"<< port[0] << endl;
     cout << "ServerName  :" << server_name[0] << endl;
     cout << "Host :" << host[0] << endl;
     cout << "Root :" << root[0] << endl;
@@ -417,7 +382,6 @@ void Servers::desplay()
         cout << "error Page :'" << iter->first << "' '" << iter->second << "'\n";
         iter++;
     }
-
     cout << "Client_max_body_size :" << endl;
     cout << "Index :" << index[0] << endl;
     size_t i = 0;
@@ -558,7 +522,6 @@ void Servers::SetDefaultError()
     error_page["416"] = "error_pages/416.html";
     error_page["417"] = "error_pages/417.html";
     error_page["500"] = "error_pages/500.html";
-    error_page["504"] = "error_pages/504.html";
     error_page["505"] = "error_pages/505.html";
 }
 bool Servers::operator==(const Servers &ser)
@@ -598,8 +561,10 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
     rootUri = uri;
     rootUri.replace(0, locations[in].path[0].length(), locations[in].root[0]);
     string hold = rootUri;
+    // cout<<"root uri"<<rootUri<<endl;
     if (pathIsFile(rootUri) == 3 )
     {
+
         if (rootUri[rootUri.size() - 1] != '/')
         {
             rootUri = "";
@@ -615,26 +580,33 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
         else if(method == "GET" || method == "DELETE")
         {
             rootUri += locations[in].index[0];
-            if (!pathExists(rootUri))
+            if (pathIsFile(rootUri) != 2)
             {
-                if (locations[in].permession & AUTOINDEX)
+                if (!locations[in].redirect.empty())
+                    SetRederectionResp(locations[in].redirect);
+                else if (locations[in].permession & AUTOINDEX)
                 {
                     SetIndex_Of(hold);
                     rootUri = "index_of.html";
                 }
                 else
                 {
-                    rootUri = error_page["404"];
-                    status = "404";
+                    rootUri = error_page["403"];
+                    status = "403";
                 }
                 return 0;
             }
         }
     }
-    else if (!pathExists(rootUri))
+    else if (!pathIsFile(rootUri))
     {
-        rootUri = error_page["404"];
-        status = "404";
+        if (!locations[in].redirect.empty())
+            SetRederectionResp(locations[in].redirect);
+        else 
+        {
+            rootUri = error_page["404"];
+            status = "404";
+        }
         return 0;
     }
     return 1;
@@ -649,9 +621,13 @@ void Servers::SetUriRoot(int i, string &uri)
     else
     {
         rootUri += locations[i].index[0];
-        if (!pathExists(rootUri))
+        if (pathIsFile(rootUri) != 2)
         {
-            if (locations[i].permession & AUTOINDEX)
+            if (!locations[i].redirect.empty())
+               SetRederectionResp(locations[i].redirect);
+            else if (!redirect.empty())
+               SetRederectionResp(redirect);
+            else if (locations[i].permession & AUTOINDEX)
             {
                 SetIndex_Of(locations[i].root[0] + "/" + uri);
                 rootUri = "index_of.html";
@@ -692,13 +668,19 @@ bool Servers::MatchingWithRoot(string & rootPlusUri,string &rootPath)
     size_t pos;
     realpath(rootPlusUri.c_str(),resolvedPath);
     string hold = resolvedPath;
+    cout<<hold<<endl;
+    cout<<rootPlusUri<<endl;
     hold+= "/";
     pos = hold.find(rootPath);
     if (pos != string::npos && pos == 0) 
         return 0;
     return 1;
 }
-
+void Servers::SetRederectionResp(vector<string> & redirect)
+{
+    rootUri = "";
+    status = redirect[0] + "  \r\nLocation: " + redirect[1] + "/";
+}
 void Servers::FillData(string uri, string mehtod)
 {
     FillQuerys(uri);
@@ -717,32 +699,27 @@ void Servers::FillData(string uri, string mehtod)
                 {
                     rootUri = error_page["403"];
                     status = "403";
-            
                 }
                 else if (mehtod == "GET" || mehtod == "DELETE")
-                {
                     SetUriRoot(def, uri);
+            }
+            else if (!pathIsFile(rootUri))
+            {
+                if (!locations[def].redirect.empty())
+                    SetRederectionResp(locations[def].redirect);
+                else if (!redirect.empty())
+                    SetRederectionResp(redirect);
+                else
+                {
+                    rootUri = error_page["404"];
+                    status = "404";
                 }
             }
-            else if (!pathExists(rootUri))
-            {
-                rootUri = error_page["404"];
-                status = "404";
-            }
             UriLocation = locations[def];
-        }
-        else
-        {
-            rootUri = root[0] + uri + "/" + index[0];
-            UriLocation.path.push_back("");
-            UriLocation.root.push_back(root[0]);
-            UriLocation.permession = 0;
-            UriLocation.index.push_back(index[0]);
         }
     }
     else
     {
-        // std::cout << "Path of location :" << locations[in].path[0] << endl;
         if (fillFromLocation(in, uri, mehtod) && (locations[in].path[0] == "/cgi" ||locations[in].path[0] == "/cgi/"))
         {
             Is_cgi = true;
@@ -761,9 +738,39 @@ void Servers::FillData(string uri, string mehtod)
     // cout << "      ========\n";
 }
 
+void Servers::SetReturn()
+{
+    int i;
+    int num = checkDup("return",i);
+    std::string arg;
+    if (num == 0)
+    {
+        return ;
+    }
+    if (servconf[i].size() != 3 )
+    {
+         throw "invalid return directive \n";
+    }
+    arg = servconf[i][1];
+    if (find(rStatus.begin(),rStatus.end(),arg) == rStatus.end())
+    {
+        throw "Error : status "+arg+" is not valid  Redirection\n";
+    }
+    redirect.push_back(arg);
+    redirect.push_back(servconf[i][2]);
+    
+}
+
 Servers::Servers()
 {
-    // root.push_back("");
+    char resolvedPath[PATH_MAX];
+    realpath("./html",resolvedPath);
+    root.push_back(resolvedPath);
+    client_max_body_size.push_back( 100000);
+    host.push_back("0.0.0.0");
+    index.push_back("index.html");
+    port.push_back(8080);
+    server_name.push_back("");
     sercheck = 0;
     SetDefaultError();
     status = "200 OK";

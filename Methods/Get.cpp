@@ -6,11 +6,13 @@ Get::Get(){
     end = 0;
     opened = 0;
     content_len = -1;
+    head_size = 0;
 }
 
 
 Get::Get(const Get& oth){
     set_extentions();
+    head_size = 0;
     content_len = -1;
     *this = oth;
 }
@@ -18,6 +20,7 @@ Get::Get(const Get& oth){
 
 Get& Get::operator=(const Get& oth){
     if (this != &oth){
+        head_size = oth.head_size;
         serv = oth.serv;
         http_v = oth.http_v;
         uri = oth.uri;
@@ -132,12 +135,14 @@ void Get::set_headers(){
     respons += content_type+string("\r\n");
     respons += string("Content-Length: ");
     hed = check_headers();
-    if (hed)
+    if (hed){
+        cout<<"headers_seted"<<endl;
         file_len -= head_size;
-    if (content_len > 0){
-        if ((size_t)content_len < file_len)
-            file_len = content_len;
-        content_len += head_size;
+        if (content_len != -1){
+            if ((size_t)content_len < file_len)
+                file_len = content_len;
+            content_len += head_size;
+        }
     }
     stringstream ss;
     ss<<file_len;
@@ -148,6 +153,9 @@ void Get::set_headers(){
     }
     else
         respons += res_h;
+    // cout<<"file_len: "<<file_len<<endl;
+    // cout<<"content_len: "<<content_len<<endl;
+    // cout<<"headers: "<<respons<<endl;
 }
 
 
@@ -157,7 +165,7 @@ void Get::open_file(const string& file_name){
     src_file.open(file_name.c_str(), ios::in);
     opened = 1;
     if (!src_file.is_open()){
-        src_file.clear();
+        cout<<"cannot open: "<<file_name<<endl;
         serv.status = "500";
         get_err_page(serv.error_page["500"]);
         opened = -1;
@@ -223,9 +231,9 @@ void Get::get_err_page(const string& err_p_name){
     res.resize(1000);
     err_page.open(err_p_name.c_str(), ios::in);
     if (err_page.is_open()){
-        src_file.seekg(0, std::ios::end);
-        file_len = src_file.tellg();
-        src_file.seekg(0, std::ios::beg);
+        err_page.seekg(0, std::ios::end);
+        file_len = err_page.tellg();
+        err_page.seekg(0, std::ios::beg);
         set_headers();
         err_page.read(&res[0],1000);
         res.resize(err_page.gcount());

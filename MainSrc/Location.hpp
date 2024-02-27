@@ -23,6 +23,7 @@
 #include <deque>
 #include <map>
 #include <sys/stat.h>
+#include <limits.h>
 
 enum PERMESSION {
     GET=1,
@@ -36,12 +37,9 @@ class Location
 {
 private:
         void CheckMethods(std::string methd);
-        std::vector<std::string>  AddcgiPaths(std::string status,std::string path);
         size_t GetIndex(std::string dir);
         int  checkDup(std::string der,int & index);
-
         int pathIsFile(std::string path);
-    
         void FillValid();
         void checkValidation();
         std::vector<std::string> Vstrvalid;
@@ -50,34 +48,28 @@ private:
         void SetAllowMethods();
         void SetAutoindex();
         void SetUpload();
+        void SetUpload_path();
         void SetCgiPath();
         void SetRoot();
-        void Printtwodom(const std::vector<std::vector<std::string> > & matrix,std::string data);
-        int pathExists(std::string path);
+        void SetReturn();
 public:
         std::vector<std::string> path;
+        string  upload_path;
         std::vector<std::string> root;
         std::vector<std::string> index;
         map<string ,string> cgi_path;
+        vector<string> redirect;
+        vector<string> rStatus;
         bool get;
         bool post;
         bool dele;
-        
-
         int permession;
-        /*________________Cgi___________________*/
-        
         void desplayLocation();
         void SetAllDir();
-        std::string & GetPath();
-        std::string & GetRoot();
-        std::string & GetindexLocation();
         void SetIndexRoot(string root,string index);
         string ServRoot;
         string Servindex;
-        
         std::vector<std::vector<std::string> > vlocation;
-
         Location();
         ~Location();
 };
