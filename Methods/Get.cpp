@@ -159,7 +159,9 @@ void Get::open_file(const string& file_name){
     src_file.open(file_name.c_str(), ios::in);
     opened = 1;
     if (!src_file.is_open()){
-        cout<<"can't open file: "<<file_name<<endl;
+        src_file.clear();
+        serv.status = "500";
+        get_err_page(serv.error_page["500"]);
         opened = -1;
         return;
     }
@@ -214,6 +216,24 @@ int Get::process(string _body, int event){
         return 0;
     get(fullUri_path);
     return 0;
+}
+
+void Get::get_err_page(const string& err_p_name){
+    string res;
+    fstream err_page;
+
+    res.resize(1000);
+    err_page.open(err_p_name.c_str(), ios::in);
+    if (err_page.is_open()){
+        src_file.seekg(0, std::ios::end);
+        file_len = src_file.tellg();
+        src_file.seekg(0, std::ios::beg);
+        set_headers();
+        err_page.read(&res[0],1000);
+        res.resize(err_page.gcount());
+        respons += res;
+        end = 1;
+    }
 }
 
 Get::~Get(){

@@ -29,6 +29,7 @@ void set_headers();
 int check_headers();
 void read_file();
 void set_content_length(string line);
+void get_err_page(const string& err_p_name);
 public:
     string extension_search(const string& file_name, int spl);
     Get();
