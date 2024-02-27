@@ -14,6 +14,7 @@
 bool isValidIpAddress(string &ipAddress)
 {
     struct sockaddr_in sa;
+    // int result = inet_addr(ipAddress.c_str());
     int result = inet_pton(AF_INET, ipAddress.c_str(), &(sa.sin_addr));
     return result <= 0;
 }
@@ -560,6 +561,7 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
     rootUri = uri;
     rootUri.replace(0, locations[in].path[0].length(), locations[in].root[0]);
     string hold = rootUri;
+    // cout<<"root uri"<<rootUri<<endl;
     if (pathIsFile(rootUri) == 3 )
     {
 
