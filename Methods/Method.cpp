@@ -17,7 +17,6 @@ Method& Method::operator=(const Method& oth){
         http_v = oth.http_v;
         headers = oth.headers;
         respons = oth.respons;
-        req_path = oth.req_path;
         fullUri_path = oth.fullUri_path;
     }
     return *this;

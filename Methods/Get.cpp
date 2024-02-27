@@ -22,7 +22,6 @@ Get& Get::operator=(const Get& oth){
         http_v = oth.http_v;
         uri = oth.uri;
         headers = oth.headers;
-        req_path = oth.req_path;
         fullUri_path = oth.fullUri_path;
         content_len = oth.content_len;
         types = oth.types;
@@ -80,7 +79,6 @@ string Get::extension_search(const string& f_name, int spl){
 
 int Get::set_content_type(const string& file_name){
     extension = extension_search(file_name, '.');
-    cout<<"extension: "<<extension<<endl;
     if (types.find(extension) != types.end())
         content_type = types.find(extension)->second;
     else if (extension == "")

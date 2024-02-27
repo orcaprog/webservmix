@@ -25,21 +25,20 @@ using namespace std;
 
 class Method
 {
+protected:
+
 public:
-    string respons;
     int end;
-
-    Servers serv;
     string uri;
-    string fullUri_path;
-    string req_path;
     string http_v;
+    string fullUri_path;
+    string respons;
+    Servers serv;
     map<string, string> headers;
-
+    virtual int process(string body, int event) = 0;
     Method();
     Method(const Method& oth);
     Method& operator=(const Method& oth);
-    virtual int process(string body, int event) = 0;
     virtual ~Method();
 };
 
