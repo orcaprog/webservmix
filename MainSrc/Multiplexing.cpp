@@ -158,13 +158,8 @@ void Multiplexing::CreatMUltiplex()
             perror("epoll_wait");
             exit(EXIT_FAILURE);
         }
-        // cout<<"EPOLLIN  :"<<EPOLLIN<<endl;
-        // cout<<"EPOLLOUT :"<<EPOLLOUT<<endl;
-        // cout<<"nfds :"<<nfds<<endl;
         for (int n = 0; n < nfds ; ++n) 
         {
-            // cout<<"fd  : ["<<events[n].data.fd<<"]  : \n";
-            // cout<<"event  : ["<<events[n].events<<"]"<<endl;
             Connect_And_Add(n);
         }
         CheckTimeOut();

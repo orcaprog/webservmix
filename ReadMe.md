@@ -31,3 +31,5 @@ chof ila kano port b7al b7al w mkinch servername
 wach ntchicki script dyal cgi wach exec
 
 double in client body size
+
+autoindex on fi post;

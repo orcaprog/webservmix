@@ -32,14 +32,16 @@
 // string::find_first_not_of
 #include <iostream>       // std::cout
 #include <string>         // std::string
-#include <cstddef>        // std::size_t
+#include <cstddef>       
+#include <fstream> // std::size_t
 
 int main ()
 {
   std::string str ("//////dddddd///////");
 
   std::size_t found = str.find_first_not_of("/");
-
+    std::fstream file;
+    file.open("weh",)
   if (found!=std::string::npos)
   {
     std::cout << "The first non-alphabetic character is " << str[found];

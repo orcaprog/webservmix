@@ -54,9 +54,9 @@ private:
         void SetRoot();
         void SetReturn();
 public:
-        std::vector<std::string> path;
+        std::string path;
         string  upload_path;
-        std::vector<std::string> root;
+        std::string root;
         std::vector<std::string> index;
         map<string ,string> cgi_path;
         vector<string> redirect;

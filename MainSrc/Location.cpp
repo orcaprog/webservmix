@@ -93,9 +93,9 @@ int Location::checkDup(std::string der,int & index)
 // {
 
 //     // Printtwodom(vlocation,"location");
-//     cout<<"PATH :"<<path[0]<<endl;
+//     cout<<"PATH :"<<path<<endl;
 //     cout<<"permession:"<<permession<<endl;
-//     cout<<"Root :"<<root[0]<<endl;
+//     cout<<"Root :"<<root<<endl;
 //     map<string,string>::iterator iter = cgi_path.begin();
 //     while (iter != cgi_path.end())
 //     {
@@ -109,7 +109,6 @@ int Location::checkDup(std::string der,int & index)
 void Location::SetAllDir()
 {
     FillValid();
-    // checkValidation();
     SetRoot();
     SetAllowMethods();
     SetUpload();
@@ -124,19 +123,24 @@ void Location::SetAllDir()
 void Location::SetIndex()
 {
     int i;
+    vector<string>::iterator iter;
     int num = checkDup("index", i);
-    std::string arg;
     if (num == 0)
     {
         index[0]= Servindex;
         return;
     }
-    if (vlocation[i].size() != 2)
+    if (vlocation[i].size() < 2)
     {
         throw "Invalid number of arguments in 'index' directive \n";
     }
-    arg = vlocation[i][1];
-    index[0]= arg;
+    iter = vlocation[i].begin();
+    iter++;
+    while (iter != vlocation[i].end())
+    {
+        index.push_back(*iter);
+        iter++;
+    }
 }
 
 void Location::SetIndexRoot(string root,string index)
@@ -153,7 +157,7 @@ void Location::SetRoot()
     std::string arg;
     if (num == 0)
     {
-        root[0] =  ServRoot;
+        root =  ServRoot;
         return ;
     }
     if (vlocation[i].size() != 2 )
@@ -162,7 +166,7 @@ void Location::SetRoot()
     if (pathIsFile(arg) != 3) 
         throw("Root path :'" + arg + "' does not exist or is not a directory.\n");
     realpath(arg.c_str(),resolvedPath);
-    root[0] = resolvedPath;
+    root = resolvedPath;
 }
 
 void Location::SetPath()
@@ -175,7 +179,7 @@ void Location::SetPath()
     if (vlocation[i].size() != 2 )
         throw "Invalid number of arguments in 'location' directive \n";
     arg = vlocation[i][1];
-    path[0] = arg;
+    path  = arg;
 }
 
 void Location::CheckMethods(std::string methd)
@@ -320,10 +324,10 @@ void Location::SetReturn()
 Location::Location()
 {
     permession = 7;
-    root.push_back("");
+    root = "";
     index.push_back("");
     upload_path = "";
-    path.push_back("");
+    path = "";
 }
 
 Location::~Location()
