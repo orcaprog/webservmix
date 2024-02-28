@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ParceConf.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouassi <abouassi@student.42.fr>          +#+  +:+       +#+        */
+/*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/28 17:54:31 by abouassi          #+#    #+#             */
-/*   Updated: 2024/01/26 11:02:48 by abouassi         ###   ########.fr       */
+/*   Updated: 2024/02/28 15:03:02 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,12 +54,25 @@ std::vector<std::string> ParceConf::Split_line(std::string line)
     return vline;
 }
 
+void ParceConf::DefaultServer()
+{
+    Servers ser;
+    ser.FillLocation();
+    ser.CreatSocketServer(msockets);
+    msockets[ser.server_fd].push_back(ser);
+}
 void ParceConf::TakeAndParce(std::string confgfile)
 {
     std::ifstream configfile;
     std::string line;
     std::vector<std::string> _split;
     std::vector<string>::iterator iterfind;
+    if(confgfile.empty())
+    {
+        DefaultServer();
+        return ;
+    }
+
     configfile.open(confgfile.c_str(), std::ios::in);
     if (configfile.is_open())
     {
@@ -77,14 +90,12 @@ void ParceConf::TakeAndParce(std::string confgfile)
         }
         configfile.close();
     }
-    desplay();
+    FillServersLocations();
 }
 ParceConf::ParceConf()
 {
     FillValid();
 }
-
-
 
 Servers ParceConf::FirstFill()
 {
@@ -149,22 +160,30 @@ void ParceConf::FillServers()
     }
 }
 
-void ParceConf::desplay()
+void ParceConf::FillServersLocations()
 {
     FillServers();
     size_t i = 0;
-    // vector<Servers> vec;
     vector<string> ser_names;
+    vector<Servers>::iterator iter;
+    vector<Servers> hold;
     while (i < Vservers.size())
     {
         Vservers[i].SetAllDir(ser_names);
         ser_names.push_back(Vservers[i].server_name[0]);
         Vservers[i].CreatSocketServer(msockets);
-        msockets[Vservers[i].server_fd].push_back(Vservers[i]);
-
-        // cout<<"===============================================\n";
+        if(Vservers[i].server_fd >= 0)
+        {
+            cout<<"enter here "<<Vservers[i].server_fd<<endl;
+            msockets[Vservers[i].server_fd].push_back(Vservers[i]);
+            hold = msockets[Vservers[i].server_fd];
+            iter = find(hold.begin(),hold.end(),"");
+            if(iter != hold.end())
+                throw "Error : Conflicting same host and port and no exsist of servername\n";
+        }
+        // cout<<"============================================\n";
         // Vservers[i].desplay();
-        // cout<<"===============================================\n";
+        // cout<<"============================================\n";
         i++;
     }
 }

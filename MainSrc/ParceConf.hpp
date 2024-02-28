@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ParceConf.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouassi <abouassi@student.42.fr>          +#+  +:+       +#+        */
+/*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/28 17:54:35 by abouassi          #+#    #+#             */
-/*   Updated: 2024/01/24 18:46:52 by abouassi         ###   ########.fr       */
+/*   Updated: 2024/02/28 15:02:48 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,13 +50,13 @@ private:
     Servers FirstFill();
     std::vector<std::string> Split_line(std::string line);
     void FillServers();
-    void desplay();
+    void FillServersLocations();
 public:
     std::map<int, vector<Servers> > msockets;    
     void TakeAndParce(std::string confgfile);
     void FillValid();
     std::vector<std::string> Vstrvalid;
-
+    void DefaultServer();
     ParceConf();
     ~ParceConf();
 };

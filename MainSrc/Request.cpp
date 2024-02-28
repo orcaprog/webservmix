@@ -229,9 +229,8 @@ void    Request::process_req(const string &req, int event){
 int Request::resp_done() const{
     if (error)
         return 1;
-    if (is_cgi && type == "GET"){
+    if (is_cgi){
         if (cgi.resp_done){
-            cout<<"cgi_done"<<endl;
             return 1;
         }
     }
@@ -269,7 +268,6 @@ string Request::get_respons() const{
         return("");
     if (is_cgi)
         return cgi.get.respons;
-    std::cout << "get response \n" << method->respons<<std::endl; 
     return (method->respons);
 }
 

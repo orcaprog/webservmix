@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/22 18:04:44 by abouassi          #+#    #+#             */
-/*   Updated: 2024/02/26 14:17:07 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/28 15:03:36 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,16 @@
 Multiplexing::Multiplexing(std::string  configfile)
 {
     server.TakeAndParce(configfile);
+    if(server.msockets.empty())
+    {
+        throw "Error : Problem in create servers \n";
+    }
     SocketTimeout = 10;
 }
 
 Multiplexing::~Multiplexing()
 {
 }
-
 
 void Multiplexing::CloseClient(int & n)
 {
@@ -34,9 +37,9 @@ void Multiplexing::Out_Events(int n)
        
     mClients[events[n].data.fd].process_req(string(""),EPOLLOUT);
     string res = mClients[events[n].data.fd].get_respons();
-    write(events[n].data.fd , res.c_str(), res.size());
-    // ssize_t bytesWritten = 
-    if (mClients[events[n].data.fd].resp_done())
+     ssize_t bytesWritten = write(events[n].data.fd , res.c_str(), res.size());
+
+    if (bytesWritten < 0 || mClients[events[n].data.fd].resp_done())
     {
         cout<<"connections with client["<<events[n].data.fd<<"]  is closed from server"<<endl;
         CloseClient(n);
@@ -71,15 +74,13 @@ void Multiplexing::Connect_And_Add(int n)
     std::map<int, vector<Servers> >::iterator iter = server.msockets.find(events[n].data.fd );
     if (iter != server.msockets.end()) 
     {   
-        std::cout<<"Fd Server :"<<iter->first<<std::endl;
         adrlen = sizeof(iter->second[0].address);
         conn_sock = accept(iter->first, (struct sockaddr *)&iter->second[0].address, (socklen_t*)&adrlen);
         if (conn_sock == -1) 
         {
             perror("accept");
-            exit(EXIT_FAILURE);
+            return ;
         }
-        std::cout<<"Fd Clinet :"<<conn_sock<<std::endl;
 
         Request req(iter->second);
         mClients[conn_sock] = req;
@@ -90,7 +91,7 @@ void Multiplexing::Connect_And_Add(int n)
         if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock,&ev) == -1) 
         {
             perror("epoll_ctl: conn_sock");
-            exit(EXIT_FAILURE);
+            return ;
         }
     } 
     else 
@@ -102,16 +103,13 @@ void Multiplexing::Connect_And_Add(int n)
         }
         else if (events[n].events & EPOLLIN) 
         {
-            // cout<<"Enter in clinet event eollin comming \n";
             In_Events(n);
             mClients[events[n].data.fd].startTime = clock();
 
         }
         else if (events[n].events & EPOLLOUT && mClients.find(events[n].data.fd) !=  mClients.end()) 
         {
-            // cout<<"Enter in clinet event eollout comming \n";
             Out_Events(n);
-            // mClients[events[n].data.fd].startTime = clock(); 
         }
     }
 }
