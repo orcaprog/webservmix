@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/28 09:45:09 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/28 11:01:37 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -279,6 +279,7 @@ void Post::openFile(std::string body, int body_size)
         if (!outFile.is_open())
         {
             error = 4;
+            std::cout << " File Probelm \n";
             return ;
         }
 	}
@@ -612,7 +613,9 @@ void    Post::ft_boundary(std::string& body)
                 out.open(file.c_str(), std::ios::out | std::ios::binary);
 				if (!out.is_open())
                 {
-					error = 4;/////ERRRRRRRROE PAGES  
+					error = 4;
+                    std::cout << " File problem 2\n";
+                    /////ERRRRRRRROE PAGES  
                     return ;
                 }
 				
@@ -634,7 +637,7 @@ void    Post::ft_boundary(std::string& body)
 				if (!out.is_open())
                 {
                     std::cout << file<<std::endl;
-                    std::cout << "File Problem\n";
+                    std::cout << "File Problem 3\n";
                     error = 4;
 					return ;
                     
@@ -849,7 +852,7 @@ void Post::ft_boundary_cgi(std::string &body)
 				if (!out.is_open())
                 {
                     std::cout << file<<std::endl;
-                    std::cout << "File Problem\n";
+                    std::cout << "File Problem 3\n";
                     error = 4;
 					return  ;
                     
@@ -1007,6 +1010,7 @@ void Post::script_name()
 
 void Post::exe_cgi()
 {
+    std::cout << "Executing cgi" << std::endl;
     if (!first_run)
     {
         std::string ext_path;
@@ -1030,7 +1034,7 @@ void Post::exe_cgi()
         else
         {
             std::cout << "Problem in the extention\n";
-            error = 3;
+            error = 9;
             return ;
         }
         ran_file =  creat_file_name(1);
@@ -1070,6 +1074,7 @@ void Post::exe_cgi()
         int exit_status1 = WEXITSTATUS(exit_status);
         if (exit_status1)
         {
+            std::cout << "Failed to execute\n";
             error = 4;
         }
         else
@@ -1077,7 +1082,7 @@ void Post::exe_cgi()
         int rem = std::remove(the_file.c_str());
         if (rem)
         {
-            std::cout << "** couldn't remove the TMP file \n";
+            std::cout << "couldn't remove the TMP file \n";
             error = 4;
         }
     }
@@ -1166,6 +1171,12 @@ void Post::ft_error()
         get.get(serv.error_page["403"]);
         serv.status = "403";
     }
+    if (error == 9)
+    {
+        get.serv.status = "415";
+        get.get(serv.error_page["415"]);
+        serv.status = "415";
+    }
     respons = get.respons;
     if (get.end)
         end = 1;
@@ -1180,6 +1191,20 @@ int Post::process(std::string body, int body_size)
     std::cout << "end " << end << std::endl;
     std::cout << "cgi execute " << cgi_exe << std::endl;
     std::cout << "cgi erro " << enter_cgi << std::endl;
+    std::cout << "is cgi " << serv.Is_cgi << std::endl;
+    if (serv.status != "200 OK")
+    {
+        std::cout << "what  going  " << serv.status << std::endl;
+        if (body_size == EPOLLOUT)
+        {
+            get.serv.status = serv.status;
+            get.get(fullUri_path);
+            respons += get.respons;
+            if (get.end)
+                end = 1;
+        }
+        return 0;
+    }
     if (!(serv.UriLocation.permession & UPLOAD) && !serv.Is_cgi)
         error = 8;
     else
@@ -1265,10 +1290,10 @@ int Post::process(std::string body, int body_size)
     }
     else
         time_out = 0;
-    std::cout << "respons " << respons << std::endl;
     std::cout << "error " <<  error << std::endl;
     std::cout << "end " << end << std::endl;
     std::cout << "cgi execute " << cgi_exe << std::endl;
     std::cout << "cgi erro " << enter_cgi << std::endl;
+    std::cout << "end respons " << respons << std::endl;
     return 1; 
 }

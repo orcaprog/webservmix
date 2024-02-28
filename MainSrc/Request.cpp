@@ -269,6 +269,7 @@ string Request::get_respons() const{
         return("");
     if (is_cgi)
         return cgi.get.respons;
+    std::cout << "get response \n" << method->respons<<std::endl; 
     return (method->respons);
 }
 
