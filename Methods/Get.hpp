@@ -12,10 +12,10 @@ class Get : public Method
 {
 int head_size;
 int opened;
+size_t body_size;
 size_t pos;
 ssize_t content_len;
 size_t file_len;
-string body;
 string res_h;
 fstream src_file;
 map<string,string> types;

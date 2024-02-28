@@ -7,6 +7,7 @@ Get::Get(){
     opened = 0;
     content_len = -1;
     head_size = 0;
+    body_size = 0;
 }
 
 
@@ -28,6 +29,7 @@ Get& Get::operator=(const Get& oth){
         fullUri_path = oth.fullUri_path;
         content_len = oth.content_len;
         types = oth.types;
+        body_size = oth.body_size;
     }
     return *this;
 }
@@ -216,8 +218,8 @@ void Get::read_file(){
     //     cout<<"\n\nres:"<<respons<<"\nres_end\n"<<endl;
 }
 
-int Get::process(string _body, int event){
-    body = _body;
+int Get::process(string body, int event){
+    body_size += body.size();
     if (event == EPOLLIN)
         return 0;
     get(fullUri_path);

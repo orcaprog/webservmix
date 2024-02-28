@@ -91,7 +91,7 @@ void Multiplexing::Connect_And_Add(int n)
     {
         if(events[n].events & EPOLLHUP)
             CloseClient(n);
-        else if (events[n].events & EPOLLIN) 
+        else if (events[n].events & EPOLLIN && !(mClients[events[n].data.fd].error & Body_SizeTooLarge)) 
         {
             In_Events(n);
             mClients[events[n].data.fd].startTime = clock();

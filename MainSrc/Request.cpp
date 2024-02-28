@@ -68,13 +68,15 @@ int Request::spl_reqh_body(string s1)
     if (body_state){
         body = s1;
         body_size += body.size();
+        if ((long long)body_size > serv.client_max_body_size[0])
+            error |= Body_SizeTooLarge;
         return 0;
     }
     size_t pos = s1.find("\r\n\r\n", 0);
     if (pos != s1.npos)
     {
         body = s1.substr(pos + 4);
-        cout << "--_______Lheaders Te9raw Kolhom________--\n" << endl;
+        // cout << "--_______Lheaders Te9raw Kolhom________--\n" << endl;
         req_h += s1.substr(0, pos);
         // cout<<"h: "<<req_h<<"|||\n";
         body_state = 1;
@@ -198,15 +200,17 @@ void Request::check_for_error(){
     
     string err_page_name;
     Get get;
-    if (error & Method_Unkounu || error & Invalid_Header)
+    if (error & Invalid_Header)
         err_page_name = "400";
+    else if (error & Method_Unkounu)
+        err_page_name = "501";
     else if (error & Not_Allowed_Method)
         err_page_name = "405";
     else if (error & Uri_Too_Long)
         err_page_name = "414";
     else if (error & Httpv_Unkounu)
         err_page_name = "505";
-    else if (error & Headers_Too_Large)
+    else if (error & Headers_Too_Large || error & Body_SizeTooLarge)
         err_page_name = "413";
     get.serv.status = err_page_name;
     get.get(serv.error_page[err_page_name]);

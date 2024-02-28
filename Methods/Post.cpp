@@ -1186,7 +1186,7 @@ void Post::ft_error()
 int Post::process(std::string body, int body_size)
 {
     pre_total_body = total_Body;
-    std::cout << "lll " << exit_status<<std::endl;
+    // std::cout << "lll " << exit_status<<std::endl;
     if (!(serv.UriLocation.permession & UPLOAD))
         error = 8;
     else
