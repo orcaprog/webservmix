@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/27 09:01:42 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/28 09:45:09 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1052,12 +1052,6 @@ void Post::exe_cgi()
                 exit(3);
             if (!infile || !outfile)
             {
-                if (!infile && !outfile)
-                    exit(5);
-                else if (!infile)
-                    exit(6);
-                else if (!outfile)
-                    exit(7);
                 std::cout << "couldnt create file \n";
                 exit(2) ;
             }
@@ -1074,12 +1068,9 @@ void Post::exe_cgi()
     if (waitpid(pid, &exit_status, WNOHANG) > 0)
     {
         int exit_status1 = WEXITSTATUS(exit_status);
-        std::cout << "gooooooo" <<  exit_status1 <<std::endl;
         if (exit_status1)
         {
             error = 4;
-            std::cout << "Failed to "<< exit_status1 << std::endl;
-            exit_status = exit_status1;
         }
         else
             cgi_exe = 1;
@@ -1136,45 +1127,43 @@ void Post::ft_error()
     if (error == 2)
     {
         get.serv.status = "504";
-        get.get("error_pages/504.html");
+        get.get(serv.error_page["504"]);
         serv.status = "504";
     }
     else if (error == 3)
     {
         get.serv.status = "400";
-        std::cout << "Problem\n";
-        get.get("error_pages/400.html");
-        std::cout << "Problem end" << std::endl;
+        get.get(serv.error_page["400"]);
         serv.status = "400";
     }
     else if (error == 4)
     {
-        get.serv.status = "509";
-        get.get("error_pages/417.html");
-        serv.status = "417";
+        get.serv.status = "500";
+        get.get(serv.error_page["500"]);
+        serv.status = "500";
     }
     if (error == 5)
     {
         get.serv.status = "411";
-        get.get("error_pages/411.html");
+        get.get(serv.error_page["411"]);
         serv.status = "411";
     }
     if (error == 6)
     {
         get.serv.status = "501";
-        get.get("error_pages/501.html");
+        get.get(serv.error_page["501"]);
         serv.status = "501";
     }
     if (error == 7)
     {
         get.serv.status = "413";
-        get.get("error_pages/413.html");
+        get.get(serv.error_page["413"]);
         serv.status = "413";
     }
     if (error == 8)
     {
         get.serv.status = "403";
-        get.get("error_pages/403.html");
+        get.get(serv.error_page["403"]);
         serv.status = "403";
     }
     respons = get.respons;
@@ -1186,8 +1175,12 @@ void Post::ft_error()
 int Post::process(std::string body, int body_size)
 {
     pre_total_body = total_Body;
-    std::cout << "lll " << exit_status<<std::endl;
-    if (!(serv.UriLocation.permession & UPLOAD))
+    std::cout << "respons " << respons << std::endl;
+    std::cout << "error " <<  error << std::endl;
+    std::cout << "end " << end << std::endl;
+    std::cout << "cgi execute " << cgi_exe << std::endl;
+    std::cout << "cgi erro " << enter_cgi << std::endl;
+    if (!(serv.UriLocation.permession & UPLOAD) && !serv.Is_cgi)
         error = 8;
     else
     {
@@ -1207,11 +1200,12 @@ int Post::process(std::string body, int body_size)
         ft_error();
         return 1;
     }
-    if (crfile > 0 && body_size == 2 && MethodType == 1)
+    if (crfile > 0 && body_size == 2 && MethodType == 1 && !enter_cgi)
     {
         buff_chunk += body;
         left_over += body.size();
-        return 1;
+        if (left_over <= 2)
+            return 1;
     } 
 	if (crfile > 0 && !enter_cgi)
     {
@@ -1228,17 +1222,12 @@ int Post::process(std::string body, int body_size)
 		openFile(body, body_size);
     if (end && !cgi_exe)
         enter_cgi = 1;
-    std::cout << "cgi exe " << cgi_exe << std::endl;
-    std::cout << "error " << error << std::endl;
-    std::cout << "enter_cgi " << enter_cgi << std::endl;
-    std::cout << "exit status " << exit_status << std::endl;
     if (enter_cgi && serv.Is_cgi && !error && !cgi_exe)
         exe_cgi();
     if (cgi_exe && body_size == EPOLLOUT && !error)
     {
         get.get(ran_file);
         respons = get.respons;
-        std::cout << "response " << respons << std::endl;
         if (get.end)
         {
             end = 1;
@@ -1266,8 +1255,6 @@ int Post::process(std::string body, int body_size)
             if ((clock() - start_time) / CLOCKS_PER_SEC > 5)
             {
                 error = 2;
-                        exit(error);
-
             }   
         }
         else
@@ -1278,5 +1265,10 @@ int Post::process(std::string body, int body_size)
     }
     else
         time_out = 0;
+    std::cout << "respons " << respons << std::endl;
+    std::cout << "error " <<  error << std::endl;
+    std::cout << "end " << end << std::endl;
+    std::cout << "cgi execute " << cgi_exe << std::endl;
+    std::cout << "cgi erro " << enter_cgi << std::endl;
     return 1; 
 }

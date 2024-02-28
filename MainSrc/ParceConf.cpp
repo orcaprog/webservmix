@@ -12,6 +12,27 @@
 
 #include "ParceConf.hpp"
 
+
+void ParceConf::FillValid()
+{
+    Vstrvalid.push_back("listen");
+    Vstrvalid.push_back("server");
+    Vstrvalid.push_back("server_name");
+    Vstrvalid.push_back("host");
+    Vstrvalid.push_back("root");
+    Vstrvalid.push_back("error_page");
+    Vstrvalid.push_back("client_max_body_size");
+    Vstrvalid.push_back("index");
+    Vstrvalid.push_back("location");
+    Vstrvalid.push_back("{");
+    Vstrvalid.push_back("}");
+    Vstrvalid.push_back("return");
+    Vstrvalid.push_back("upload_path");
+    Vstrvalid.push_back("allow_methods");
+    Vstrvalid.push_back("autoindex");
+    Vstrvalid.push_back("upload");
+    Vstrvalid.push_back("cgi_path");
+}
 std::vector<std::string> ParceConf::Split_line(std::string line)
 {
     std::stringstream ss;
@@ -21,8 +42,14 @@ std::vector<std::string> ParceConf::Split_line(std::string line)
     std::string chunks;
     while (std::getline(ss, chunks, ' '))
     {
-        if (!chunks.empty() )
+        if (!chunks.empty())
+        {
+            if(strncmp(chunks.c_str(),"#",1) == 0)
+            {
+                break;
+            }
             vline.push_back(chunks);
+        }
     }
     return vline;
 }
@@ -54,7 +81,7 @@ void ParceConf::TakeAndParce(std::string confgfile)
 }
 ParceConf::ParceConf()
 {
-
+    FillValid();
 }
 
 
@@ -62,6 +89,7 @@ ParceConf::ParceConf()
 Servers ParceConf::FirstFill()
 {
     Servers server;
+    std::vector<std::string>::iterator iter;
     int bracket = 0;
     if (Vconf[index][0] != "server" || Vconf[index].size() > 1)
     {
@@ -80,6 +108,7 @@ Servers ParceConf::FirstFill()
     index++;
     bracket++;
 
+
     while (index < Vconf.size() && bracket)
     {
         if (Vconf[index][0] == "{" )
@@ -94,15 +123,19 @@ Servers ParceConf::FirstFill()
         {
             bracket--;
         }
+        iter = std::find(Vstrvalid.begin(),Vstrvalid.end(),Vconf[index][0]);
+        if (iter == Vstrvalid.end())
+        {
+            throw "Error :  unknown directive '"+Vconf[index][0]+"'\n";
+        }
         server.servconf.push_back(Vconf[index]);
         index++;
     }
-    // std::cout<<"_______br______"<<bracket<<std::endl;
-    // if (Vconf[index - 1][0] != "}")
-    // {
-    //     throw "Error : no open brackets \n";
-    // }
 
+    if(bracket != 0)
+    {
+        throw "Error :unexpected end of file , expecting '}'";
+    }
     return server;
 }
 void ParceConf::FillServers()
@@ -120,11 +153,15 @@ void ParceConf::desplay()
 {
     FillServers();
     size_t i = 0;
+    // vector<Servers> vec;
+    vector<string> ser_names;
     while (i < Vservers.size())
     {
-        Vservers[i].SetAllDir();
-        Vservers[i].CreatSocketServer();
-        msockets[Vservers[i].server_fd] = Vservers[i];
+        Vservers[i].SetAllDir(ser_names);
+        ser_names.push_back(Vservers[i].server_name[0]);
+        Vservers[i].CreatSocketServer(msockets);
+        msockets[Vservers[i].server_fd].push_back(Vservers[i]);
+
         // cout<<"===============================================\n";
         // Vservers[i].desplay();
         // cout<<"===============================================\n";
