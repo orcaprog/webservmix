@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/28 11:01:37 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/28 11:26:48 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -249,19 +249,17 @@ void Post::openFile(std::string body, int body_size)
     {
         if (mime.find( headers.find("Content-Type")->second) != mime.end())
 		{
-            std::cout << "content-type is  "<< headers.find("Content-Type")->second<<std::endl;
 			mimeVal = mime.find((headers.find("Content-Type")->second))->second;
             content_type = headers.find("Content-Type")->second;
 		}
 		else
 		{
-            error = 6;
+            error = 9;
             return ;
 		}
     }
     else if (MethodType != 3)
     {
-        std::cout << "No Content Type\n";
 		crfile = -2;
         end = 1;
         error = 3;
@@ -279,7 +277,6 @@ void Post::openFile(std::string body, int body_size)
         if (!outFile.is_open())
         {
             error = 4;
-            std::cout << " File Probelm \n";
             return ;
         }
 	}
@@ -851,8 +848,6 @@ void Post::ft_boundary_cgi(std::string &body)
                 out.open(file.c_str(), std::ios::out | std::ios::binary);
 				if (!out.is_open())
                 {
-                    std::cout << file<<std::endl;
-                    std::cout << "File Problem 3\n";
                     error = 4;
 					return  ;
                     
@@ -909,14 +904,12 @@ std::string Post::find_ext()
     size_t i;
     if (!fullUri_path.size())
     {
-        std::cout << "extention Problem\n";
         return std::string("");       
     }
     for (i = fullUri_path.size() - 1; i >= 0 && fullUri_path[i]!= '.'; i--);
 
     if (!i || i == fullUri_path.size() - 1)
     {
-        std::cout << "extention Problem\n";
         return std::string("");
     }
     std::string ext_ret = fullUri_path.substr(i + 1,fullUri_path.size() - i);
@@ -1010,7 +1003,6 @@ void Post::script_name()
 
 void Post::exe_cgi()
 {
-    std::cout << "Executing cgi" << std::endl;
     if (!first_run)
     {
         std::string ext_path;
@@ -1033,7 +1025,6 @@ void Post::exe_cgi()
         }
         else
         {
-            std::cout << "Problem in the extention\n";
             error = 9;
             return ;
         }
@@ -1043,7 +1034,6 @@ void Post::exe_cgi()
         pid = fork();
         if (pid < 0)
         {
-            std::cout << "fork failed" << std::endl;
             error = 4;
         }
         if (pid == 0)
@@ -1056,7 +1046,6 @@ void Post::exe_cgi()
                 exit(3);
             if (!infile || !outfile)
             {
-                std::cout << "couldnt create file \n";
                 exit(2) ;
             }
 
@@ -1064,7 +1053,6 @@ void Post::exe_cgi()
             dup2(outfile->_fileno, STDOUT_FILENO);
             if (execve(cmd[0], cmd, env) == -1)
             {
-                std::cout << "Failed to execute\n";
                 exit(1);
             }
         }
@@ -1074,7 +1062,6 @@ void Post::exe_cgi()
         int exit_status1 = WEXITSTATUS(exit_status);
         if (exit_status1)
         {
-            std::cout << "Failed to execute\n";
             error = 4;
         }
         else
@@ -1082,20 +1069,17 @@ void Post::exe_cgi()
         int rem = std::remove(the_file.c_str());
         if (rem)
         {
-            std::cout << "couldn't remove the TMP file \n";
             error = 4;
         }
     }
     else if ((clock() - start_time) / CLOCKS_PER_SEC > 10)
     {
-        std::cout << "failed in time out \n";
         kill(pid, SIGKILL);
         waitpid(pid, &exit_status, 0);
         int rem = std::remove(the_file.c_str());
         int ram = std::remove(ran_file.c_str());
         if (rem || ram)
         {
-            std::cout << " couldn't remove the TMP file \n";
             error = 4;
             return ;
         }
@@ -1111,7 +1095,6 @@ void Post::ft_error()
         int rem = std::remove(the_file.c_str());
         if (rem)
         {
-            std::cout << " couldn't remove the TMP file \n";
             error = 4;
             error_time = 1;
         }
@@ -1123,7 +1106,6 @@ void Post::ft_error()
             int rem = std::remove(ran_file.c_str());
             if (rem)
             {
-                std::cout << " couldn't remove the TMP file \n";
                 error = 4;
             }
             error_time = 1;
@@ -1186,12 +1168,12 @@ void Post::ft_error()
 int Post::process(std::string body, int body_size)
 {
     pre_total_body = total_Body;
-    std::cout << "respons " << respons << std::endl;
-    std::cout << "error " <<  error << std::endl;
-    std::cout << "end " << end << std::endl;
-    std::cout << "cgi execute " << cgi_exe << std::endl;
-    std::cout << "cgi erro " << enter_cgi << std::endl;
-    std::cout << "is cgi " << serv.Is_cgi << std::endl;
+    // std::cout << "respons " << respons << std::endl;
+    // std::cout << "error " <<  error << std::endl;
+    // std::cout << "end " << end << std::endl;
+    // std::cout << "cgi execute " << cgi_exe << std::endl;
+    // std::cout << "cgi erro " << enter_cgi << std::endl;
+    // std::cout << "is cgi " << serv.Is_cgi << std::endl;
     if (serv.status != "200 OK")
     {
         std::cout << "what  going  " << serv.status << std::endl;
@@ -1290,10 +1272,10 @@ int Post::process(std::string body, int body_size)
     }
     else
         time_out = 0;
-    std::cout << "error " <<  error << std::endl;
-    std::cout << "end " << end << std::endl;
-    std::cout << "cgi execute " << cgi_exe << std::endl;
-    std::cout << "cgi erro " << enter_cgi << std::endl;
-    std::cout << "end respons " << respons << std::endl;
+    // std::cout << "error " <<  error << std::endl;
+    // std::cout << "end " << end << std::endl;
+    // std::cout << "cgi execute " << cgi_exe << std::endl;
+    // std::cout << "cgi erro " << enter_cgi << std::endl;
+    // std::cout << "end respons " << respons << std::endl;
     return 1; 
 }
