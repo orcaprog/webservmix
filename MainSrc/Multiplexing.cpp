@@ -85,7 +85,7 @@ void Multiplexing::Connect_And_Add(int n)
         Request req(iter->second);
         mClients[conn_sock] = req;
         mClients[conn_sock].startTime = clock();
-        ev.events = EPOLLIN | EPOLLOUT | EPOLLHUP;
+        ev.events = EPOLLIN | EPOLLOUT |  EPOLLRDHUP;
         ev.data.fd = conn_sock;
 
         if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock,&ev) == -1) 
@@ -96,7 +96,7 @@ void Multiplexing::Connect_And_Add(int n)
     } 
     else 
     {
-        if(events[n].events & EPOLLHUP)
+        if(events[n].events &  EPOLLRDHUP)
         {
             std::cout<<"HUP : Connection closed by client ["<<events[n].data.fd<<"]\n";
             CloseClient(n);

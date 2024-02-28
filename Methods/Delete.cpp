@@ -16,17 +16,14 @@ int Delete::process(string body, int event)
     (void)body;
     if(deleted) 
     {
-        cout<<"Enter in "<<serv.rootUri<<" \n";
         RemoveAllPath(serv.rootUri);
         deleted = 0;
     }
     else if(event == EPOLLOUT)
     {
         Get get;
-        cout<<"status :"<<status<<endl;
         if(status == 0)
         {
-            cout<<"entere here \n";
             respons = "HTTP/1.1 204\r\n\r\n";
             end = 1;
         }
@@ -35,7 +32,6 @@ int Delete::process(string body, int event)
             get.serv.status = "403";
             get.get(serv.error_page["403"]);
             respons = get.respons;
-            std::cout<<respons<<endl;
             end = 1;
         }
         else
@@ -43,21 +39,14 @@ int Delete::process(string body, int event)
             get.serv.status = "500";
             get.get(serv.error_page["500"]);
             respons = get.respons;
-            std::cout<<respons<<endl;
             end = 1;
         }
     }
     return 0;
 }
 
-int Delete::pathExists(std::string path) {
-    struct stat fileStat;
-    return stat(path.c_str(), &fileStat) == 0;
-}
-
 Delete::Delete()
 {
-    cout<<"call constructor \n";
     status = 0;
     deleted = 1;
 }
@@ -65,15 +54,9 @@ Delete::Delete()
 int  Delete::my_remove(std::string file)
 {
     if (std::remove(file.c_str()) != 0) 
-    {
-        perror(("Error removing file  :" + file).c_str());
         return 1;
-    } 
     else 
-    {
-        std::puts(("File removed successfully:" + file).c_str());
         return 0;
-    }
 }
 
 string PatentOfFile(string & fullPath)
@@ -97,24 +80,17 @@ void Delete::RemoveAllPath(std::string path)
     stat(path.c_str(),&stat_info);
     if (stat_info.st_mode & S_IFREG)
     {
-        cout<<PatentOfFile(path);
         stat(PatentOfFile(path).c_str(),&stat_info);
         if (stat_info.st_mode & S_IWOTH)
-        {
             my_remove(path);
-        }
         else 
-        {
             status = 1;
-        }
         return ;
     }
 
     DIR *dir = opendir(path.c_str());
     if (dir == NULL) {
         status = 2;
-        perror("Error opening directory");
-        cout<<status<<endl;
         return ;
     }
     if (!(stat_info.st_mode & S_IWOTH))
@@ -132,15 +108,13 @@ void Delete::RemoveAllPath(std::string path)
             {
                 path_plus = path + "/"+entry->d_name;
                 RemoveAllPath(path_plus);
-                // std::cout<<"dir :"<<entry->d_name<<std::endl;
             }
         }
         else
         {
             std::string filePath = std::string(path) + "/" + entry->d_name;
-            // std::cout<<"file :"<<filePath<<std::endl;
-             stat(path_plus.c_str(),&stat_info);
-             my_remove(filePath );
+            stat(path_plus.c_str(),&stat_info);
+            my_remove(filePath );
 
         }
     }

@@ -642,7 +642,7 @@ void Servers::FillData(string uri, string mehtod)
                     rootUri = error_page["403"];
                     status = "403";
                 }
-                else if (mehtod == "GET" || mehtod == "DELETE")
+                else if (mehtod == "GET" || mehtod == "POST")
                     SetUriRoot(def, uri);
             }
             else if (!pathIsFile(rootUri))
