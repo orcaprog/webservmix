@@ -50,7 +50,7 @@ private:
     Servers FirstFill();
     std::vector<std::string> Split_line(std::string line);
     void FillServers();
-    void desplay();
+    void FillServersLocations();
 public:
     std::map<int, vector<Servers> > msockets;    
     void TakeAndParce(std::string confgfile);

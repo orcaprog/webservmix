@@ -63,7 +63,6 @@ private:
 public:
 
     vector<string> redirect;
-    vector<string> rStatus;
     std::vector<int> port;
     std::vector<std::string> server_name; 
     std::vector<std::string> host; 
@@ -87,7 +86,7 @@ public:
     void CreatSocketServer( std::map<int,vector<Servers> > & msockets);
     Servers();
     void SetIndex_Of(string path);
-    int searchPathLocation(string & uri);
+    int searchPathLocation(string uri);
     int fillFromLocation(int &in, string &uri,string & method);
     void FillData(string uri,string mehtod);
     string rootUri;

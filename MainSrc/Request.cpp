@@ -7,16 +7,18 @@ Request::Request()
     body_size = 0;
     error = 0;
     is_cgi = 0;
+    valid_uri = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!%$&'()*+,;=";
 }
 
 
 Request::Request(const vector<Servers>& vser){
     method = NULL;
     body_state = 0;
-    body_size = 140;
+    body_size = 0;
     error = 0;
     ser_vec = vser;
     is_cgi = 0;
+    valid_uri = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!%$&'()*+,;=";
 }
 
 Request::Request(const Request& req1){
@@ -32,13 +34,13 @@ Request& Request::operator=(const Request& oth){
         body_state = oth.body_state;
         body_size = oth.body_size;
         type = oth.type;
-        r_path = oth.r_path;
         http_v = oth.http_v;
         body = oth.body;
         headers = oth.headers;
         uri = oth.uri;
         ser_vec = oth.ser_vec;
         is_cgi = oth.is_cgi;
+        valid_uri = oth.valid_uri;
     }
     return *this;
 }
@@ -99,6 +101,14 @@ int Request::parce_key(const string &key)
     return 1;
 }
 
+int Request::is_uri_valid(string _uri){
+    for (size_t i = 0; i < _uri.size(); i++){
+        if (valid_uri.find(_uri[i]) == string::npos)
+            return 0;
+    }
+    return 1;  
+}
+
 int Request::parce_rline(const string &rline){
     stringstream ss;
     string tmp;
@@ -112,6 +122,10 @@ int Request::parce_rline(const string &rline){
     type = tmp;
     getline(ss, tmp, ' ');
     uri = tmp;
+    if (!is_uri_valid(uri)){
+        error |= Invalid_Header;
+        return 0;
+    }
     if (uri.size() > 1000){
         error = Uri_Too_Long;
         return 0;
@@ -173,7 +187,7 @@ int Request::parce_req(const string &req)
     }
     method = create_method(type);
     cgi.set_arg(serv, type, headers);
-    if (serv.Is_cgi && !cgi.get.is_tpye_supported(serv.rootUri))
+    if (serv.Is_cgi && !cgi.get.is_tpye_supported(serv.rootUri) && type == "GET")
         is_cgi = 1;
     return 1;
 }
@@ -182,7 +196,6 @@ void Request::check_for_error(){
     if (!error || error_resp.size())
         return;
     
-    cout<<"ERROR: "<<error<<endl;
     string err_page_name;
     Get get;
     if (error & Method_Unkounu || error & Invalid_Header)
@@ -206,12 +219,8 @@ void    Request::process_req(const string &req, int event){
         return ;
     }
     if (body_state && method){
-        if (type == "GET"){
-            if (is_cgi)
-                cgi.execute(method, event);
-            else
-                method->process(body, event);
-        }
+        if (is_cgi)
+            cgi.execute(method, event);
         else
             method->process(body, event);
     }
@@ -220,9 +229,8 @@ void    Request::process_req(const string &req, int event){
 int Request::resp_done() const{
     if (error)
         return 1;
-    if (is_cgi && type == "GET"){
+    if (is_cgi){
         if (cgi.resp_done){
-            cout<<"cgi_done"<<endl;
             return 1;
         }
     }

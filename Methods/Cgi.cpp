@@ -96,26 +96,30 @@ void Cgi::exec_cgi(const string& fullUri_path){
 
 void Cgi::waiting(){
     if (waitpid(pid,&exit_stat,WNOHANG)>0){
-         std::remove(out_file.c_str());
         cgi_execueted = 1;
         if (WEXITSTATUS(exit_stat)){
-            resp_done = 1;
+            std::remove(out_file.c_str());
             get.serv.status = "500";
             get.get(serv.error_page["500"]);
-        }
-
-    }
-    else{
-        if ((clock()-start_time)/CLOCKS_PER_SEC > 10){
-            std::remove(out_file.c_str());
-            kill(pid,SIGKILL);
-            cgi_execueted = 1;
-            get.serv.status = "504";
-            get.get(serv.error_page["504"]);
             resp_done = 1;
         }
     }
+    else{
+        if ((clock()-start_time)/CLOCKS_PER_SEC > 10)
+            kill_proc(1);
+    }
+}
 
+void Cgi::kill_proc(int return_err_page){
+    std::remove(out_file.c_str());
+    kill(pid,SIGKILL);
+    waitpid(pid,&exit_stat,0);
+    cgi_execueted = 1;
+    if (return_err_page){
+        get.serv.status = "504";
+        get.get(serv.error_page["504"]);
+    }
+    resp_done = 1;
 }
 
 void Cgi::execute(Method *method, int event){
@@ -138,10 +142,8 @@ int Cgi::set_cmd(const string& fullUri_path){
     cgi_dir = get.extension_search(fullUri_path, '/');
     map<string,string>::iterator it;
     it = serv.UriLocation.cgi_path.find(extension);
-    if (it == serv.UriLocation.cgi_path.end()){
-        cerr<<"No Cgi Command"<<endl;
+    if (it == serv.UriLocation.cgi_path.end())
         return 0;
-    }
     string cmdCgi = it->second;
     cmds[0] =  new char[cmdCgi.length() + 1];
     strcpy(cmds[0],cmdCgi.c_str());
@@ -174,7 +176,6 @@ void Cgi::set_env(const string& fullUri_path){
     env[5] = new char[senv.length()+1];
     strcpy(env[5],senv.c_str());
     if (is_cookies()){
-        cout<<"cookie"<<endl;
         senv = "HTTP_COOKIE=" + cookies;
         env[6] = new char[senv.length()+1];
         strcpy(env[6],senv.c_str());    
@@ -198,4 +199,6 @@ Cgi::~Cgi(){
     for (int i = 0; env[i]; i++)
 	    delete [] env[i];
     delete [] env;
+    if (!cgi_execueted && is_run)
+        kill_proc(0);
 }
