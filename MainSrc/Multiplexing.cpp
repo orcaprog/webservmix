@@ -19,7 +19,7 @@ Multiplexing::Multiplexing(std::string  configfile)
     {
         throw "Error : Problem in create servers \n";
     }
-    SocketTimeout = 10;
+    SocketTimeout = 15;
 }
 
 Multiplexing::~Multiplexing()
