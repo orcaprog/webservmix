@@ -122,9 +122,6 @@ void Multiplexing::CheckTimeOut()
     {
         if(( double(CurrentTime - iter->second.startTime) / CLOCKS_PER_SEC  ) > SocketTimeout)
         {
-            std::cout<<CurrentTime<<endl;
-            std::cout<<iter->second.startTime<<endl;
-            std::cout<<( double(CurrentTime - iter->second.startTime)/ CLOCKS_PER_SEC  )<<endl;
             close(iter->first);
             cout<<"close connection  client TIme out fd :"<<"["<<iter->first<<"]"<<endl;
             mClients.erase(iter->first);
