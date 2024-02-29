@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
+/*   By: abouassi <abouassi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/28 18:23:05 by abouassi          #+#    #+#             */
-/*   Updated: 2024/02/28 15:03:48 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/01/27 09:14:01 by abouassi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,9 +54,9 @@ private:
         void SetRoot();
         void SetReturn();
 public:
-        std::vector<std::string> path;
+        std::string path;
         string  upload_path;
-        std::vector<std::string> root;
+        std::string root;
         std::vector<std::string> index;
         map<string ,string> cgi_path;
         vector<string> redirect;

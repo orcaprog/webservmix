@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Servers.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
+/*   By: abouassi <abouassi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/28 17:42:27 by abouassi          #+#    #+#             */
-/*   Updated: 2024/02/28 14:36:31 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/01/28 09:58:44 by abouassi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,16 +59,17 @@ private:
     void FillQuerys(string & uri);
     void SetReturn();
     void SetRederectionResp(vector<string> & redirect);
+    int JoinIndexRoot(int &in);
 
 public:
 
     vector<string> redirect;
-    std::vector<int> port;
+    int port;
     std::vector<std::string> server_name; 
-    std::vector<std::string> host; 
-    std::vector<std::string> root;
+    std::string host; 
+    std::string root;
     std::vector<std::string> index;
-    std::vector<long long int > client_max_body_size;
+    double client_max_body_size;
     map<string,string> error_page;
     std::vector<std::string> s_erorr;
     bool  operator== (const Servers& ser);

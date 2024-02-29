@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ParceConf.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
+/*   By: abouassi <abouassi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/28 17:54:31 by abouassi          #+#    #+#             */
-/*   Updated: 2024/02/28 15:03:02 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/01/26 11:02:48 by abouassi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,9 +45,7 @@ std::vector<std::string> ParceConf::Split_line(std::string line)
         if (!chunks.empty())
         {
             if(strncmp(chunks.c_str(),"#",1) == 0)
-            {
                 break;
-            }
             vline.push_back(chunks);
         }
     }
@@ -78,20 +76,18 @@ void ParceConf::TakeAndParce(std::string confgfile)
     {
         while (getline(configfile, line))
         {
-            
             if (!line.empty() )
             {
                 _split = Split_line(line);
                 if (!_split.empty())
-                {
                     Vconf.push_back(_split);
-                }
             }
         }
         configfile.close();
     }
     FillServersLocations();
 }
+
 ParceConf::ParceConf()
 {
     FillValid();
@@ -102,23 +98,19 @@ Servers ParceConf::FirstFill()
     Servers server;
     std::vector<std::string>::iterator iter;
     int bracket = 0;
+
     if (Vconf[index][0] != "server" || Vconf[index].size() > 1)
-    {
         throw "Error :'"+Vconf[index][0]+"' no server derectires ";
-    }
     else
         server.servconf.push_back(Vconf[index]);
     index++;
 
     if (index < Vconf.size()  && Vconf[index][0] != "{")
-    {
         throw "Error : no open brackets \n";
-    }
     else
         server.servconf.push_back(Vconf[index]);
     index++;
     bracket++;
-
 
     while (index < Vconf.size() && bracket)
     {
@@ -128,25 +120,17 @@ Servers ParceConf::FirstFill()
                 bracket++;
             else
                 throw "open no '"+Vconf[index][0] +"'loaction \n";
-                
         }
         if (Vconf[index][0] == "}")
-        {
             bracket--;
-        }
         iter = std::find(Vstrvalid.begin(),Vstrvalid.end(),Vconf[index][0]);
         if (iter == Vstrvalid.end())
-        {
             throw "Error :  unknown directive '"+Vconf[index][0]+"'\n";
-        }
         server.servconf.push_back(Vconf[index]);
         index++;
     }
-
     if(bracket != 0)
-    {
         throw "Error :unexpected end of file , expecting '}'";
-    }
     return server;
 }
 void ParceConf::FillServers()
@@ -155,9 +139,7 @@ void ParceConf::FillServers()
     std::vector<std::string>::iterator iter;
 
     while (index < Vconf.size())
-    {
         Vservers.push_back(FirstFill());
-    }
 }
 
 void ParceConf::FillServersLocations()
@@ -181,9 +163,6 @@ void ParceConf::FillServersLocations()
             if(iter != hold.end())
                 throw "Error : Conflicting same host and port and no exsist of servername\n";
         }
-        // cout<<"============================================\n";
-        // Vservers[i].desplay();
-        // cout<<"============================================\n";
         i++;
     }
 }

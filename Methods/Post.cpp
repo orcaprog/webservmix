@@ -995,7 +995,7 @@ int Post::process(std::string body, int event)
             serv.UriLocation.upload_path = serv.UriLocation.upload_path.substr(find + 2,  serv.UriLocation.upload_path.size() - find);   
         }  
     }
-    if (serv.client_max_body_size[0] < (long long int)total_Body)
+    if (serv.client_max_body_size < (double)total_Body)
     {
         error = 7;
     }

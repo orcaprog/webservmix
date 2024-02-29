@@ -138,7 +138,6 @@ void Get::set_headers(){
     respons += string("Content-Length: ");
     hed = check_headers();
     if (hed){
-        cout<<"headers_seted"<<endl;
         file_len -= head_size;
         if (content_len != -1){
             if ((size_t)content_len < file_len)
@@ -155,9 +154,6 @@ void Get::set_headers(){
     }
     else
         respons += res_h;
-    // cout<<"file_len: "<<file_len<<endl;
-    // cout<<"content_len: "<<content_len<<endl;
-    // cout<<"headers: "<<respons<<endl;
 }
 
 
@@ -167,7 +163,6 @@ void Get::open_file(const string& file_name){
     src_file.open(file_name.c_str(), ios::in);
     opened = 1;
     if (!src_file.is_open()){
-        cout<<"cannot open: "<<file_name<<endl;
         serv.status = "500";
         get_err_page(serv.error_page["500"]);
         opened = -1;
@@ -214,8 +209,6 @@ void Get::read_file(){
         src_file.close();
         end = 1;
     }
-    // if (respons.size())
-    //     cout<<"\n\nres:"<<respons<<"\nres_end\n"<<endl;
 }
 
 int Get::process(string body, int event){
