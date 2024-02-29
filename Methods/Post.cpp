@@ -964,13 +964,13 @@ void Post::ft_error()
 int Post::process(std::string body, int event)
 {
     pre_total_body = total_Body;
-    std::cout << "respons " << respons << std::endl;
-    std::cout << "error " <<  error << std::endl;
-    std::cout << "end " << end << std::endl;
-    std::cout << "cgi execute " << cgi_exe << std::endl;
-    std::cout << "cgi erro " << enter_cgi << std::endl;
-    std::cout << "is cgi " << serv.Is_cgi << std::endl;
-    std::cout << "serv status " << serv.status << std::endl;
+    // std::cout << "respons " << respons << std::endl;
+    // std::cout << "error " <<  error << std::endl;
+    // std::cout << "end " << end << std::endl;
+    // std::cout << "cgi execute " << cgi_exe << std::endl;
+    // std::cout << "cgi erro " << enter_cgi << std::endl;
+    // std::cout << "is cgi " << serv.Is_cgi << std::endl;
+    // std::cout << "serv status " << serv.status << std::endl;
     if (serv.status != "200 OK" &&  serv.status != "201" )
     {
         std::cout << "what  going  " << serv.status << std::endl;
@@ -1066,10 +1066,10 @@ int Post::process(std::string body, int event)
     }
     else
         time_out = 0;
-    std::cout << "error " <<  error << std::endl;
-    std::cout << "end " << end << std::endl;
-    std::cout << "cgi execute " << cgi_exe << std::endl;
-    std::cout << "cgi erro " << enter_cgi << std::endl;
-    std::cout << "end respons " << respons << std::endl;
+    // std::cout << "error " <<  error << std::endl;
+    // std::cout << "end " << end << std::endl;
+    // std::cout << "cgi execute " << cgi_exe << std::endl;
+    // std::cout << "cgi erro " << enter_cgi << std::endl;
+    // std::cout << "end respons " << respons << std::endl;
     return 1; 
 }

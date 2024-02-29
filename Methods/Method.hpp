@@ -27,7 +27,7 @@ class Method
 {
 protected:
 public:
-    int error;
+    int err;
     int end;
     string uri;
     string http_v;
