@@ -14,14 +14,14 @@
 int Delete::process(string body, int event) 
 {
     (void)body;
-    if(deleted) 
-    {
-        RemoveAllPath(serv.rootUri);
-        deleted = 0;
-    }
-    else if(event == EPOLLOUT)
+    if(event == EPOLLOUT)
     {
         Get get;
+        if(deleted) 
+        {
+            RemoveAllPath(serv.rootUri);
+            deleted = 0;
+        }
         if(status == 0)
         {
             respons = "HTTP/1.1 204\r\n\r\n";
@@ -77,10 +77,18 @@ void Delete::RemoveAllPath(std::string path)
 {
     struct stat stat_info;
     std::string path_plus;
-    stat(path.c_str(),&stat_info);
+    if(stat(path.c_str(),&stat_info) < 0 )
+    {
+        status = 2;
+        return ;
+    }
     if (stat_info.st_mode & S_IFREG)
     {
-        stat(PatentOfFile(path).c_str(),&stat_info);
+        if(stat(PatentOfFile(path).c_str(),&stat_info) < 0) 
+        {
+            status = 2;
+            return ;
+        }
         if (stat_info.st_mode & S_IWOTH)
             my_remove(path);
         else 
@@ -98,7 +106,7 @@ void Delete::RemoveAllPath(std::string path)
         status = 1;
         return ;
     }
-    
+
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) 
     {

@@ -89,22 +89,23 @@ int Location::checkDup(std::string der,int & index)
     return (dup);
 }
 
-// void Location::desplayLocation()
-// {
+void Location::desplayLocation()
+{
 
-//     // Printtwodom(vlocation,"location");
-//     cout<<"PATH :"<<path<<endl;
-//     cout<<"permession:"<<permession<<endl;
-//     cout<<"Root :"<<root<<endl;
-//     map<string,string>::iterator iter = cgi_path.begin();
-//     while (iter != cgi_path.end())
-//     {
-//         cout<<"cgi_path :'"<<iter->first<<"' '"<<iter->second<<"'\n";
-//         iter++;
-//     }
+    // Printtwodom(vlocation,"location");
+    cout<<"PATH :"<<path<<endl;
+    cout<<"index :"<<index[0]<<endl;
+    cout<<"permession:"<<permession<<endl;
+    cout<<"Root :"<<root<<endl;
+    map<string,string>::iterator iter = cgi_path.begin();
+    while (iter != cgi_path.end())
+    {
+        cout<<"cgi_path :'"<<iter->first<<"' '"<<iter->second<<"'\n";
+        iter++;
+    }
 
-//     std::cout<<"index  :"<<index[0]<<std::endl;
-// }
+    std::cout<<"index  :"<<index[0]<<std::endl;
+}
 
 void Location::SetAllDir()
 {
@@ -127,7 +128,7 @@ void Location::SetIndex()
     int num = checkDup("index", i);
     if (num == 0)
     {
-        index[0]= Servindex;
+        index = Servindex;
         return;
     }
     if (vlocation[i].size() < 2)
@@ -143,7 +144,7 @@ void Location::SetIndex()
     }
 }
 
-void Location::SetIndexRoot(string root,string index)
+void Location::SetIndexRoot(string root, vector<string> & index)
 {
     Servindex = index;
     ServRoot = root;
@@ -310,7 +311,7 @@ void Location::SetReturn()
     if (num == 0)
         return ;
     if (vlocation[i].size() != 3 )
-        throw "Invalid number of arguments in 'upload_path' directive \n";
+        throw "Invalid number of arguments in 'return' directive \n";
     arg = vlocation[i][1];
     if (arg != "on" && arg != "off")
         throw "Error : argument  "+arg+" is not valid ( on or off)\n";

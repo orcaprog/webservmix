@@ -33,3 +33,6 @@ wach ntchicki script dyal cgi wach exec
 double in client body size
 
 autoindex on fi post;
+
+gad client body size;
+server_names 

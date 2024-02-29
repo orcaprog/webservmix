@@ -30,23 +30,21 @@
 //     return 0;
 // }
 // string::find_first_not_of
-#include <iostream>       // std::cout
-#include <string>         // std::string
-#include <cstddef>       
-#include <fstream> // std::size_t
+#include <stdio.h>
+#include <stdlib.h>
 
-int main ()
-{
-  std::string str ("//////dddddd///////");
+int main() {    
+    const char *str = "1234567890123459845";
+    char *endptr;
+    size_t value = (size_t)strtod(str, &endptr);
 
-  std::size_t found = str.find_first_not_of("/");
-    std::fstream file;
-    file.open("weh",)
-  if (found!=std::string::npos)
-  {
-    std::cout << "The first non-alphabetic character is " << str[found];
-    std::cout << " at position " << found << '\n';
-  }
+    if (*endptr != '\0') {
+        // The conversion failed, handle error
+        printf("Conversion failed at position: %ld\n", endptr - str);
+    } else {
+        // Conversion successful, use the 'value'
+        printf("Converted value: %zu\n", value);
+    }
 
-  return 0;
+    return 0;
 }

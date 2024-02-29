@@ -32,18 +32,37 @@ void Multiplexing::CloseClient(int & n)
     close(events[n].data.fd);
     mClients.erase(events[n].data.fd);
 }
+bool Multiplexing::CheckTimeOut(int n)
+{
+    clock_t CurrentTime = clock();
+    if(( double(CurrentTime - mClients[events[n].data.fd].startTime) / CLOCKS_PER_SEC  ) > SocketTimeout)
+    {
+        Get get;
+        get.serv.status = "408";
+        get.get(get.serv.error_page["408"]);
+        write(events[n].data.fd , get.respons.c_str(), get.respons.size());
+        CloseClient(n);
+        return 0;
+    }
+    return 1;
+}
 void Multiplexing::Out_Events(int n)
 {
-       
-    mClients[events[n].data.fd].process_req(string(""),EPOLLOUT);
-    string res = mClients[events[n].data.fd].get_respons();
-     ssize_t bytesWritten = write(events[n].data.fd , res.c_str(), res.size());
-
-    if (bytesWritten < 0 || mClients[events[n].data.fd].resp_done())
+     
+    if(CheckTimeOut(n))
     {
-        cout<<"connections with client["<<events[n].data.fd<<"]  is closed from server"<<endl;
-        CloseClient(n);
+        mClients[events[n].data.fd].process_req(string(""),EPOLLOUT);
+        string res = mClients[events[n].data.fd].get_respons();
+        ssize_t bytesWritten = write(events[n].data.fd , res.c_str(), res.size());
+
+        if (bytesWritten < 0 || mClients[events[n].data.fd].resp_done())
+        {
+            cout<<"connections with client["<<events[n].data.fd<<"]  is closed from server"<<endl;
+            CloseClient(n);
+        }
     }
+
+
 }
 
 void Multiplexing::In_Events(int n)
@@ -78,7 +97,6 @@ void Multiplexing::Connect_And_Add(int n)
         conn_sock = accept(iter->first, (struct sockaddr *)&iter->second[0].address, (socklen_t*)&adrlen);
         if (conn_sock == -1) 
         {
-            perror("accept");
             return ;
         }
 
@@ -90,7 +108,6 @@ void Multiplexing::Connect_And_Add(int n)
 
         if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock,&ev) == -1) 
         {
-            perror("epoll_ctl: conn_sock");
             return ;
         }
     } 
@@ -98,7 +115,6 @@ void Multiplexing::Connect_And_Add(int n)
     {
         if(events[n].events &  EPOLLRDHUP)
         {
-            std::cout<<"HUP : Connection closed by client ["<<events[n].data.fd<<"]\n";
             CloseClient(n);
         }
         else if (events[n].events & EPOLLIN) 
@@ -114,21 +130,6 @@ void Multiplexing::Connect_And_Add(int n)
     }
 }
 
-void Multiplexing::CheckTimeOut()
-{
-    clock_t CurrentTime = clock();
-    std::map<int ,Request >::iterator iter  = mClients.begin();
-    while (iter != mClients.end())
-    {
-        if(( double(CurrentTime - iter->second.startTime) / CLOCKS_PER_SEC  ) > SocketTimeout)
-        {
-            close(iter->first);
-            cout<<"close connection  client TIme out fd :"<<"["<<iter->first<<"]"<<endl;
-            mClients.erase(iter->first);
-        }
-        iter++;
-    }
-}
 
 void Multiplexing::CreatMUltiplex()
 {
@@ -151,14 +152,14 @@ void Multiplexing::CreatMUltiplex()
     while (true)
     {
         nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
-        if (nfds == -1) {
-            perror("epoll_wait");
-            exit(EXIT_FAILURE);
-        }
+        // if (nfds == -1) {
+        //     perror("epoll_wait");
+        //     exit(EXIT_FAILURE);
+        // }
         for (int n = 0; n < nfds ; ++n) 
         {
             Connect_And_Add(n);
         }
-        CheckTimeOut();
+       
     }
 }
