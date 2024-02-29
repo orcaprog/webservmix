@@ -59,17 +59,17 @@ private:
     void FillQuerys(string & uri);
     void SetReturn();
     void SetRederectionResp(vector<string> & redirect);
+    int JoinIndexRoot(int &in);
 
 public:
 
     vector<string> redirect;
-    vector<string> rStatus;
-    std::vector<int> port;
+    int port;
     std::vector<std::string> server_name; 
-    std::vector<std::string> host; 
-    std::vector<std::string> root;
+    std::string host; 
+    std::string root;
     std::vector<std::string> index;
-    std::vector<long long int > client_max_body_size;
+    double client_max_body_size;
     map<string,string> error_page;
     std::vector<std::string> s_erorr;
     bool  operator== (const Servers& ser);
@@ -87,7 +87,7 @@ public:
     void CreatSocketServer( std::map<int,vector<Servers> > & msockets);
     Servers();
     void SetIndex_Of(string path);
-    int searchPathLocation(string & uri);
+    int searchPathLocation(string uri);
     int fillFromLocation(int &in, string &uri,string & method);
     void FillData(string uri,string mehtod);
     string rootUri;

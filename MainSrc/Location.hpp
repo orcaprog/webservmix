@@ -30,7 +30,8 @@ enum PERMESSION {
     POST=2,
     DELETE=4,
     UPLOAD=8,
-    AUTOINDEX=16
+    AUTOINDEX=16,
+    REDIR =32
     };
 using namespace std;
 class Location
@@ -53,13 +54,12 @@ private:
         void SetRoot();
         void SetReturn();
 public:
-        std::vector<std::string> path;
+        std::string path;
         string  upload_path;
-        std::vector<std::string> root;
+        std::string root;
         std::vector<std::string> index;
         map<string ,string> cgi_path;
         vector<string> redirect;
-        vector<string> rStatus;
         bool get;
         bool post;
         bool dele;

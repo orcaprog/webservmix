@@ -67,18 +67,18 @@ int Request::spl_reqh_body(string s1)
 {
     if (body_state){
         body = s1;
-        body_size += body.size();
-        if ((long long)body_size > serv.client_max_body_size[0])
+        body_size += (double)body.size();
+        if (body_size > serv.client_max_body_size){
             error |= Body_SizeTooLarge;
+            method->error = 1;
+        }
         return 0;
     }
     size_t pos = s1.find("\r\n\r\n", 0);
     if (pos != s1.npos)
     {
         body = s1.substr(pos + 4);
-        // cout << "--_______Lheaders Te9raw Kolhom________--\n" << endl;
         req_h += s1.substr(0, pos);
-        // cout<<"h: "<<req_h<<"|||\n";
         body_state = 1;
         body_size = body.size();
     }
@@ -234,14 +234,12 @@ int Request::resp_done() const{
     if (error)
         return 1;
     if (is_cgi){
-        if (cgi.resp_done){
+        if (cgi.resp_done)
             return 1;
-        }
     }
-    else{
+    else
         if (method && method->end)
             return 1;
-    }
     return 0;
 }
 
@@ -261,6 +259,7 @@ Method* Request::create_method(const string &type){
         m->uri = uri;
         m->fullUri_path = serv.rootUri;
         m->serv = serv;
+        m->error = 0;
     }
     return (m);
 }
