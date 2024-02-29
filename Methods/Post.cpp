@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/28 16:41:25 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/29 06:34:24 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -842,15 +842,7 @@ void Post::exe_cgi()
         int exit_status1 = WEXITSTATUS(exit_status);
         if (exit_status1)
         {
-            cgi_exe = 0;
-            serv.Is_cgi = 0;
-            end = 1;
-        int rem = std::remove(ran_file.c_str());
-        if (rem)
-        {
-            error = 4;
-        }
-            return ;
+            error = 6;
         }
         else
             cgi_exe = 1;
