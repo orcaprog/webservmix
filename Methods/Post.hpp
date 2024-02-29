@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/26 18:23:37 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/28 12:56:49 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,8 @@ class Post : public Method
         int time_out;
         char **cmd;
         char **env;
-        int check;
+        int add_i;
+        std::vector<std::string> name_bound;
 
         
         Get get;
@@ -98,16 +99,15 @@ class Post : public Method
         std::string creat_file_name(int ret);
         char **set_cmd(std::string& ext_path);
         char **set_env();
-        int process(std::string body, int body_size);
-		void openFile(std::string body, int body_size);
-		void normalFile(std::string body, int body_size);
+        int process(std::string body, int event);
+		void openFile(std::string body);
+		void normalFile(std::string body);
         
-        void chunked_file(std::string body, int body_size);
-        void chunk_write(std::string body, int body_size);
+        void chunked_file(std::string body);
+        void chunk_write(std::string body);
 
         void    ft_boundary(std::string& body);
 
-        void    ft_boundary_cgi(std::string& body);
         void    exe_cgi();
         std::string find_path_info();
         std::string find_ext();
