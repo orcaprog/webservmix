@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Multiplexing.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouassi <abouassi@student.42.fr>          +#+  +:+       +#+        */
+/*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/22 18:04:44 by abouassi          #+#    #+#             */
-/*   Updated: 2024/01/29 16:30:35 by abouassi         ###   ########.fr       */
+/*   Updated: 2024/02/29 15:29:51 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ Multiplexing::Multiplexing(std::string  configfile)
     {
         throw "Error : Problem in create servers \n";
     }
-    SocketTimeout = 10;
+    SocketTimeout = 20;
 }
 
 Multiplexing::~Multiplexing()

@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/29 06:34:24 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/29 16:25:39 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -964,13 +964,6 @@ void Post::ft_error()
 int Post::process(std::string body, int event)
 {
     pre_total_body = total_Body;
-    std::cout << "respons " << respons << std::endl;
-    std::cout << "error " <<  error << std::endl;
-    std::cout << "end " << end << std::endl;
-    std::cout << "cgi execute " << cgi_exe << std::endl;
-    std::cout << "cgi erro " << enter_cgi << std::endl;
-    std::cout << "is cgi " << serv.Is_cgi << std::endl;
-    std::cout << "serv status " << serv.status << std::endl;
     if (serv.status != "200 OK" &&  serv.status != "201" )
     {
         std::cout << "what  going  " << serv.status << std::endl;
@@ -995,7 +988,7 @@ int Post::process(std::string body, int event)
             serv.UriLocation.upload_path = serv.UriLocation.upload_path.substr(find + 2,  serv.UriLocation.upload_path.size() - find);   
         }  
     }
-    if (serv.client_max_body_size < (double)total_Body)
+    if (err)
     {
         error = 7;
     }
@@ -1066,10 +1059,5 @@ int Post::process(std::string body, int event)
     }
     else
         time_out = 0;
-    std::cout << "error " <<  error << std::endl;
-    std::cout << "end " << end << std::endl;
-    std::cout << "cgi execute " << cgi_exe << std::endl;
-    std::cout << "cgi erro " << enter_cgi << std::endl;
-    std::cout << "end respons " << respons << std::endl;
     return 1; 
 }
