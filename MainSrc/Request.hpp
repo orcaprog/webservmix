@@ -15,12 +15,12 @@ enum errors{
     Not_Allowed_Method = 8,
     Uri_Too_Long = 16,
     Headers_Too_Large = 32,
+    Body_SizeTooLarge = 64,
 };
 
 class Request
 {
 int is_cgi;
-int error;
 int method_type;
 int body_state;
 string req_h;
@@ -37,11 +37,12 @@ Method* create_method(const string &type);
 void check_for_error();
 int set_serv();
 int is_uri_valid(string _uri);
+double body_size;
 public:
+    int error;
     clock_t startTime;
     Servers serv;
     Method* method;
-    size_t body_size;
     std::string type;
     std::string uri;
     std::string http_v;

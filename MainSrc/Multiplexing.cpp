@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/22 18:04:44 by abouassi          #+#    #+#             */
-/*   Updated: 2024/02/28 15:03:36 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/02/29 09:05:29 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ void Multiplexing::Connect_And_Add(int n)
         Request req(iter->second);
         mClients[conn_sock] = req;
         mClients[conn_sock].startTime = clock();
-        ev.events = EPOLLIN | EPOLLOUT | EPOLLHUP;
+        ev.events = EPOLLIN | EPOLLOUT |  EPOLLRDHUP;
         ev.data.fd = conn_sock;
 
         if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock,&ev) == -1) 
@@ -96,12 +96,12 @@ void Multiplexing::Connect_And_Add(int n)
     } 
     else 
     {
-        if(events[n].events & EPOLLHUP)
+        if(events[n].events &  EPOLLRDHUP)
         {
             std::cout<<"HUP : Connection closed by client ["<<events[n].data.fd<<"]\n";
             CloseClient(n);
         }
-        else if (events[n].events & EPOLLIN) 
+        else if (events[n].events & EPOLLIN && !(mClients[events[n].data.fd].error & Body_SizeTooLarge)) 
         {
             In_Events(n);
             mClients[events[n].data.fd].startTime = clock();
@@ -122,9 +122,6 @@ void Multiplexing::CheckTimeOut()
     {
         if(( double(CurrentTime - iter->second.startTime) / CLOCKS_PER_SEC  ) > SocketTimeout)
         {
-            std::cout<<CurrentTime<<endl;
-            std::cout<<iter->second.startTime<<endl;
-            std::cout<<( double(CurrentTime - iter->second.startTime)/ CLOCKS_PER_SEC  )<<endl;
             close(iter->first);
             cout<<"close connection  client TIme out fd :"<<"["<<iter->first<<"]"<<endl;
             mClients.erase(iter->first);
@@ -158,13 +155,8 @@ void Multiplexing::CreatMUltiplex()
             perror("epoll_wait");
             exit(EXIT_FAILURE);
         }
-        // cout<<"EPOLLIN  :"<<EPOLLIN<<endl;
-        // cout<<"EPOLLOUT :"<<EPOLLOUT<<endl;
-        // cout<<"nfds :"<<nfds<<endl;
         for (int n = 0; n < nfds ; ++n) 
         {
-            // cout<<"fd  : ["<<events[n].data.fd<<"]  : \n";
-            // cout<<"event  : ["<<events[n].events<<"]"<<endl;
             Connect_And_Add(n);
         }
         CheckTimeOut();
