@@ -66,9 +66,9 @@ public:
         int permession;
         void desplayLocation();
         void SetAllDir();
-        void SetIndexRoot(string root,string index);
+        void SetIndexRoot(string root,vector<string> & index );
         string ServRoot;
-        string Servindex;
+        vector<string>  Servindex;
         std::vector<std::vector<std::string> > vlocation;
         Location();
         ~Location();

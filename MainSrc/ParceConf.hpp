@@ -52,6 +52,7 @@ private:
     void FillServers();
     void FillServersLocations();
 public:
+    vector<string> ser_names;
     std::map<int, vector<Servers> > msockets;    
     void TakeAndParce(std::string confgfile);
     void FillValid();

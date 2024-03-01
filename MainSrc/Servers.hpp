@@ -57,7 +57,6 @@ private:
     void SetClient_max_body_size(); 
     void SetIndex(); 
     void FillQuerys(string & uri);
-    void SetReturn();
     void SetRederectionResp(vector<string> & redirect);
     int JoinIndexRoot(int &in);
 

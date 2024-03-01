@@ -32,7 +32,7 @@ public:
     void Connect_And_Add(int n);
     void In_Events(int n);
     void Out_Events(int n);
-    void CheckTimeOut();
+    bool CheckTimeOut(int n);
     int setnonblocking(int sockfd) ;
     void CloseClient(int & n);
 };

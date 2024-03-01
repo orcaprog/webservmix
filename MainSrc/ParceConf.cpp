@@ -104,9 +104,8 @@ Servers ParceConf::FirstFill()
     else
         server.servconf.push_back(Vconf[index]);
     index++;
-
-    if (index < Vconf.size()  && Vconf[index][0] != "{")
-        throw "Error : no open brackets \n";
+    if (index >= Vconf.size()  ||  Vconf[index][0] != "{" || Vconf[index].size() > 1)
+        throw "Error : in syntyx of  '{' \n";
     else
         server.servconf.push_back(Vconf[index]);
     index++;
@@ -116,13 +115,19 @@ Servers ParceConf::FirstFill()
     {
         if (Vconf[index][0] == "{" )
         {
+            if(Vconf[index].size() > 1)
+                throw "Error : syntaxe  '{'  \n";
             if(Vconf[index - 1 ][0] == "location")
                 bracket++;
             else
                 throw "open no '"+Vconf[index][0] +"'loaction \n";
         }
         if (Vconf[index][0] == "}")
+        {
+            if(Vconf[index].size() > 1)
+                throw "Error : syntaxe  '}'  \n";
             bracket--;
+        }
         iter = std::find(Vstrvalid.begin(),Vstrvalid.end(),Vconf[index][0]);
         if (iter == Vstrvalid.end())
             throw "Error :  unknown directive '"+Vconf[index][0]+"'\n";
@@ -131,6 +136,10 @@ Servers ParceConf::FirstFill()
     }
     if(bracket != 0)
         throw "Error :unexpected end of file , expecting '}'";
+
+    cout<<server.servconf.size()<<endl;
+    server.SetAllDir(ser_names);
+    ser_names.push_back(server.server_name[0]);
     return server;
 }
 void ParceConf::FillServers()
@@ -146,13 +155,10 @@ void ParceConf::FillServersLocations()
 {
     FillServers();
     size_t i = 0;
-    vector<string> ser_names;
     vector<Servers>::iterator iter;
     vector<Servers> hold;
     while (i < Vservers.size())
     {
-        Vservers[i].SetAllDir(ser_names);
-        ser_names.push_back(Vservers[i].server_name[0]);
         Vservers[i].CreatSocketServer(msockets);
         if(Vservers[i].server_fd >= 0)
         {
@@ -160,7 +166,7 @@ void ParceConf::FillServersLocations()
             msockets[Vservers[i].server_fd].push_back(Vservers[i]);
             hold = msockets[Vservers[i].server_fd];
             iter = find(hold.begin(),hold.end(),"");
-            if(iter != hold.end())
+            if(iter != hold.end() && hold.size() > 1)
                 throw "Error : Conflicting same host and port and no exsist of servername\n";
         }
         i++;
