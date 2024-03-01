@@ -335,7 +335,6 @@ void Post::normalFile(std::string body)
     else
     {
         body_size = size_len - total_Body;
-        std::cout << "here is body size 2 " << body_size << std::endl;
         if (body.size() < body_size)
             body_size = body.size();
         outFile.write(body.c_str(), body_size);

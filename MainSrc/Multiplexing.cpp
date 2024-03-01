@@ -55,9 +55,11 @@ void Multiplexing::Out_Events(int n)
     {
         mClients[events[n].data.fd].process_req(string(""),EPOLLOUT);
         string res = mClients[events[n].data.fd].get_respons();
+        if (!res.size())
+            return ;
         ssize_t bytesWritten = write(events[n].data.fd , res.c_str(), res.size());
 
-        if (bytesWritten < 0 || mClients[events[n].data.fd].resp_done())
+        if (bytesWritten <= 0 || mClients[events[n].data.fd].resp_done())
         {
             cout<<"connections with client["<<events[n].data.fd<<"]  is closed from server"<<endl;
             CloseClient(n);
