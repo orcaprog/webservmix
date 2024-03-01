@@ -1,7 +1,7 @@
 #include "Method.hpp"
 
 Method::Method(){
-    ;
+    err = 0;
 }
 
 Method::Method(const Method& oth){
@@ -9,8 +9,8 @@ Method::Method(const Method& oth){
 }
 
 Method& Method::operator=(const Method& oth){
-    cout<<"METHOD COPY ASSIGNMENT"<<endl;
     if (this != &oth){
+        err = oth.err;
         end = oth.end;
         serv = oth.serv;
         uri = oth.uri;

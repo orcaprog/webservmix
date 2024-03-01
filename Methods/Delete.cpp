@@ -106,7 +106,6 @@ void Delete::RemoveAllPath(std::string path)
         status = 1;
         return ;
     }
-
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) 
     {

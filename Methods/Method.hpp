@@ -26,8 +26,8 @@ using namespace std;
 class Method
 {
 protected:
-
 public:
+    int err;
     int end;
     string uri;
     string http_v;

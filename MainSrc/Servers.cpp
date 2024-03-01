@@ -160,6 +160,7 @@ void Servers::SetRoot()
         throw("Root path :'" + arg + "' does not exist or is not a directory.\n");
     realpath(arg.c_str(), resolvedPath);
     root = resolvedPath;
+    root += "/";
 }
 void Servers::SetIndex()
 {
@@ -456,8 +457,6 @@ int Servers::searchPathLocation(string uri)
     for (size_t i = 0; i < locations.size(); i++)
     {
         pathL = locations[i].path;
-        if (pathL[pathL.size() - 1] != '/')
-            pathL += "/";
         if (uri[uri.size() - 1] != '/')
             uri += "/";
         if (strncmp(uri.c_str(), pathL.c_str(), pathL.length()) == 0 && pathL != "/")
@@ -486,16 +485,16 @@ int Servers::JoinIndexRoot(int &in)
 }
 int Servers::fillFromLocation(int &in, string &uri, string &method)
 {
+    if (locations[in].permession & REDIR)
+    {
+        SetRederectionResp(locations[in].redirect);
+        return 0;
+    }
     rootUri = uri;
     rootUri.replace(0, locations[in].path.length(), locations[in].root);
     string hold = rootUri;
     if (pathIsFile(rootUri) == 3)
     {
-        if (locations[in].permession & REDIR)
-        {
-            SetRederectionResp(locations[in].redirect);
-            return 0;
-        }
         if (rootUri[rootUri.size() - 1] != '/')
         {
             rootUri = "";
@@ -512,9 +511,7 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
         {
             if (!JoinIndexRoot(in))
             {
-                if (locations[in].permession & REDIR)
-                    SetRederectionResp(locations[in].redirect);
-                else if (locations[in].permession & AUTOINDEX )
+                if (locations[in].permession & AUTOINDEX )
                 {
                     SetIndex_Of(hold);
                     rootUri = "index_of.html";
@@ -530,19 +527,15 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
     }
     else if (!pathIsFile(rootUri))
     {
-        if (locations[in].permession & REDIR)
-            SetRederectionResp(locations[in].redirect);
-        else
-        {
-            rootUri = error_page["404"];
-            status = "404";
-        }
+        rootUri = error_page["404"];
+        status = "404";
         return 0;
     }
     return 1;
 }
 void Servers::SetUriRoot(int i, string &uri)
 {
+
     if (rootUri[rootUri.size() - 1] != '/')
     {
         rootUri = "";
@@ -592,8 +585,6 @@ bool Servers::MatchingWithRoot(string &rootPlusUri, string &rootPath)
     size_t pos;
     realpath(rootPlusUri.c_str(), resolvedPath);
     string hold = resolvedPath;
-    // cout << hold << endl;
-    // cout << rootPlusUri << endl;
     hold += "/";
     pos = hold.find(rootPath);
     if (pos != string::npos && pos == 0)
@@ -642,7 +633,7 @@ void Servers::FillData(string uri, string mehtod)
     }
     else
     {
-        if (fillFromLocation(in, uri, mehtod) && (locations[in].path == "/cgi" || locations[in].path == "/cgi/"))
+        if (fillFromLocation(in, uri, mehtod) && (locations[in].path == "/cgi/"))
             Is_cgi = true;
         UriLocation = locations[in];
     }
