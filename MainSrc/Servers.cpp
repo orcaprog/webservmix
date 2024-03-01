@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Servers.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouassi <abouassi@student.42.fr>          +#+  +:+       +#+        */
+/*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/28 17:43:44 by abouassi          #+#    #+#             */
-/*   Updated: 2024/01/30 14:43:35 by abouassi         ###   ########.fr       */
+/*   Updated: 2024/03/01 09:39:52 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -455,6 +455,7 @@ void Servers::SetDefaultError()
     error_page["416"] = "error_pages/416.html";
     error_page["417"] = "error_pages/417.html";
     error_page["500"] = "error_pages/500.html";
+    error_page["501"] = "error_pages/501.html";
     error_page["505"] = "error_pages/505.html";
 }
 bool Servers::operator==(const Servers &ser)

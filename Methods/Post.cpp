@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/29 16:25:39 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/03/01 09:41:32 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,13 +208,11 @@ void Post::openFile(std::string body)
 			MethodType = 1;
         else if ((headers.find("Transfer-Encoding"))->second == "chunked"&& tmp_C.find("boundary=") != std::string::npos)
         {
-            std::cout << "Transfer-Encoding\n";
             error = 6;
             return ;
         }
         else if ((headers.find("Transfer-Encoding"))->second != "chunked")
         {
-            std::cout << "Transfer-Encoding1\n";
             error = 6;
             return ;
         }
@@ -335,7 +333,6 @@ void Post::normalFile(std::string body)
     else
     {
         body_size = size_len - total_Body;
-        std::cout << "here is body size 2 " << body_size << std::endl;
         if (body.size() < body_size)
             body_size = body.size();
         outFile.write(body.c_str(), body_size);
@@ -737,7 +734,6 @@ char **Post::set_env()
     env[2] = new char[script_name.size() + 1];
     std::strcpy(env[2], script_name.c_str());
     ss << total_Body;
-    std::cout << ss.str() <<  std::endl;
     ss >> content_len;
     content_len =  "CONTENT_LENGTH=" + content_len;
     env[3] = new char[content_len.size() + 1];
@@ -955,6 +951,12 @@ void Post::ft_error()
         get.get(serv.error_page["415"]);
         serv.status = "415";
     }
+    if (error == 10)
+    {
+        get.serv.status = "408";
+        get.get(serv.error_page["408"]);
+        serv.status = "408";
+    }
     respons = get.respons;
     if (get.end)
         end = 1;
@@ -964,9 +966,8 @@ void Post::ft_error()
 int Post::process(std::string body, int event)
 {
     pre_total_body = total_Body;
-    if (serv.status != "200 OK" &&  serv.status != "201" )
+    if (serv.status != "200 OK" &&  serv.status != "201 Created" )
     {
-        std::cout << "what  going  " << serv.status << std::endl;
         if (event == EPOLLOUT)
         {
             get.serv.status = serv.status;
@@ -1035,7 +1036,7 @@ int Post::process(std::string body, int event)
     }
     if (end && !serv.Is_cgi && !error)
     {
-        serv.status = "201";
+        serv.status = "201 Created";
         respons = "HTTP/1.1 " + serv.status;
         respons += string("\r\nContent-Type: text/html\r\n");
         respons += string("Content-Length: 13");
@@ -1048,7 +1049,7 @@ int Post::process(std::string body, int event)
         {
             if ((clock() - start_time) / CLOCKS_PER_SEC > 5)
             {
-                error = 2;
+                error = 10;
             }   
         }
         else
