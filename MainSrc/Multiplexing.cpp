@@ -111,7 +111,7 @@ void Multiplexing::Connect_And_Add(int n)
     } 
     else 
     {
-        if(events[n].events &  EPOLLRDHUP)
+        if(events[n].events &  EPOLLRDHUP && !(mClients[events[n].data.fd].error & Body_SizeTooLarge))
             CloseClient(n);
         else if (events[n].events & EPOLLIN) 
         {

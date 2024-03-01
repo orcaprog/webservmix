@@ -2,6 +2,7 @@
 #define REQUEST_HPP
 
 #include "../Methods/Cgi.hpp"
+#include "../Methods/Delete.hpp"
 
 using namespace std;
 

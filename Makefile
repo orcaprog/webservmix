@@ -10,6 +10,7 @@ SRC =   main.cpp \
 	  	Methods/Post.cpp\
 	  	Methods/Method.cpp\
 		Methods/Cgi.cpp\
+		Methods/Delete.cpp\
 
 CXX = c++
 
