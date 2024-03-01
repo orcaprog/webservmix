@@ -12,7 +12,6 @@
 
 #include "ParceConf.hpp"
 
-
 void ParceConf::FillValid()
 {
     Vstrvalid.push_back("listen");
@@ -44,7 +43,7 @@ std::vector<std::string> ParceConf::Split_line(std::string line)
     {
         if (!chunks.empty())
         {
-            if(strncmp(chunks.c_str(),"#",1) == 0)
+            if (strncmp(chunks.c_str(), "#", 1) == 0)
                 break;
             vline.push_back(chunks);
         }
@@ -64,11 +63,10 @@ void ParceConf::TakeAndParce(std::string confgfile)
     std::ifstream configfile;
     std::string line;
     std::vector<std::string> _split;
-    std::vector<string>::iterator iterfind;
-    if(confgfile.empty())
+    if (confgfile.empty())
     {
         DefaultServer();
-        return ;
+        return;
     }
 
     configfile.open(confgfile.c_str(), std::ios::in);
@@ -76,7 +74,7 @@ void ParceConf::TakeAndParce(std::string confgfile)
     {
         while (getline(configfile, line))
         {
-            if (!line.empty() )
+            if (!line.empty())
             {
                 _split = Split_line(line);
                 if (!_split.empty())
@@ -85,6 +83,10 @@ void ParceConf::TakeAndParce(std::string confgfile)
         }
         configfile.close();
     }
+    else
+        throw "Error: Could not open configuration file: " + confgfile + "\n";
+    if (Vconf.empty())
+        throw "Error: Configuration file is empty\n";
     FillServersLocations();
 }
 
@@ -100,11 +102,11 @@ Servers ParceConf::FirstFill()
     int bracket = 0;
 
     if (Vconf[index][0] != "server" || Vconf[index].size() > 1)
-        throw "Error :'"+Vconf[index][0]+"' no server derectires ";
+        throw "Error :'" + Vconf[index][0] + "' no server derectires ";
     else
         server.servconf.push_back(Vconf[index]);
     index++;
-    if (index >= Vconf.size()  ||  Vconf[index][0] != "{" || Vconf[index].size() > 1)
+    if (index >= Vconf.size() || Vconf[index][0] != "{" || Vconf[index].size() > 1)
         throw "Error : in syntyx of  '{' \n";
     else
         server.servconf.push_back(Vconf[index]);
@@ -113,39 +115,36 @@ Servers ParceConf::FirstFill()
 
     while (index < Vconf.size() && bracket)
     {
-        if (Vconf[index][0] == "{" )
+        if (Vconf[index][0] == "{")
         {
-            if(Vconf[index].size() > 1)
+            if (Vconf[index].size() > 1)
                 throw "Error : syntaxe  '{'  \n";
-            if(Vconf[index - 1 ][0] == "location")
+            if (Vconf[index - 1][0] == "location")
                 bracket++;
             else
-                throw "open no '"+Vconf[index][0] +"'loaction \n";
+                throw "open no '" + Vconf[index][0] + "'loaction \n";
         }
         if (Vconf[index][0] == "}")
         {
-            if(Vconf[index].size() > 1)
+            if (Vconf[index].size() > 1)
                 throw "Error : syntaxe  '}'  \n";
             bracket--;
         }
-        iter = std::find(Vstrvalid.begin(),Vstrvalid.end(),Vconf[index][0]);
+        iter = std::find(Vstrvalid.begin(), Vstrvalid.end(), Vconf[index][0]);
         if (iter == Vstrvalid.end())
-            throw "Error :  unknown directive '"+Vconf[index][0]+"'\n";
+            throw "Error :  unknown directive '" + Vconf[index][0] + "'\n";
         server.servconf.push_back(Vconf[index]);
         index++;
     }
-    if(bracket != 0)
+    if (bracket != 0)
         throw "Error :unexpected end of file , expecting '}'";
-
-    cout<<server.servconf.size()<<endl;
     server.SetAllDir(ser_names);
-    ser_names.push_back(server.server_name[0]);
+    ser_names.insert(ser_names.end(), server.server_name.begin(), server.server_name.end());
     return server;
 }
 void ParceConf::FillServers()
 {
     std::vector<std::string> Vcol;
-    std::vector<std::string>::iterator iter;
 
     while (index < Vconf.size())
         Vservers.push_back(FirstFill());
@@ -160,13 +159,12 @@ void ParceConf::FillServersLocations()
     while (i < Vservers.size())
     {
         Vservers[i].CreatSocketServer(msockets);
-        if(Vservers[i].server_fd >= 0)
+        if (Vservers[i].server_fd >= 0)
         {
-            cout<<"enter here "<<Vservers[i].server_fd<<endl;
             msockets[Vservers[i].server_fd].push_back(Vservers[i]);
             hold = msockets[Vservers[i].server_fd];
-            iter = find(hold.begin(),hold.end(),"");
-            if(iter != hold.end() && hold.size() > 1)
+            iter = find(hold.begin(), hold.end(), "");
+            if (iter != hold.end() && hold.size() > 1)
                 throw "Error : Conflicting same host and port and no exsist of servername\n";
         }
         i++;

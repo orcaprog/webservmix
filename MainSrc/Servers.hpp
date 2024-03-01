@@ -37,8 +37,8 @@
 #include <ctime>
 #include <stdlib.h>
 #include <limits.h>
-
-
+#include <string>
+#include <iomanip>
 class Servers
 {
 private:
@@ -59,9 +59,15 @@ private:
     void FillQuerys(string & uri);
     void SetRederectionResp(vector<string> & redirect);
     int JoinIndexRoot(int &in);
+    void SetDefaultError();
 
+    vector<string> locationPath;
+    std::vector<std::string> s_erorr;
+    std::vector<std::string> Vstrvalid;
+    int getLocation(std::string path);
+    bool MatchingWithRoot(string & rootPlusUri,string &rootPath);
+    int searchPathLocation(string uri);
 public:
-
     vector<string> redirect;
     int port;
     std::vector<std::string> server_name; 
@@ -70,23 +76,16 @@ public:
     std::vector<std::string> index;
     double client_max_body_size;
     map<string,string> error_page;
-    std::vector<std::string> s_erorr;
     bool  operator== (const Servers& ser);
     bool  operator== (const string & servername);
     int server_fd;
     bool sercheck;
     struct sockaddr_in address;
-    std::vector<std::string> Vstrvalid;
     std::vector<std::vector<std::string> > servconf;
     std::vector<Location> locations;
     void SetAllDir(vector<string> & ser_names);
-    void desplay();
-    int getLocation(std::string path);
-    void SetDefaultError();
     void CreatSocketServer( std::map<int,vector<Servers> > & msockets);
-    Servers();
     void SetIndex_Of(string path);
-    int searchPathLocation(string uri);
     int fillFromLocation(int &in, string &uri,string & method);
     void FillData(string uri,string mehtod);
     string rootUri;
@@ -96,8 +95,8 @@ public:
     void SetUriRoot(int i,string & uri);
     Location UriLocation;
     void FillLocation();
-    bool MatchingWithRoot(string & rootPlusUri,string &rootPath);
     ~Servers();
+    Servers();
 };
 
 

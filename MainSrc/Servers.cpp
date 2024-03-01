@@ -50,9 +50,7 @@ bool Servers::check_isdigit(std::string str)
     while (str[i])
     {
         if (!isdigit(str[i]))
-        {
             return (0);
-        }
         i++;
     }
     return (1);
@@ -112,13 +110,13 @@ void Servers::SetServerName(vector<string> &ser_names)
     if (servconf[i].size()  < 2)
         throw "Invalid number of arguments in 'server_name' directive \n";
     arg = servconf[i][1];
-    if (find(ser_names.begin(), ser_names.end(), arg) != ser_names.end())
-        throw "conflicting server name '" + arg + "' \n";
     server_name.clear();
     iter = servconf[i].begin();
     iter++;
     while (iter != servconf[i].end())
     {
+        if (find(ser_names.begin(), ser_names.end(), *iter) != ser_names.end())
+            throw "conflicting server name '" + *iter + "' \n";
         server_name.push_back(*iter);
         iter++;
     }
@@ -236,7 +234,7 @@ void Servers::SetError_page()
     }
 }
 
-void Servers::SetAllDir(vector<string> &ser_names)
+void Servers::SetAllDir(vector<string> &ser_names )
 {
     FillValid();
     SetHost();
@@ -286,7 +284,9 @@ Location Servers::FirstFill(size_t &i)
     if (i < servconf.size())
         i++;
     loaction.SetIndexRoot(root, index);
-    loaction.SetAllDir();
+    loaction.SetAllDir(locationPath);
+    locationPath.push_back(loaction.path);
+
     return loaction;
 }
 
@@ -323,30 +323,7 @@ void Servers::FillValid()
     Vstrvalid.push_back("cgi_path");
 }
 
-// void Servers::desplay()
-// {
-//     // std::vector<std::vector<std::string> > matrix = servconf;
 
-//     cout << "Ports :"<< port  << endl;
-//     cout << "ServerName  :" << server_name[0] << endl;
-//     cout << "Host :" << host  << endl;
-//     cout << "Root :" << root << endl;
-//     map<string, string>::iterator iter = error_page.begin();
-//     while (iter != error_page.end())
-//     {
-//         cout << "error Page :'" << iter->first << "' '" << iter->second << "'\n";
-//         iter++;
-//     }
-//     cout << "Client_max_body_size :"<<client_max_body_size  << endl;
-//     cout << "Index :" << index[0] << endl;
-//     size_t i = 0;
-//     while (i < locations.size())
-//     {
-//         std::cout << "________________________\n";
-//         locations[i].desplayLocation();
-//         i++;
-//     }
-// }
 
 /*#############################################################*/
 /*CREATE SOKCET*/
@@ -407,7 +384,6 @@ void Servers::SetIndex_Of(string path)
     std::ofstream index_Of;
     std::string line;
     std::vector<std::string> _split;
-    std::vector<string>::iterator iterfind;
 
     struct dirent *entry;
     DIR *dir = opendir(path.c_str());
@@ -449,24 +425,17 @@ void Servers::SetIndex_Of(string path)
 void Servers::SetDefaultError()
 {
     error_page["400"] = "error_pages/400.html";
-    error_page["401"] = "error_pages/401.html";
-    error_page["402"] = "error_pages/402.html";
     error_page["403"] = "error_pages/403.html";
     error_page["404"] = "error_pages/404.html";
     error_page["405"] = "error_pages/405.html";
-    error_page["406"] = "error_pages/406.html";
-    error_page["407"] = "error_pages/407.html";
     error_page["408"] = "error_pages/408.html";
-    error_page["409"] = "error_pages/409.html";
-    error_page["410"] = "error_pages/410.html";
     error_page["411"] = "error_pages/411.html";
-    error_page["412"] = "error_pages/412.html";
     error_page["413"] = "error_pages/413.html";
     error_page["414"] = "error_pages/414.html";
     error_page["415"] = "error_pages/415.html";
-    error_page["416"] = "error_pages/416.html";
-    error_page["417"] = "error_pages/417.html";
     error_page["500"] = "error_pages/500.html";
+    error_page["501"] = "error_pages/501.html";
+    error_page["504"] = "error_pages/504.html";
     error_page["505"] = "error_pages/505.html";
 }
 bool Servers::operator==(const Servers &ser)
@@ -623,8 +592,8 @@ bool Servers::MatchingWithRoot(string &rootPlusUri, string &rootPath)
     size_t pos;
     realpath(rootPlusUri.c_str(), resolvedPath);
     string hold = resolvedPath;
-    cout << hold << endl;
-    cout << rootPlusUri << endl;
+    // cout << hold << endl;
+    // cout << rootPlusUri << endl;
     hold += "/";
     pos = hold.find(rootPath);
     if (pos != string::npos && pos == 0)
@@ -677,16 +646,6 @@ void Servers::FillData(string uri, string mehtod)
             Is_cgi = true;
         UriLocation = locations[in];
     }
-    cout << "rootUri :" << rootUri << endl;
-    cout << "is_cgi :" << Is_cgi << endl;
-    cout << "querys :" << querys << endl;
-    // cout << "      ========\n";
-    // cout << "        ===\n";
-    // cout << "         =\n";
-    UriLocation.desplayLocation();
-    // cout << "         =\n";
-    // cout << "        ===\n";
-    // cout << "      ========\n";
 }
 
 Servers::Servers()

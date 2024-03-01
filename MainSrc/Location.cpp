@@ -53,8 +53,6 @@ int Location::pathIsFile(std::string path)
         return 0;
 }
 
-
-
 size_t Location::GetIndex(std::string dir)
 {
     size_t i ;
@@ -81,33 +79,31 @@ int Location::checkDup(std::string der,int & index)
             dup++;
         }
         if (dup > 1)
-        {
            throw "Error duplicate derective '"+vlocation[i][0]+"'  \n";
-        }
         i++;
     }
     return (dup);
 }
 
-void Location::desplayLocation()
-{
+// void Location::desplayLocation()
+// {
 
-    // Printtwodom(vlocation,"location");
-    cout<<"PATH :"<<path<<endl;
-    cout<<"index :"<<index[0]<<endl;
-    cout<<"permession:"<<permession<<endl;
-    cout<<"Root :"<<root<<endl;
-    map<string,string>::iterator iter = cgi_path.begin();
-    while (iter != cgi_path.end())
-    {
-        cout<<"cgi_path :'"<<iter->first<<"' '"<<iter->second<<"'\n";
-        iter++;
-    }
+//     // Printtwodom(vlocation,"location");
+//     cout<<"PATH :"<<path<<endl;
+//     cout<<"index :"<<index[0]<<endl;
+//     cout<<"permession:"<<permession<<endl;
+//     cout<<"Root :"<<root<<endl;
+//     map<string,string>::iterator iter = cgi_path.begin();
+//     while (iter != cgi_path.end())
+//     {
+//         cout<<"cgi_path :'"<<iter->first<<"' '"<<iter->second<<"'\n";
+//         iter++;
+//     }
 
-    std::cout<<"index  :"<<index[0]<<std::endl;
-}
+//     std::cout<<"index  :"<<index[0]<<std::endl;
+// }
 
-void Location::SetAllDir()
+void Location::SetAllDir(vector<string>& locpath)
 {
     FillValid();
     SetRoot();
@@ -118,7 +114,7 @@ void Location::SetAllDir()
     SetCgiPath();
     SetAutoindex();
     SetIndex();
-    SetPath();
+    SetPath(locpath);
 }
 
 void Location::SetIndex()
@@ -170,7 +166,7 @@ void Location::SetRoot()
     root = resolvedPath;
 }
 
-void Location::SetPath()
+void Location::SetPath(vector<string>& locpath)
 {
     int i;
     int num = checkDup("location",i);
@@ -180,6 +176,8 @@ void Location::SetPath()
     if (vlocation[i].size() != 2 )
         throw "Invalid number of arguments in 'location' directive \n";
     arg = vlocation[i][1];
+    if (find(locpath.begin(),locpath.end(),arg) != locpath.end())
+        throw "Error :duplicate location "+arg+" \n";
     path  = arg;
 }
 

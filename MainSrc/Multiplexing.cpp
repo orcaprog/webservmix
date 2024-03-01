@@ -19,7 +19,7 @@ Multiplexing::Multiplexing(std::string  configfile)
     {
         throw "Error : Problem in create servers \n";
     }
-    SocketTimeout = 10;
+    SocketTimeout = 15;
 }
 
 Multiplexing::~Multiplexing()
@@ -81,7 +81,6 @@ void Multiplexing::In_Events(int n)
         std::map<int ,Request >::iterator iter2 = mClients.find(events[n].data.fd);
         if (iter2 != mClients.end())
         {
-            // cout<<"==========  :"<<buffer<<endl;
             mClients[events[n].data.fd].process_req(string("").append(buffer, bytesRead),EPOLLIN);
         }
     }
