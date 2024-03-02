@@ -21,15 +21,14 @@
 #include "../MainSrc/ParceConf.hpp"
 class Delete : public Method
 {
-
-public:
     bool deleted;
-    Delete();
     int  my_remove(std::string file);
     int status;
-    void RemoveAllPath(std::string path);
-    int pathExists(std::string path);
     int process(string body, int event) ;
+    void RemoveAllPath(std::string path);
+public:
+    Delete();
     ~Delete();
 };
+
 #endif

@@ -115,8 +115,6 @@ class Post : public Method
 
         void ft_error();
 
-
-
 };
 
 

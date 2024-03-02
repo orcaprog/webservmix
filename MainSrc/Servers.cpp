@@ -186,7 +186,7 @@ void Servers::SetIndex()
 void Servers::SetClient_max_body_size()
 {
     int i;
-    long long int body_size;
+    double body_size;
     std::string arg;
 
     int num = checkDup("client_max_body_size", i);
@@ -377,7 +377,7 @@ void Servers::CreatSocketServer(std::map<int, vector<Servers> > &msockets)
         server_fd = -1;
         return;
     }
-    sercheck = 1;
+    cout<<"Server is now running.... is listening on " <<host<<":"<<port<<".\n";
 }
 /*#############################################################*/
 void Servers::SetIndex_Of(string path)
@@ -594,7 +594,7 @@ bool Servers::MatchingWithRoot(string &rootPlusUri, string &rootPath)
 void Servers::SetRederectionResp(vector<string> &redirect)
 {
     rootUri = "";
-    status = "301 \r\nLocation: " + redirect[1] + "/";
+    status = "301 \r\nLocation: " + redirect[1];
 }
 void Servers::FillData(string uri, string mehtod)
 {
@@ -645,11 +645,10 @@ Servers::Servers()
     realpath("./html", resolvedPath);
     root = resolvedPath;
     client_max_body_size = 100000;
-    host = "0.0.0.0";
+    host = "127.0.0.1";
     index.push_back("index_webserv.html");
     port = 8080;
     server_name.push_back("");
-    sercheck = 0;
     SetDefaultError();
     status = "200 OK";
 }

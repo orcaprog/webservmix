@@ -37,13 +37,10 @@ using namespace std;
 class Location
 {
 private:
-        void CheckMethods(std::string methd);
-        size_t GetIndex(std::string dir);
         int  checkDup(std::string der,int & index);
         int pathIsFile(std::string path);
+        void CheckMethods(std::string methd);
         void FillValid();
-        void checkValidation();
-        std::vector<std::string> Vstrvalid;
         void SetIndex();
         void SetPath(vector<string>& locpath);
         void SetAllowMethods();
@@ -56,25 +53,22 @@ private:
         bool get;
         bool post;
         bool dele;
+        std::vector<std::string> Vstrvalid;
+        size_t GetIndex(std::string dir);
         string ServRoot;
         vector<string>  Servindex;
 public:
-        std::string path;
-        string  upload_path;
-        std::string root;
-        std::vector<std::string> index;
-        map<string ,string> cgi_path;
-        vector<string> redirect;
         int permession;
         void SetAllDir(vector<string>& locpath);
         void SetIndexRoot(string root,vector<string> & index );
+        std::string path;
+        std::string  upload_path;
+        std::string root;
+        std::vector<std::string> index;
         std::vector<std::vector<std::string> > vlocation;
+        std::map<string ,string> cgi_path;
+        std::vector<string> redirect;
         Location();
         ~Location();
 };
-
-
-
-
-
 #endif

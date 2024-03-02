@@ -85,7 +85,6 @@ void Multiplexing::In_Events(int n)
         std::map<int ,Request >::iterator iter2 = mClients.find(events[n].data.fd);
         if (iter2 != mClients.end())
         {
-            // cout<<"==========  :"<<buffer<<endl;
             mClients[events[n].data.fd].process_req(string("").append(buffer, bytesRead),EPOLLIN);
         }
     }
@@ -118,9 +117,9 @@ void Multiplexing::Connect_And_Add(int n)
     } 
     else 
     {
-        if(events[n].events &  EPOLLRDHUP && !(mClients[events[n].data.fd].error & Body_SizeTooLarge))
+        if(events[n].events &  EPOLLRDHUP)
             CloseClient(n);
-        else if (events[n].events & EPOLLIN) 
+        else if (events[n].events & EPOLLIN && !(mClients[events[n].data.fd].error & Body_SizeTooLarge)) 
         {
             In_Events(n);
             mClients[events[n].data.fd].startTime = clock();

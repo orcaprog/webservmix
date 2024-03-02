@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/28 16:41:25 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/03/01 09:41:32 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,13 +208,11 @@ void Post::openFile(std::string body)
 			MethodType = 1;
         else if ((headers.find("Transfer-Encoding"))->second == "chunked"&& tmp_C.find("boundary=") != std::string::npos)
         {
-            std::cout << "Transfer-Encoding\n";
             error = 6;
             return ;
         }
         else if ((headers.find("Transfer-Encoding"))->second != "chunked")
         {
-            std::cout << "Transfer-Encoding1\n";
             error = 6;
             return ;
         }
@@ -335,7 +333,6 @@ void Post::normalFile(std::string body)
     else
     {
         body_size = size_len - total_Body;
-        std::cout << "here is body size 2 " << body_size << std::endl;
         if (body.size() < body_size)
             body_size = body.size();
         outFile.write(body.c_str(), body_size);
@@ -737,7 +734,6 @@ char **Post::set_env()
     env[2] = new char[script_name.size() + 1];
     std::strcpy(env[2], script_name.c_str());
     ss << total_Body;
-    std::cout << ss.str() <<  std::endl;
     ss >> content_len;
     content_len =  "CONTENT_LENGTH=" + content_len;
     env[3] = new char[content_len.size() + 1];
@@ -784,7 +780,6 @@ void Post::script_name()
 
 void Post::exe_cgi()
 {
-        std::cout<<"enter "<<std::endl; 
     if (!first_run)
     {
         std::string ext_path;
@@ -799,7 +794,6 @@ void Post::exe_cgi()
         }
         script_name();
         env = set_env();
-        std::cout<<"ext = "<<ext<<std::endl; 
         if (serv.UriLocation.cgi_path.find(ext) != serv.UriLocation.cgi_path.end())
         {
             std::string ext_path = (serv.UriLocation.cgi_path.find(ext))->second;
@@ -808,7 +802,6 @@ void Post::exe_cgi()
         else
         {
             error = 9;
-        std::cout<<"ext = "<<ext<<std::endl;
             return ;
         }
         ran_file =  creat_file_name(1);
@@ -845,15 +838,7 @@ void Post::exe_cgi()
         int exit_status1 = WEXITSTATUS(exit_status);
         if (exit_status1)
         {
-            cgi_exe = 0;
-            serv.Is_cgi = 0;
-            end = 1;
-        int rem = std::remove(ran_file.c_str());
-        if (rem)
-        {
-            error = 4;
-        }
-            return ;
+            error = 6;
         }
         else
             cgi_exe = 1;
@@ -966,6 +951,12 @@ void Post::ft_error()
         get.get(serv.error_page["415"]);
         serv.status = "415";
     }
+    if (error == 10)
+    {
+        get.serv.status = "408";
+        get.get(serv.error_page["408"]);
+        serv.status = "408";
+    }
     respons = get.respons;
     if (get.end)
         end = 1;
@@ -975,16 +966,8 @@ void Post::ft_error()
 int Post::process(std::string body, int event)
 {
     pre_total_body = total_Body;
-    // std::cout << "respons " << respons << std::endl;
-    // std::cout << "error " <<  error << std::endl;
-    // std::cout << "end " << end << std::endl;
-    // std::cout << "cgi execute " << cgi_exe << std::endl;
-    // std::cout << "cgi erro " << enter_cgi << std::endl;
-    // std::cout << "is cgi " << serv.Is_cgi << std::endl;
-    // std::cout << "serv status " << serv.status << std::endl;
-    if (serv.status != "200 OK" &&  serv.status != "201" )
+    if (serv.status != "200 OK" &&  serv.status != "201 Created" )
     {
-        // std::cout << "what  going  " << serv.status << std::endl;
         if (event == EPOLLOUT)
         {
             get.serv.status = serv.status;
@@ -1006,7 +989,7 @@ int Post::process(std::string body, int event)
             serv.UriLocation.upload_path = serv.UriLocation.upload_path.substr(find + 2,  serv.UriLocation.upload_path.size() - find);   
         }  
     }
-    if (serv.client_max_body_size < (double)total_Body)
+    if (err)
     {
         error = 7;
     }
@@ -1053,7 +1036,7 @@ int Post::process(std::string body, int event)
     }
     if (end && !serv.Is_cgi && !error)
     {
-        serv.status = "201";
+        serv.status = "201 Created";
         respons = "HTTP/1.1 " + serv.status;
         respons += string("\r\nContent-Type: text/html\r\n");
         respons += string("Content-Length: 13");
@@ -1066,7 +1049,7 @@ int Post::process(std::string body, int event)
         {
             if ((clock() - start_time) / CLOCKS_PER_SEC > 5)
             {
-                error = 2;
+                error = 10;
             }   
         }
         else
@@ -1077,10 +1060,5 @@ int Post::process(std::string body, int event)
     }
     else
         time_out = 0;
-    // std::cout << "error " <<  error << std::endl;
-    // std::cout << "end " << end << std::endl;
-    // std::cout << "cgi execute " << cgi_exe << std::endl;
-    // std::cout << "cgi erro " << enter_cgi << std::endl;
-    // std::cout << "end respons " << respons << std::endl;
     return 1; 
 }
