@@ -45,7 +45,7 @@ private:
         void checkValidation();
         std::vector<std::string> Vstrvalid;
         void SetIndex();
-        void SetPath();
+        void SetPath(vector<string>& locpath);
         void SetAllowMethods();
         void SetAutoindex();
         void SetUpload();
@@ -53,6 +53,11 @@ private:
         void SetCgiPath();
         void SetRoot();
         void SetReturn();
+        bool get;
+        bool post;
+        bool dele;
+        string ServRoot;
+        vector<string>  Servindex;
 public:
         std::string path;
         string  upload_path;
@@ -60,15 +65,9 @@ public:
         std::vector<std::string> index;
         map<string ,string> cgi_path;
         vector<string> redirect;
-        bool get;
-        bool post;
-        bool dele;
         int permession;
-        void desplayLocation();
-        void SetAllDir();
+        void SetAllDir(vector<string>& locpath);
         void SetIndexRoot(string root,vector<string> & index );
-        string ServRoot;
-        vector<string>  Servindex;
         std::vector<std::vector<std::string> > vlocation;
         Location();
         ~Location();

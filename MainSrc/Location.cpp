@@ -53,8 +53,6 @@ int Location::pathIsFile(std::string path)
         return 0;
 }
 
-
-
 size_t Location::GetIndex(std::string dir)
 {
     size_t i ;
@@ -81,33 +79,31 @@ int Location::checkDup(std::string der,int & index)
             dup++;
         }
         if (dup > 1)
-        {
            throw "Error duplicate derective '"+vlocation[i][0]+"'  \n";
-        }
         i++;
     }
     return (dup);
 }
 
-void Location::desplayLocation()
-{
+// void Location::desplayLocation()
+// {
 
-    // Printtwodom(vlocation,"location");
-    cout<<"PATH :"<<path<<endl;
-    cout<<"index :"<<index[0]<<endl;
-    cout<<"permession:"<<permession<<endl;
-    cout<<"Root :"<<root<<endl;
-    map<string,string>::iterator iter = cgi_path.begin();
-    while (iter != cgi_path.end())
-    {
-        cout<<"cgi_path :'"<<iter->first<<"' '"<<iter->second<<"'\n";
-        iter++;
-    }
+//     // Printtwodom(vlocation,"location");
+//     cout<<"PATH :"<<path<<endl;
+//     cout<<"index :"<<index[0]<<endl;
+//     cout<<"permession:"<<permession<<endl;
+//     cout<<"Root :"<<root<<endl;
+//     map<string,string>::iterator iter = cgi_path.begin();
+//     while (iter != cgi_path.end())
+//     {
+//         cout<<"cgi_path :'"<<iter->first<<"' '"<<iter->second<<"'\n";
+//         iter++;
+//     }
 
-    std::cout<<"index  :"<<index[0]<<std::endl;
-}
+//     std::cout<<"index  :"<<index[0]<<std::endl;
+// }
 
-void Location::SetAllDir()
+void Location::SetAllDir(vector<string>& locpath)
 {
     FillValid();
     SetRoot();
@@ -115,10 +111,10 @@ void Location::SetAllDir()
     SetUpload();
     SetUpload_path();
     SetReturn();
+    SetPath(locpath);
     SetCgiPath();
     SetAutoindex();
     SetIndex();
-    SetPath();
 }
 
 void Location::SetIndex()
@@ -168,9 +164,21 @@ void Location::SetRoot()
         throw("Root path :'" + arg + "' does not exist or is not a directory.\n");
     realpath(arg.c_str(),resolvedPath);
     root = resolvedPath;
+    root += "/";
 }
 
-void Location::SetPath()
+
+void CheckValidPathLocation(string & pathlocation)
+{
+    if (pathlocation[0] != '/')
+        throw "Error: Invalid input path. Please provide a valid path.\n";
+    if (pathlocation.size() == 1)
+        return ;
+    if (pathlocation[pathlocation.length() - 1] == '/')
+        throw "Error: Invalid input path. Please provide a valid path.\n";
+    pathlocation.push_back('/');
+}
+void Location::SetPath(vector<string>& locpath)
 {
     int i;
     int num = checkDup("location",i);
@@ -180,6 +188,9 @@ void Location::SetPath()
     if (vlocation[i].size() != 2 )
         throw "Invalid number of arguments in 'location' directive \n";
     arg = vlocation[i][1];
+    CheckValidPathLocation(arg);
+    if (find(locpath.begin(),locpath.end(),arg) != locpath.end())
+        throw "Error :duplicate location "+arg+" \n";
     path  = arg;
 }
 
@@ -265,18 +276,20 @@ void Location::SetUpload()
 void Location::SetCgiPath()
 {
     std::string extantion;
-    std::string path;
+    std::string pathcgi;
     for (size_t i = 0; i < vlocation.size(); i++)
     {
         if (vlocation[i][0] == "cgi_path")
         {
+            if (path != "/cgi/")
+                throw "Error : 'cgi path' directive is not allowed here \n";
             if (vlocation[i].size() != 3)
                throw "Invalid number of arguments in 'cgi_path' directive \n";
             extantion = vlocation[i][1];
-            path = vlocation[i][2];
-            if (!pathIsFile(path)) 
-                throw ("Path '"+path+"' does not exist.\n");
-            cgi_path[extantion] = path;
+            pathcgi = vlocation[i][2];
+            if (!pathIsFile(pathcgi)) 
+                throw ("Path '"+pathcgi+"' does not exist.\n");
+            cgi_path[extantion] = pathcgi;
         }
     }
 }

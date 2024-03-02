@@ -37,7 +37,7 @@ bool Multiplexing::CheckTimeOut(int n)
     clock_t CurrentTime = clock();
     if (mClients[events[n].data.fd].body_state)
         return 1;
-    if(( double(CurrentTime - mClients[events[n].data.fd].startTime) / CLOCKS_PER_SEC  ) > SocketTimeout)
+    if((double(CurrentTime - mClients[events[n].data.fd].startTime) / CLOCKS_PER_SEC  ) > SocketTimeout)
     {
         Get get;
         get.serv.status = "408";
@@ -113,9 +113,9 @@ void Multiplexing::Connect_And_Add(int n)
     } 
     else 
     {
-        if(events[n].events &  EPOLLRDHUP && !(mClients[events[n].data.fd].error & Body_SizeTooLarge))
+        if(events[n].events &  EPOLLRDHUP)
             CloseClient(n);
-        else if (events[n].events & EPOLLIN) 
+        else if (events[n].events & EPOLLIN && !(mClients[events[n].data.fd].error & Body_SizeTooLarge))
         {
             In_Events(n);
             mClients[events[n].data.fd].startTime = clock();
