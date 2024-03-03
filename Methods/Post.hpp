@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/28 12:56:49 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/03/03 14:23:45 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,7 +109,7 @@ class Post : public Method
         void    ft_boundary(std::string& body);
 
         void    exe_cgi();
-        std::string find_path_info();
+        std::string add_new_name(std::string name, std::string mime);
         std::string find_ext();
         void script_name();
 
