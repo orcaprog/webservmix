@@ -512,6 +512,32 @@ void Servers::setStatusRootPlusUri(string  _status)
     rootUri = error_page[_status];
     status = _status;
 }
+string decooding_uri(string uri){
+    string new_uri;
+    for (size_t i = 0; i < uri.size(); i++){
+        if (uri[i] == '%' && i+2 < uri.size()){
+            stringstream hexa;
+            int h;
+            hexa<<uri[i+1];
+            hexa<<uri[i+2];
+            hexa>>hex>>h;
+            new_uri.push_back(h);
+            i += 2;
+        }
+        else
+            new_uri.push_back(uri[i]);
+    }
+    return new_uri;
+}
+void Servers::deCodeUri(string _rootURi ,string uri)
+{
+    rootUri = _rootURi + uri;
+    if (!pathIsFile(rootUri) )
+    {
+       rootUri = _rootURi + decooding_uri(uri);
+    }
+        
+}
 int Servers::fillFromLocation(int &in, string &uri, string &method)
 {
     if (locations[in].permession & REDIR)
@@ -519,12 +545,18 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
         SetRederectionResp(locations[in].redirect);
         return 0;
     }
+
     rootUri = uri;
     rootUri.replace(0, locations[in].path.length(), locations[in].root);
+    if (!pathIsFile(rootUri))
+    {
+        rootUri = decooding_uri(uri);
+        rootUri.replace(0, locations[in].path.length(), locations[in].root);
+    }
     string hold = rootUri;
     if (pathIsFile(rootUri) == 3)
     {
-        if (rootUri[rootUri.size() - 1] != '/')
+        if (uri[uri.size() - 1] != '/')
         {
             rootUri = "";
             status = "301 Moved Permanently  \r\nLocation: " + uri + "/";
@@ -565,7 +597,7 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
         setStatusRootPlusUri("404");
         return 0;
     }
-    else if (checkPermession(rootUri))
+    else if (!checkPermession(rootUri))
     {
         setStatusRootPlusUri("403");
         return  0;
@@ -649,12 +681,21 @@ bool Servers::checkPermession(string _path)
         return 0;
     return 1;
 }
+
+
 void Servers::FillData(string uri, string mehtod)
 {
-    FillQuerys(uri);
-    int in = searchPathLocation(uri);
     Is_cgi = false;
     int def = 0;
+    int in = 0;
+    FillQuerys(uri);
+    in = searchPathLocation(uri);
+    if(in == -1)
+    {
+        in = searchPathLocation(decooding_uri(uri));
+        if (in != -1)
+            uri = decooding_uri(uri);
+    }
     if (in == -1)
     {
         def = getLocation("/");
@@ -665,7 +706,7 @@ void Servers::FillData(string uri, string mehtod)
                 SetRederectionResp(locations[def].redirect);
                 return;
             }
-            rootUri = locations[def].root + uri;
+            deCodeUri(locations[def].root,uri);
             if (pathIsFile(rootUri) == 3)
             {
                 if (MatchingWithRoot(rootUri, locations[def].root))
@@ -692,6 +733,7 @@ Servers::Servers()
 {
     char resolvedPath[PATH_MAX];
     per = 0;
+    isDecoded  = 0;
     realpath("./html", resolvedPath);
     root = resolvedPath;
     client_max_body_size = 1000000;

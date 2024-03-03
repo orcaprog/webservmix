@@ -20,7 +20,7 @@ int main(int ac , char **av)
     try
     {
         if(ac != 2)
-            conf = "";
+            conf = "default.conf";
         else 
             conf = av[1];
         Multiplexing mult(conf);

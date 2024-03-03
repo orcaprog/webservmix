@@ -71,6 +71,8 @@ private:
     bool checkPermession(string _path);
     void setStatusRootPlusUri(string  _status);
     int per;
+    bool isDecoded;
+    void deCodeUri(string _rootURi,string uri);
 public:
     int port;
     int server_fd;

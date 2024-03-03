@@ -51,23 +51,11 @@ std::vector<std::string> ParceConf::Split_line(std::string line)
     return vline;
 }
 
-void ParceConf::DefaultServer()
-{
-    Servers ser;
-    ser.FillLocation();
-    ser.CreatSocketServer(msockets);
-    msockets[ser.server_fd].push_back(ser);
-}
 void ParceConf::TakeAndParce(std::string confgfile)
 {
     std::ifstream configfile;
     std::string line;
     std::vector<std::string> _split;
-    if (confgfile.empty())
-    {
-        DefaultServer();
-        return;
-    }
 
     configfile.open(confgfile.c_str(), std::ios::in);
     if (configfile.is_open())

@@ -58,7 +58,7 @@ int Location::checkDup(std::string der,int & index)
             dup++;
         }
         if (dup > 1)
-           throw "Error duplicate derective '"+vlocation[i][0]+"'  \n";
+           throw "Error : duplicate derective '"+vlocation[i][0]+"'  \n";
         i++;
     }
     return (dup);
