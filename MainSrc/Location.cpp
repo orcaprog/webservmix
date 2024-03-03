@@ -268,8 +268,6 @@ void Location::SetUpload_path()
     }
     if (vlocation[i].size() != 2 )
         throw "Invalid number of arguments in 'upload_path' directive \n";
-    if (!(permession & UPLOAD))
-        throw "Error : Upload path need to set upload in active mode \n";
     arg = vlocation[i][1];
     if (pathIsFile(arg) != 3)
         throw "Error : Path is not valid to upload or is not a directory\n";

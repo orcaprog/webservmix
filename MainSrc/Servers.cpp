@@ -398,16 +398,22 @@ void Servers::CreatSocketServer(std::map<int, vector<Servers> > &msockets)
     cout << "Server is now running.... is listening on " << host << ":" << port << ".\n";
 }
 /*#############################################################*/
-void Servers::SetIndex_Of(string path)
+void Servers::SetIndex_Of(string _path)
 {
     std::ofstream index_Of;
     std::string line;
     std::vector<std::string> _split;
 
+    if (!checkPermession(_path))
+    {
+        per = 1;
+        return ;
+    }
     struct dirent *entry;
-    DIR *dir = opendir(path.c_str());
+    DIR *dir = opendir(_path.c_str());
     if (dir == NULL)
     {
+        per = 2;
         perror("Error opening directory");
         return;
     }
@@ -501,6 +507,11 @@ int Servers::JoinIndexRoot(int &in)
     }
     return 0;
 }
+void Servers::setStatusRootPlusUri(string  _status)
+{
+    rootUri = error_page[_status];
+    status = _status;
+}
 int Servers::fillFromLocation(int &in, string &uri, string &method)
 {
     if (locations[in].permession & REDIR)
@@ -521,8 +532,7 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
         }
         else if (MatchingWithRoot(rootUri, locations[in].root))
         {
-            rootUri = error_page["403"];
-            status = "403";
+            setStatusRootPlusUri("403");
             return 0;
         }
         else if (method == "GET" || method == "POST")
@@ -532,22 +542,33 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
                 if (locations[in].permession & AUTOINDEX)
                 {
                     SetIndex_Of(hold);
-                    rootUri = "index_of.html";
+                    if (per == 2)
+                        setStatusRootPlusUri("501");
+                    else if(per == 1)
+                        setStatusRootPlusUri("403");
+                    else
+                        rootUri = "index_of.html";
                 }
                 else
-                {
-                    rootUri = error_page["403"];
-                    status = "403";
-                }
+                    setStatusRootPlusUri("403");
+                return 0;
+            }
+            if (!checkPermession(rootUri))
+            {
+                setStatusRootPlusUri("403");
                 return 0;
             }
         }
     }
     else if (!pathIsFile(rootUri))
     {
-        rootUri = error_page["404"];
-        status = "404";
+        setStatusRootPlusUri("404");
         return 0;
+    }
+    else if (checkPermession(rootUri))
+    {
+        setStatusRootPlusUri("403");
+        return  0;
     }
     return 1;
 }
@@ -566,14 +587,19 @@ void Servers::SetUriRoot(int i, string &uri)
             if (locations[i].permession & AUTOINDEX)
             {
                 SetIndex_Of(locations[i].root + "/" + uri);
-                rootUri = "index_of.html";
+                if (per == 2)
+                    setStatusRootPlusUri("501");
+                else if(per == 1)
+                    setStatusRootPlusUri("403");
+                else
+                    rootUri = "index_of.html";
             }
             else
-            {
-                rootUri = error_page["404"];
-                status = "404";
-            }
+                setStatusRootPlusUri("403");
+            return ;
         }
+        if (!checkPermession(rootUri))
+            setStatusRootPlusUri("403");
     }
 }
 
@@ -614,6 +640,15 @@ void Servers::SetRederectionResp(vector<string> &redirect)
     rootUri = "";
     status = "301 \r\nLocation: " + redirect[1];
 }
+bool Servers::checkPermession(string _path)
+{
+    struct stat stat_info;
+    if(stat(_path.c_str(),&stat_info) < 0)
+        return 0;
+    if (!(stat_info.st_mode & S_IRUSR))
+        return 0;
+    return 1;
+}
 void Servers::FillData(string uri, string mehtod)
 {
     FillQuerys(uri);
@@ -634,18 +669,14 @@ void Servers::FillData(string uri, string mehtod)
             if (pathIsFile(rootUri) == 3)
             {
                 if (MatchingWithRoot(rootUri, locations[def].root))
-                {
-                    rootUri = error_page["403"];
-                    status = "403";
-                }
+                    setStatusRootPlusUri("403");
                 else if (mehtod == "GET" || mehtod == "POST")
                     SetUriRoot(def, uri);
             }
             else if (!pathIsFile(rootUri))
-            {
-                rootUri = error_page["404"];
-                status = "404";
-            }
+                setStatusRootPlusUri("404");
+            else if (!checkPermession(rootUri))
+                setStatusRootPlusUri("403");
             UriLocation = locations[def];
         }
     }
@@ -660,9 +691,10 @@ void Servers::FillData(string uri, string mehtod)
 Servers::Servers()
 {
     char resolvedPath[PATH_MAX];
+    per = 0;
     realpath("./html", resolvedPath);
     root = resolvedPath;
-    client_max_body_size = 100000;
+    client_max_body_size = 1000000;
     host = "127.0.0.1";
     index.push_back("index_webserv.html");
     port = 8080;
