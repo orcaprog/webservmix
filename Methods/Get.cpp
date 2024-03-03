@@ -11,7 +11,7 @@ Get::Get(){
 }
 
 
-Get::Get(const Get& oth){
+Get::Get(const Get& oth) : Method(oth){
     set_extentions();
     head_size = 0;
     content_len = -1;

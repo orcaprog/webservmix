@@ -1,30 +1,47 @@
 <!DOCTYPE html>
-<html>
-    <head>
-
-    </head>
-    <body>
-    <?php
-    if(isset($_POST["submit"]))
-    {
-        $username=$_POST["username"];
-        $password=$_POST["password"];
-        if($username == "molchi" && $password == "123")
-        {
-            echo "Your Information is correct";
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin-top: 100px;
         }
-        else
-        {
-            echo "user name or password  is not  correct";
+        .container {
+            width: 300px;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            margin: 0 auto;
         }
-    }
-    ?>
-        <form action="" method="POST">
-            User Name :<input type="text" name="username">
-        </br>
-            Pass word:<input type="text" name="password">
-        </br>
-        <input type="submit" name="submit" value="Log in">
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Login Form</h2>
+        <?php
+        if(isset($_POST["submit"])) {
+            $username = $_POST["username"];
+            $password = $_POST["password"];
+            if($username == "molchi" && $password == "123") {
+                echo "<p style='color: green;'>Your information is correct. Welcome, $username!</p>";
+            } else {
+                echo "<p style='color: red;'>Username or password is incorrect. Please try again.</p>";
+            }
+        }
+        ?>
+        <form method="post">
+            <label for="username">Username:</label>
+            <input type="text" name="username" required><br>
+            <label for="password">Password:</label>
+            <input type="password" name="password" required><br>
+            <button type="submit" name="submit">Login</button>
         </form>
-    </body>
+    </div>
+</body>
 </html>

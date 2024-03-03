@@ -61,12 +61,13 @@ private:
     void FillQuerys(string & uri);
     void SetDefaultError();
     void SetRederectionResp(vector<string> & redirect);
+    void CheckAllowd();
     std::vector<std::string> s_erorr;
     std::vector<std::string> Vstrvalid;
+    std::vector<std::string> vAlowed;
     Location FirstFill(size_t & index);
     vector<string> locationPath;
     size_t GetIndex(std::string dir);
-
 public:
     int port;
     int server_fd;

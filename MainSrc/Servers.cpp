@@ -71,7 +71,7 @@ int Servers::checkDup(std::string der, int &index)
             dup++;
         }
         if (dup > 1)
-            throw "Error duplicate derective \n";
+            throw "Error duplicate derective '" + der + "' \n";
         i++;
     }
     return (dup);
@@ -92,7 +92,7 @@ void Servers::SetPorts()
 
     arg = servconf[i][1];
     int myport = std::atoi(arg.c_str());
-    if (arg.size() > 5 ||!check_isdigit(arg) || myport > 65535)
+    if (arg.size() > 5 || !check_isdigit(arg) || myport > 65535)
         throw("invalid port in '" + arg + "' of the  directive \n");
 
     port = myport;
@@ -107,7 +107,7 @@ void Servers::SetServerName(vector<string> &ser_names)
     int num = checkDup("server_name", i);
     if (num == 0)
         return;
-    if (servconf[i].size()  < 2)
+    if (servconf[i].size() < 2)
         throw "Invalid number of arguments in 'server_name' directive \n";
     arg = servconf[i][1];
     server_name.clear();
@@ -234,10 +234,23 @@ void Servers::SetError_page()
         }
     }
 }
-
-void Servers::SetAllDir(vector<string> &ser_names )
+void Servers::CheckAllowd()
+{
+    size_t i = 0;
+    size_t ind = GetIndex("location");
+    while (i < servconf.size() && i < ind)
+    {
+        if (find(vAlowed.begin(),vAlowed.end(),servconf[i][0]) != vAlowed.end())
+        {
+            throw "Error : '" + servconf[i][0] + "' directive is not allowed here \n";
+        }
+        i++;
+    }
+}
+void Servers::SetAllDir(vector<string> &ser_names)
 {
     FillValid();
+    CheckAllowd();
     SetHost();
     SetRoot();
     SetPorts();
@@ -269,7 +282,7 @@ Location Servers::FirstFill(size_t &i)
     Location loaction;
     std::vector<std::string>::iterator iter;
     if (servconf[i][0] != "location")
-        throw "no location'" + servconf[i][0] + "' \n";
+        throw "Error: Expected 'location' configuration, in '" + servconf[i][0] + " ' \n";
     loaction.vlocation.push_back(servconf[i]);
     i++;
     if (servconf[i][0] != "{")
@@ -322,9 +335,14 @@ void Servers::FillValid()
     Vstrvalid.push_back("autoindex");
     Vstrvalid.push_back("upload");
     Vstrvalid.push_back("cgi_path");
+
+    vAlowed.push_back("return");
+    vAlowed.push_back("upload_path");
+    vAlowed.push_back("allow_methods");
+    vAlowed.push_back("autoindex");
+    vAlowed.push_back("upload");
+    vAlowed.push_back("cgi_path");
 }
-
-
 
 /*#############################################################*/
 /*CREATE SOKCET*/
@@ -377,7 +395,7 @@ void Servers::CreatSocketServer(std::map<int, vector<Servers> > &msockets)
         server_fd = -1;
         return;
     }
-    cout<<"Server is now running.... is listening on " <<host<<":"<<port<<".\n";
+    cout << "Server is now running.... is listening on " << host << ":" << port << ".\n";
 }
 /*#############################################################*/
 void Servers::SetIndex_Of(string path)
@@ -447,7 +465,7 @@ bool Servers::operator==(const Servers &ser)
 }
 bool Servers::operator==(const string &servername)
 {
-    if (find(server_name.begin(),server_name.end(),servername) != server_name.end())
+    if (find(server_name.begin(), server_name.end(), servername) != server_name.end())
         return 1;
     return 0;
 }
@@ -511,7 +529,7 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
         {
             if (!JoinIndexRoot(in))
             {
-                if (locations[in].permession & AUTOINDEX )
+                if (locations[in].permession & AUTOINDEX)
                 {
                     SetIndex_Of(hold);
                     rootUri = "index_of.html";
@@ -610,7 +628,7 @@ void Servers::FillData(string uri, string mehtod)
             if (locations[def].permession & REDIR)
             {
                 SetRederectionResp(locations[def].redirect);
-                return ;
+                return;
             }
             rootUri = locations[def].root + uri;
             if (pathIsFile(rootUri) == 3)

@@ -40,7 +40,6 @@ private:
         int  checkDup(std::string der,int & index);
         int pathIsFile(std::string path);
         void CheckMethods(std::string methd);
-        void FillValid();
         void SetIndex();
         void SetPath(vector<string>& locpath);
         void SetAllowMethods();
@@ -53,7 +52,6 @@ private:
         bool get;
         bool post;
         bool dele;
-        std::vector<std::string> Vstrvalid;
         size_t GetIndex(std::string dir);
         string ServRoot;
         vector<string>  Servindex;

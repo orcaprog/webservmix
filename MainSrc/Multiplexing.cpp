@@ -61,7 +61,6 @@ void Multiplexing::Out_Events(int n)
 
         if (bytesWritten <= 0 || mClients[events[n].data.fd].resp_done())
         {
-            cout<<"connections with client["<<events[n].data.fd<<"]  is closed from server"<<endl;
             CloseClient(n);
         }
     }
@@ -77,7 +76,6 @@ void Multiplexing::In_Events(int n)
     bytesRead = recv(events[n].data.fd,buffer,1024,0);
     if (bytesRead <= 0) 
     {
-        std::cout<<"Connection closed by client ["<<events[n].data.fd<<"]\n"; 
         CloseClient(n);
     }
     else 

@@ -48,7 +48,7 @@ Post::Post()
 }
 
 
-Post::Post(const Post& post)
+Post::Post(const Post& post) : Method(post)
 {
     *this = post;
 }
@@ -679,14 +679,14 @@ void    Post::ft_boundary(std::string& body)
 
 std::string Post::find_ext()
 {
-    size_t i;
+    long int i;
     if (!fullUri_path.size())
     {
         return std::string("");       
     }
     for (i = fullUri_path.size() - 1; i >= 0 && fullUri_path[i]!= '.'; i--);
 
-    if (!i || i == fullUri_path.size() - 1)
+    if (!i || (size_t)i == fullUri_path.size() - 1)
     {
         return std::string("");
     }
@@ -766,7 +766,7 @@ char **Post::set_env()
 void Post::script_name()
 {
     size_t i = fullUri_path.find(".");
-    size_t find;
+    long find;
     while (i != std::string::npos)
     {
         find = i;
