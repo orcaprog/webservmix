@@ -117,12 +117,12 @@ int Request::parce_rline(const string &rline){
     string tmp;
     ss<<rline;
     getline(ss, tmp, ' ');
-    if (tmp != "GET" && tmp != "POST" && tmp != "DELETE"){
+    type = tmp;
+    if (type != "GET" && type != "POST" && type != "DELETE"){
         error = Method_Unkounu;
         return 0;
     }
-    method_type = (tmp == "GET") + (tmp == "POST")*2 + (tmp == "DELETE")*4;
-    type = tmp;
+    method_type = (type == "GET") + (type == "POST")*2 + (type == "DELETE")*4;
     getline(ss, tmp, ' ');
     uri = tmp;
     if (!is_uri_valid(uri)){
@@ -203,8 +203,13 @@ void Request::check_for_error(){
     Get get;
     if (error & Invalid_Header)
         err_page_name = "400";
-    else if (error & Method_Unkounu)
+    else if (error & Method_Unkounu){
         err_page_name = "501";
+        if (type == "HEAD"){
+            error_resp = "HTTP/1.1 501\r\n\r\n";
+            return ;
+        }
+    }
     else if (error & Not_Allowed_Method)
         err_page_name = "405";
     else if (error & Uri_Too_Long)
