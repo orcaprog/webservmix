@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/03/01 09:41:32 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/03/03 10:38:21 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,12 +43,13 @@ Post::Post()
     cmd = NULL;
     env = NULL;
     exit_status = 0;
-     add_i = 0;
+    add_i = 0;
+    err = 0;
     mimeType();
 }
 
 
-Post::Post(const Post& post)
+Post::Post(const Post& post) : Method(post)
 {
     *this = post;
 }
@@ -270,21 +271,6 @@ void Post::openFile(std::string body)
         error = 3;
         return ;
     }
-	if (MethodType != 3)
-	{
-        std::string time_B = creat_file_name(0);
-		std::string fileName = time_B;
-		std::string dot  = ".";
-		fileName = time_B + dot;
-		fileName = fileName + mimeVal;
-        the_file = fileName;
-		outFile.open(fileName.c_str(), std::ios::out | std::ios::binary);
-        if (!outFile.is_open())
-        {
-            error = 4;
-            return ;
-        }
-	}
     if (headers.find("Content-Length") != headers.end())
     {
         std::stringstream ss;
@@ -299,6 +285,25 @@ void Post::openFile(std::string body)
             return ;
         }
     }
+	if (MethodType != 3)
+	{
+        std::string time_B;
+        if (!(serv.UriLocation.permession & UPLOAD) && serv.Is_cgi)
+            time_B = creat_file_name(1);
+        else
+            time_B = creat_file_name(0);
+		std::string fileName = time_B;
+		std::string dot  = ".";
+		fileName = time_B + dot;
+		fileName = fileName + mimeVal;
+        the_file = fileName;
+		outFile.open(fileName.c_str(), std::ios::out | std::ios::binary);
+        if (!outFile.is_open())
+        {
+            error = 4;
+            return ;
+        }
+	}
 	if (MethodType == 3 || outFile.is_open())
 	{
         crfile = 1;
@@ -679,14 +684,14 @@ void    Post::ft_boundary(std::string& body)
 
 std::string Post::find_ext()
 {
-    size_t i;
+    long i;
     if (!fullUri_path.size())
     {
         return std::string("");       
     }
-    for (i = fullUri_path.size() - 1; i >= 0 && fullUri_path[i]!= '.'; i--);
+    for (i = (long)fullUri_path.size() - 1; i >= 0 && fullUri_path[i]!= '.'; i--);
 
-    if (!i || i == fullUri_path.size() - 1)
+    if (!i || i == (long)fullUri_path.size() - 1)
     {
         return std::string("");
     }
@@ -766,7 +771,7 @@ char **Post::set_env()
 void Post::script_name()
 {
     size_t i = fullUri_path.find(".");
-    size_t find;
+    long find;
     while (i != std::string::npos)
     {
         find = i;
