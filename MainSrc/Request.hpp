@@ -42,12 +42,12 @@ Servers serv;
 std::string uri;
 std::string http_v;
 std::string body;
+std::string type;
 public:
     int error;
     int body_state;
     clock_t startTime;
     Method* method;
-    std::string type;
     std::map<std::string, std::string> headers;
 
     Request();

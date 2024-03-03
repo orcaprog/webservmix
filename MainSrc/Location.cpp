@@ -12,27 +12,6 @@
 
 #include "Location.hpp"
 
-void Location::FillValid()
-{
-     Vstrvalid.push_back("listen");
-     Vstrvalid.push_back("server");
-     Vstrvalid.push_back("server_name");
-     Vstrvalid.push_back("host");
-     Vstrvalid.push_back("root");
-     Vstrvalid.push_back("error_page");
-     Vstrvalid.push_back("client_max_body_size");
-     Vstrvalid.push_back("index");
-     Vstrvalid.push_back("location");
-     Vstrvalid.push_back("{");
-     Vstrvalid.push_back("}");
-     Vstrvalid.push_back("return");
-     Vstrvalid.push_back("allow_methods");
-     Vstrvalid.push_back("autoindex");
-     Vstrvalid.push_back("upload");
-     Vstrvalid.push_back("cgi_path");
-}
-
-
 int Location::pathIsFile(std::string path)
 {
     struct stat fileStat;
@@ -85,27 +64,9 @@ int Location::checkDup(std::string der,int & index)
     return (dup);
 }
 
-// void Location::desplayLocation()
-// {
-
-//     // Printtwodom(vlocation,"location");
-//     cout<<"PATH :"<<path<<endl;
-//     cout<<"index :"<<index[0]<<endl;
-//     cout<<"permession:"<<permession<<endl;
-//     cout<<"Root :"<<root<<endl;
-//     map<string,string>::iterator iter = cgi_path.begin();
-//     while (iter != cgi_path.end())
-//     {
-//         cout<<"cgi_path :'"<<iter->first<<"' '"<<iter->second<<"'\n";
-//         iter++;
-//     }
-
-//     std::cout<<"index  :"<<index[0]<<std::endl;
-// }
-
 void Location::SetAllDir(vector<string>& locpath)
 {
-    FillValid();
+    
     SetRoot();
     SetAllowMethods();
     SetUpload();
@@ -337,7 +298,7 @@ void Location::SetReturn()
 
 Location::Location()
 {
-    permession = 7;
+    permession = 1;
     root = "";
     index.push_back("");
     upload_path = "";

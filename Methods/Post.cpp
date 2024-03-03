@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/02/29 16:25:39 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/03/03 10:38:21 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,12 +43,13 @@ Post::Post()
     cmd = NULL;
     env = NULL;
     exit_status = 0;
-     add_i = 0;
+    add_i = 0;
+    err = 0;
     mimeType();
 }
 
 
-Post::Post(const Post& post)
+Post::Post(const Post& post) : Method(post)
 {
     *this = post;
 }
@@ -208,13 +209,11 @@ void Post::openFile(std::string body)
 			MethodType = 1;
         else if ((headers.find("Transfer-Encoding"))->second == "chunked"&& tmp_C.find("boundary=") != std::string::npos)
         {
-            std::cout << "Transfer-Encoding\n";
             error = 6;
             return ;
         }
         else if ((headers.find("Transfer-Encoding"))->second != "chunked")
         {
-            std::cout << "Transfer-Encoding1\n";
             error = 6;
             return ;
         }
@@ -272,21 +271,6 @@ void Post::openFile(std::string body)
         error = 3;
         return ;
     }
-	if (MethodType != 3)
-	{
-        std::string time_B = creat_file_name(0);
-		std::string fileName = time_B;
-		std::string dot  = ".";
-		fileName = time_B + dot;
-		fileName = fileName + mimeVal;
-        the_file = fileName;
-		outFile.open(fileName.c_str(), std::ios::out | std::ios::binary);
-        if (!outFile.is_open())
-        {
-            error = 4;
-            return ;
-        }
-	}
     if (headers.find("Content-Length") != headers.end())
     {
         std::stringstream ss;
@@ -301,6 +285,25 @@ void Post::openFile(std::string body)
             return ;
         }
     }
+	if (MethodType != 3)
+	{
+        std::string time_B;
+        if (!(serv.UriLocation.permession & UPLOAD) && serv.Is_cgi)
+            time_B = creat_file_name(1);
+        else
+            time_B = creat_file_name(0);
+		std::string fileName = time_B;
+		std::string dot  = ".";
+		fileName = time_B + dot;
+		fileName = fileName + mimeVal;
+        the_file = fileName;
+		outFile.open(fileName.c_str(), std::ios::out | std::ios::binary);
+        if (!outFile.is_open())
+        {
+            error = 4;
+            return ;
+        }
+	}
 	if (MethodType == 3 || outFile.is_open())
 	{
         crfile = 1;
@@ -681,14 +684,14 @@ void    Post::ft_boundary(std::string& body)
 
 std::string Post::find_ext()
 {
-    size_t i;
+    long i;
     if (!fullUri_path.size())
     {
         return std::string("");       
     }
-    for (i = fullUri_path.size() - 1; i >= 0 && fullUri_path[i]!= '.'; i--);
+    for (i = (long)fullUri_path.size() - 1; i >= 0 && fullUri_path[i]!= '.'; i--);
 
-    if (!i || i == fullUri_path.size() - 1)
+    if (!i || i == (long)fullUri_path.size() - 1)
     {
         return std::string("");
     }
@@ -736,7 +739,6 @@ char **Post::set_env()
     env[2] = new char[script_name.size() + 1];
     std::strcpy(env[2], script_name.c_str());
     ss << total_Body;
-    std::cout << ss.str() <<  std::endl;
     ss >> content_len;
     content_len =  "CONTENT_LENGTH=" + content_len;
     env[3] = new char[content_len.size() + 1];
@@ -769,7 +771,7 @@ char **Post::set_env()
 void Post::script_name()
 {
     size_t i = fullUri_path.find(".");
-    size_t find;
+    long find;
     while (i != std::string::npos)
     {
         find = i;
@@ -954,6 +956,12 @@ void Post::ft_error()
         get.get(serv.error_page["415"]);
         serv.status = "415";
     }
+    if (error == 10)
+    {
+        get.serv.status = "408";
+        get.get(serv.error_page["408"]);
+        serv.status = "408";
+    }
     respons = get.respons;
     if (get.end)
         end = 1;
@@ -963,7 +971,7 @@ void Post::ft_error()
 int Post::process(std::string body, int event)
 {
     pre_total_body = total_Body;
-    if (serv.status != "200 OK" &&  serv.status != "201" )
+    if (serv.status != "200 OK" &&  serv.status != "201 Created" )
     {
         if (event == EPOLLOUT)
         {
@@ -1033,7 +1041,7 @@ int Post::process(std::string body, int event)
     }
     if (end && !serv.Is_cgi && !error)
     {
-        serv.status = "201";
+        serv.status = "201 Created";
         respons = "HTTP/1.1 " + serv.status;
         respons += string("\r\nContent-Type: text/html\r\n");
         respons += string("Content-Length: 13");
@@ -1046,7 +1054,7 @@ int Post::process(std::string body, int event)
         {
             if ((clock() - start_time) / CLOCKS_PER_SEC > 5)
             {
-                error = 2;
+                error = 10;
             }   
         }
         else

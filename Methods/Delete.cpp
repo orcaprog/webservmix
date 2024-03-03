@@ -17,6 +17,14 @@ int Delete::process(string body, int event)
     if(event == EPOLLOUT)
     {
         Get get;
+        if(serv.status != "200 OK")
+        {
+            get.serv.status = serv.status;
+            get.get(serv.error_page[serv.status]);
+            respons = get.respons;
+            end = 1;
+            return 0;
+        }
         if(deleted) 
         {
             RemoveAllPath(serv.rootUri);
@@ -61,7 +69,7 @@ int  Delete::my_remove(std::string file)
 
 string PatentOfFile(string & fullPath)
 {
-    size_t len = fullPath.length();
+    long  len = fullPath.length();
     len--;
     while (len >= 0 && fullPath[len] != '/')
     {
@@ -106,7 +114,6 @@ void Delete::RemoveAllPath(std::string path)
         status = 1;
         return ;
     }
-
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) 
     {
