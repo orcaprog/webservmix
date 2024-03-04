@@ -620,7 +620,7 @@ void Servers::SetUriRoot(int i, string &uri)
         {
             if (locations[i].permession & AUTOINDEX)
             {
-                SetIndex_Of(locations[i].root + "/" + uri);
+                SetIndex_Of(rootUri);
                 if(per == 1)
                     setStatusRootPlusUri("403");
                 else
