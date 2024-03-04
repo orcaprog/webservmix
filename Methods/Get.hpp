@@ -32,7 +32,7 @@ int check_headers();
 void read_file();
 void set_content_length(string line);
 public:
-    void get_err_page(const string& err_p_name);
+    void get_err_page();
     Get();
     Get(const Get& oth);
     Get& operator=(const Get& oth);

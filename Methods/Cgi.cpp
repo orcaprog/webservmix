@@ -72,7 +72,7 @@ void Cgi::exec_cgi(const string& fullUri_path){
         if (!set_cmd(fullUri_path)){
             cgi_execueted = 1;
             get.serv.status = "415";
-            get.get_err_page(serv.error_page["415"]);
+            get.get(serv.error_page["415"]);
             return ;
         }
         set_env(fullUri_path);
@@ -100,8 +100,9 @@ void Cgi::waiting(){
         if (WEXITSTATUS(exit_stat)){
             std::remove(out_file.c_str());
             get.serv.status = "500";
-            get.get_err_page(serv.error_page["500"]);
-            resp_done = 1;
+            get.get(serv.error_page["500"]);
+            if (get.end)
+                resp_done = 1;
         }
     }
     else{
@@ -117,7 +118,7 @@ void Cgi::kill_proc(int return_err_page){
     cgi_execueted = 1;
     if (return_err_page){
         get.serv.status = "504";
-        get.get_err_page(serv.error_page["504"]);
+        get.get(serv.error_page["504"]);
     }
     resp_done = 1;
 }

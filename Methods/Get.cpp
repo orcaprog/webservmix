@@ -171,7 +171,7 @@ int Get::set_content_type(const string& file_name){
         content_type = "application/octet-stream";
     else{
         serv.status = "415";
-        get_err_page(serv.error_page["415"]);
+        get(serv.error_page["415"]);
         return 0;
     }
     return 1;
@@ -244,7 +244,7 @@ void Get::open_file(const string& file_name){
     src_file.open(file_name.c_str(), ios::in);
     opened = 1;
     if (!src_file.is_open()){
-        get_err_page(serv.error_page[serv.status]);
+        get_err_page();
         opened = -1;
         return;
     }
@@ -299,34 +299,17 @@ int Get::process(string body, int event){
     return 0;
 }
 
-void Get::get_err_page(const string& err_p_name){
-    string res;
-    fstream err_page;
+void Get::get_err_page(){
+    string body_res;
+    stringstream c_len;
 
-    res.resize(1000);
-    err_page.open(err_p_name.c_str(), ios::in);
-    if (err_page.is_open()){
-        err_page.seekg(0, std::ios::end);
-        file_len = err_page.tellg();
-        err_page.seekg(0, std::ios::beg);
-        content_type = "text/html";
-        set_headers();
-        err_page.read(&res[0],1000);
-        res.resize(err_page.gcount());
-        respons += res;
-        end = 1;
-    }
-    else{
-        string body_res;
-        stringstream c_len;
-        respons = "HTTP/1.1 "+ serv.status + string("\r\nContent_Type: text/html\r\n");
-        body_res += "<title>"+ err_pages[serv.status] +string("</title>");
-        body_res += "<body><h1>"+ err_pages[serv.status] +string("</h1></body>");
-        c_len << body_res.size();
-        respons += "Content_Length: " + c_len.str() + string("\r\n\r\n");
-        respons += body_res;
-        end = 1;
-    }
+    respons = "HTTP/1.1 "+ serv.status + string("\r\nContent_Type: text/html\r\n");
+    body_res += "<title>"+ err_pages[serv.status] +string("</title>");
+    body_res += "<body><h1>"+ err_pages[serv.status] +string("</h1></body>");
+    c_len << body_res.size();
+    respons += "Content_Length: " + c_len.str() + string("\r\n\r\n");
+    respons += body_res;
+    end = 1;
 }
 
 Get::~Get(){
