@@ -13,6 +13,7 @@
 #include "MainSrc/ParceConf.hpp"
 #include "MainSrc/Multiplexing.hpp"
 #include <exception>
+
 int main(int ac , char **av)
 {
     (void)ac;
@@ -40,5 +41,4 @@ int main(int ac , char **av)
         cout<<ex.what()<<endl;
         cout<<string::npos<<endl;
     }
-    
 }
