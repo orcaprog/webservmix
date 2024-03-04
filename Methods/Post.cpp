@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/03/03 10:38:21 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/03/03 12:34:16 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ Post::Post()
     exit_status = 0;
     add_i = 0;
     err = 0;
+    true_end = 0;
     mimeType();
 }
 
@@ -63,6 +64,42 @@ Post& Post::operator=(const Post& post)
 Post::~Post()
 {
 
+    if ((access(the_file.c_str(),F_OK ) == 0 || MethodType == 3 )  && (error || !true_end))
+    {
+        if (MethodType == 3)
+        {
+            for (size_t i = 0; i < name_bound.size(); i++)
+            {
+                int rem = std::remove(name_bound[i].c_str());
+                if (rem)
+                {
+                    error = 4;
+                    error_time = 1;
+                }
+            }
+        }
+        else
+        {
+            int rem = std::remove(the_file.c_str());
+            if (rem)
+            {
+                error = 4;
+                error_time = 1;
+            }
+        }
+    }
+    if (serv.Is_cgi)
+    {
+        if (access(ran_file.c_str(),F_OK ) == 0)
+        {
+            int rem = std::remove(ran_file.c_str());
+            if (rem)
+            {
+                error = 4;
+            }
+        }
+        error_time = 1;
+    }
     if (env)
     {
         for (int i = 0; env[i]; i++)
@@ -1065,5 +1102,7 @@ int Post::process(std::string body, int event)
     }
     else
         time_out = 0;
+    if (end)
+        true_end = 1;
     return 1; 
 }
