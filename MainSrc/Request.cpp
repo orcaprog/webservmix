@@ -19,6 +19,7 @@ Request::Request(const vector<Servers>& vser){
     body_size = 0;
     error = 0;
     ser_vec = vser;
+    serv = ser_vec[0];
     is_cgi = 0;
     valid_uri = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!%$&'()*+,;=";
 }
@@ -41,6 +42,7 @@ Request& Request::operator=(const Request& oth){
         headers = oth.headers;
         uri = oth.uri;
         ser_vec = oth.ser_vec;
+        serv = oth.serv;
         is_cgi = oth.is_cgi;
         valid_uri = oth.valid_uri;
         err_end = oth.err_end;

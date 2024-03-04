@@ -288,7 +288,7 @@ void Post::openFile(std::string body)
                 mimeVal = "";
                 content_type = "application/octet-stream";
             }
-            if (serv.Is_cgi && !headers.find("Content-Type")->second.size())
+            if (serv.Is_cgi && headers.find("Content-Type")->second.size())
             {
                 content_type = (headers.find("Content-Type")->second);
             }

@@ -277,7 +277,7 @@ void Location::SetUpload_path()
     if (vlocation[i].size() != 2 )
         throw "Invalid number of arguments in 'upload_path' directive \n";
     arg = vlocation[i][1];
-    if (pathIsFile(arg) != 3 || !checkPermession(arg,S_IWUSR))
+    if (pathIsFile(arg) != 3 || !checkPermession(arg,S_IWUSR | S_IXUSR))
         throw "Error : Path is not valid to upload or is not a directory\n";
     upload_path = arg;
 }
