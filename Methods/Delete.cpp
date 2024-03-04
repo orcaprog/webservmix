@@ -140,7 +140,6 @@ void Delete::RemoveAllPath(std::string path)
     my_remove(path);
 }
 
-
 Delete::~Delete()
 {
 }

@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/03/04 12:39:47 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/03/04 16:21:27 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -283,12 +283,7 @@ void Post::openFile(std::string body)
 		}
 		else
 		{
-            if (!headers.find("Content-Type")->second.size())
-            {
-                mimeVal = "";
-                content_type = "application/octet-stream";
-            }
-            if (serv.Is_cgi && headers.find("Content-Type")->second.size())
+            if (serv.Is_cgi)
             {
                 content_type = (headers.find("Content-Type")->second);
             }
@@ -896,23 +891,6 @@ char **Post::set_env()
         std::strcpy(env[9], cookie.c_str());
     }
     env[9 + is_cokie] = NULL;
-        if (!env[1])
-    {
-        delete[] env[0];
-        delete[] env[1];
-        delete[] env[2];
-        delete[] env[3];
-        delete[] env[4];
-        delete[] env[5];
-        delete[] env[6];
-        delete[] env[7];
-        delete[] env[8];
-        if (is_cokie)
-            delete[] env[9];
-        delete[] env[9 + is_cokie];
-        delete[] env;
-        return NULL;
-    }
     return env;
 }
 
@@ -950,7 +928,6 @@ void Post::exe_cgi()
         if (!env)
         {
             error = 4;
-            std::cout << " env \n";
             return ;
         }
         if (serv.UriLocation.cgi_path.find(ext) != serv.UriLocation.cgi_path.end())
@@ -960,7 +937,6 @@ void Post::exe_cgi()
             if (!cmd)
             {
                 error = 4;
-                std::cout << " cmd \n";
                 return ;
             }
         }
@@ -976,6 +952,7 @@ void Post::exe_cgi()
         if (pid < 0)
         {
             error = 4;
+            return ;
         }
         if (pid == 0)
         {
@@ -1003,7 +980,7 @@ void Post::exe_cgi()
         int exit_status1 = WEXITSTATUS(exit_status);
         if (exit_status1)
         {
-            error = 6;
+            error = 4;
         }
         else
             cgi_exe = 1;

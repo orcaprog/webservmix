@@ -21,7 +21,7 @@ int main(int ac , char **av)
     try
     {
         if(ac != 2)
-            conf = "";
+            conf = "default.conf";
         else 
             conf = av[1];
         Multiplexing mult(conf);
@@ -32,13 +32,13 @@ int main(int ac , char **av)
     {
         std::cerr << e<< '\n';
     }
-    catch(const char * e)
+        catch(const char * e)
     {
         std::cerr << e<< '\n';
     }
     catch(exception & ex)
     {
         cout<<ex.what()<<endl;
-        cout<<string::npos<<endl;
     }
+    
 }

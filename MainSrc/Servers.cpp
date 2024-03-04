@@ -423,7 +423,7 @@ void Servers::SetIndex_Of(string _path)
         index_Of << "<head>" << endl;
         index_Of << "    <title>Index of /</title>" << endl;
         index_Of << "</head>" << endl;
-        index_Of << "." << std::endl;
+        index_Of << "<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">" << std::endl;
         index_Of << "<body>" << endl;
         index_Of << "    <h1>Index of /</h1>" << endl;
         index_Of << "    <hr>" << endl;
