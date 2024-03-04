@@ -51,8 +51,8 @@ private:
     Servers FirstFill();
     void FillServers();
     void FillServersLocations();
+    void CloseServesError();
 public:
-    void DefaultServer();
     void TakeAndParce(std::string confgfile);
     void FillValid();
     std::vector<string> ser_names;

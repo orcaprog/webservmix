@@ -86,6 +86,8 @@ void Cgi::exec_cgi(const string& fullUri_path){
         }
         if (pid == 0){
             file = fopen(out_file.c_str(), "w");
+            if (file == NULL)
+                exit(1);
             dup2(file->_fileno,STDOUT_FILENO);
             if(chdir(cgi_dir.c_str()) || execve(cmd,cmds,env) == -1)
                 exit(1);

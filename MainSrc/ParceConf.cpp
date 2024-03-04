@@ -51,23 +51,11 @@ std::vector<std::string> ParceConf::Split_line(std::string line)
     return vline;
 }
 
-void ParceConf::DefaultServer()
-{
-    Servers ser;
-    ser.FillLocation();
-    ser.CreatSocketServer(msockets);
-    msockets[ser.server_fd].push_back(ser);
-}
 void ParceConf::TakeAndParce(std::string confgfile)
 {
     std::ifstream configfile;
     std::string line;
     std::vector<std::string> _split;
-    if (confgfile.empty())
-    {
-        DefaultServer();
-        return;
-    }
 
     configfile.open(confgfile.c_str(), std::ios::in);
     if (configfile.is_open())
@@ -150,6 +138,15 @@ void ParceConf::FillServers()
         Vservers.push_back(FirstFill());
 }
 
+void ParceConf::CloseServesError()
+{
+    std::map<int, vector<Servers> >::iterator iter = msockets.begin();
+    while (iter != msockets.end())
+    {
+        close(iter->first);
+        iter++;
+    }
+}
 void ParceConf::FillServersLocations()
 {
     FillServers();
@@ -165,7 +162,10 @@ void ParceConf::FillServersLocations()
             hold = msockets[Vservers[i].server_fd];
             iter = find(hold.begin(), hold.end(), "");
             if (iter != hold.end() && hold.size() > 1)
+            {
+                CloseServesError();
                 throw "Error : Conflicting same host and port and no exsist of servername\n";
+            }
         }
         i++;
     }

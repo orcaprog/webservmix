@@ -74,6 +74,7 @@ void Get::set_extentions(){
     types["webp"] = "image/webp";
     types["ico"] = "image/x-icon";
     types["jng"] = "image/x-jng";
+    types["jpg"] = "image/jpg";
     types["bmp"] = "image/x-ms-bmp";
     types["woff"] = "font/woff";
     types["woff2"] = "font/woff2";

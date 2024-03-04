@@ -199,7 +199,6 @@ int Request::parce_req(const string &req)
 }
 
 void Request::check_for_error(int event){
-    cout<<"err_end: "<<err_end<<endl;
     if (!error || err_end || event == EPOLLIN)
         return;
     
@@ -281,8 +280,6 @@ string Request::get_respons() const{
     if (!method)
         return("");
     if (is_cgi){
-        if (cgi.get.respons.size())
-            cout<<"cgi_resp: "<<cgi.get.respons<<endl;
         return cgi.get.respons;
     }
     return (method->respons);

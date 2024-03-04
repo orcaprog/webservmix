@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/03/03 16:01:47 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/03/04 12:39:47 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,16 @@ Post::~Post()
 
 
 /*work*/
+
+int Post::is_num(std::string name)
+{
+    for (size_t i = 0; i < name.size(); i++)
+    {
+        if (!isdigit(name[i]))
+            return (0);
+    }
+    return (1);
+}
 
 std::string Post::creat_file_name(int ret)
 {
@@ -273,7 +283,12 @@ void Post::openFile(std::string body)
 		}
 		else
 		{
-            if (serv.Is_cgi)
+            if (!headers.find("Content-Type")->second.size())
+            {
+                mimeVal = "";
+                content_type = "application/octet-stream";
+            }
+            if (serv.Is_cgi && !headers.find("Content-Type")->second.size())
             {
                 content_type = (headers.find("Content-Type")->second);
             }
@@ -294,8 +309,14 @@ void Post::openFile(std::string body)
     if (headers.find("Content-Length") != headers.end())
     {
         std::stringstream ss;
+        if (!is_num(headers.find("Content-Length")->second))
+        {
+            error = 3;
+            return ;
+        }
         ss << headers.find("Content-Length")->second;
-        ss >> size_len;        
+        ss >> size_len;   
+             
     }
     else
     {
@@ -709,6 +730,16 @@ char **Post::set_cmd(std::string& ext_path)
     cmd[0] = new char[ext_path.size() + 1];
     cmd[1] = new char[name_of_script.size() + 1];
     cmd[2] = NULL;
+    if (!cmd || !cmd[0] || !cmd[1])
+    {
+        if (cmd[0])
+            delete[] cmd[0];
+        if (cmd[1])
+            delete[] cmd[1];
+        if (cmd)
+            delete[] cmd;
+        return NULL;
+    }
     std::strcpy(cmd[0], ext_path.c_str());
     std::strcpy(cmd[1], name_of_script.c_str());
     return cmd;
@@ -734,40 +765,154 @@ char **Post::set_env()
         cookie = headers.find("Cookie")->second;
     }
 	char **env = new char*[10 + is_cokie];
+    if (!env)
+        return NULL;
     env[0] = new char[strlen("REDIRECT_STATUS=HTTP/1.1 200 OK") + 1];
+    if (!env[0])
+    {
+        delete[] env;
+        return NULL;
+    }
     std::strcpy(env[0], "REDIRECT_STATUS=HTTP/1.1 200 OK");
     env[1] = new char[strlen("REQUEST_METHOD=POST") + 1];
+    if (!env[1])
+    {
+        delete[] env[0];
+        delete[] env;
+        return NULL;
+    }
     std::strcpy(env[1], "REQUEST_METHOD=POST");
     script_name = "SCRIPT_FILENAME=" + fullUri_path;
     env[2] = new char[script_name.size() + 1];
+    if (!env[2])
+    {
+        delete[] env[0];
+        delete[] env[1];
+        delete[] env;
+        return NULL;
+    }
     std::strcpy(env[2], script_name.c_str());
     ss << total_Body;
     ss >> content_len;
     content_len =  "CONTENT_LENGTH=" + content_len;
     env[3] = new char[content_len.size() + 1];
+    if (!env[3])
+    {
+        delete[] env[0];
+        delete[] env[1];
+        delete[] env[2];
+        delete[] env;
+        return NULL;
+    }
     std::strcpy(env[3], content_len.c_str());
     cont_type = "CONTENT_TYPE=" + content_type;
     env[4] = new char[cont_type.size() + 1];
+    if (!env[4])
+    {
+        delete[] env[0];
+        delete[] env[1];
+        delete[] env[2];
+        delete[] env[3];
+        delete[] env;
+        return NULL;
+    }
     std::strcpy(env[4], cont_type.c_str());
     info_path = "PATH_INFO=" + fullUri_path;
     env[5] = new char[info_path.size() + 1];
+    if (!env[5])
+    {
+        delete[] env[0];
+        delete[] env[1];
+        delete[] env[2];
+        delete[] env[3];
+        delete[] env[4];
+        delete[] env;
+        return NULL;
+    }
     std::strcpy(env[5], info_path.c_str());
     serv_prt = "SERVER_PROTOCOL=HTTP/1.1";
     env[6] = new char[serv_prt.size() + 1];
+        if (!env[6])
+    {
+        delete[] env[0];
+        delete[] env[1];
+        delete[] env[2];
+        delete[] env[3];
+        delete[] env[4];
+        delete[] env[5];
+        delete[] env;
+        return NULL;
+    }
     std::strcpy(env[6], serv_prt.c_str());
     std::string nameScript = "SCRIPT_NAME=" + name_of_script;
     env[7] = new char[nameScript.size() + 1];
+    if (!env[7])
+    {
+        delete[] env[0];
+        delete[] env[1];
+        delete[] env[2];
+        delete[] env[3];
+        delete[] env[4];
+        delete[] env[5];
+        delete[] env[6];
+        delete[] env;
+        return NULL;
+    }
     std::strcpy(env[7], nameScript.c_str());
     query_str = "QUERY_STRING=" + serv.querys;
     env[8] = new char[query_str.size() + 1];
+    if (!env[8])
+    {
+        delete[] env[0];
+        delete[] env[1];
+        delete[] env[2];
+        delete[] env[3];
+        delete[] env[4];
+        delete[] env[5];
+        delete[] env[6];
+        delete[] env[7];
+        delete[] env;
+        return NULL;
+    }
     std::strcpy(env[8], query_str.c_str());
     if (is_cokie)
     {
         cookie = "HTTP_COOKIE=" + cookie;
         env[9] = new char[cookie.size() + 1];
+        if (!env[9])
+        {
+            delete[] env[0];
+            delete[] env[1];
+            delete[] env[2];
+            delete[] env[3];
+            delete[] env[4];
+            delete[] env[5];
+            delete[] env[6];
+            delete[] env[7];
+            delete[] env[8];
+            delete[] env;
+            return NULL;
+        }
         std::strcpy(env[9], cookie.c_str());
     }
     env[9 + is_cokie] = NULL;
+        if (!env[1])
+    {
+        delete[] env[0];
+        delete[] env[1];
+        delete[] env[2];
+        delete[] env[3];
+        delete[] env[4];
+        delete[] env[5];
+        delete[] env[6];
+        delete[] env[7];
+        delete[] env[8];
+        if (is_cokie)
+            delete[] env[9];
+        delete[] env[9 + is_cokie];
+        delete[] env;
+        return NULL;
+    }
     return env;
 }
 
@@ -802,10 +947,22 @@ void Post::exe_cgi()
         }
         script_name();
         env = set_env();
+        if (!env)
+        {
+            error = 4;
+            std::cout << " env \n";
+            return ;
+        }
         if (serv.UriLocation.cgi_path.find(ext) != serv.UriLocation.cgi_path.end())
         {
             std::string ext_path = (serv.UriLocation.cgi_path.find(ext))->second;
             cmd = set_cmd(ext_path);
+            if (!cmd)
+            {
+                error = 4;
+                std::cout << " cmd \n";
+                return ;
+            }
         }
         else
         {
@@ -830,7 +987,7 @@ void Post::exe_cgi()
                 exit(3);
             if (!infile || !outfile)
             {
-                exit(2) ;
+                exit(2);
             }
 
             dup2(infile->_fileno, STDIN_FILENO);
@@ -974,7 +1131,7 @@ void Post::ft_error()
 int Post::process(std::string body, int event)
 {
     pre_total_body = total_Body;
-    if (serv.status != "200 OK" &&  serv.status != "201 Created" )
+    if (serv.status != "200 OK" &&  serv.status != "201 Created" && serv.Is_cgi)
     {
         if (event == EPOLLOUT)
         {
@@ -1004,8 +1161,6 @@ int Post::process(std::string body, int event)
     if (error && event == EPOLLOUT)
     {
         ft_error();
-        cout<<"res: "<<respons<<endl; 
-        cout<<"end: "<<end<<endl; 
         return 1;
     }
     if (crfile > 0 && body.size() == 2 && MethodType == 1 && !enter_cgi)

@@ -29,7 +29,6 @@ int err_end;
 string error_resp;
 Cgi cgi;
 Get get;
-Get get_timeout;
 vector<Servers> ser_vec;
 int parce_req(const string& req1);
 int parce_line(const string& line);
@@ -50,6 +49,7 @@ public:
     int error;
     int body_state;
     clock_t startTime;
+    Get get_timeout;
     Method* method;
     std::map<std::string, std::string> headers;
 

@@ -35,15 +35,17 @@ void Multiplexing::CloseClient(int & n)
 bool Multiplexing::CheckTimeOut(int n)
 {
     clock_t CurrentTime = clock();
+    string ress;
     if (mClients[events[n].data.fd].body_state)
         return 1;
     if(( double(CurrentTime - mClients[events[n].data.fd].startTime) / CLOCKS_PER_SEC  ) > SocketTimeout)
     {
-        Get get;
-        get.serv.status = "408";
-        get.get(get.serv.error_page["408"]);
-        write(events[n].data.fd , get.respons.c_str(), get.respons.size());
-        CloseClient(n);
+        mClients[events[n].data.fd].get_timeout.serv.status = "408";
+        mClients[events[n].data.fd].get_timeout.get(mClients[events[n].data.fd].get_timeout.serv.error_page["408"]);
+        ress = mClients[events[n].data.fd].get_timeout.respons;
+         ssize_t bytesWritten = write(events[n].data.fd ,ress.c_str(), ress.size());
+        if(bytesWritten <= 0 || mClients[events[n].data.fd].get_timeout.end)
+            CloseClient(n);
         return 0;
     }
     return 1;

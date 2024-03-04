@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/03/03 14:23:45 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/03/03 18:20:50 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,6 +114,7 @@ class Post : public Method
         void script_name();
 
         void ft_error();
+        int is_num(std::string name);
 
 
 

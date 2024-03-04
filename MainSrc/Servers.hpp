@@ -68,6 +68,11 @@ private:
     Location FirstFill(size_t & index);
     vector<string> locationPath;
     size_t GetIndex(std::string dir);
+    bool checkPermession(string _path,int mode);
+    void setStatusRootPlusUri(string  _status);
+    int per;
+    void deCodeUri(string _rootURi,string uri);
+    string decooding_uri(string uri);
 public:
     int port;
     int server_fd;
@@ -79,7 +84,7 @@ public:
     void FillLocation();
     void SetAllDir(vector<string> & ser_names);
     void CreatSocketServer( std::map<int,vector<Servers> > & msockets);
-    void SetIndex_Of(string path);
+    void SetIndex_Of(string _path);
     void FillData(string uri,string mehtod);
     double client_max_body_size;
     struct sockaddr_in address;
