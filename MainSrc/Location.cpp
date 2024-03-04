@@ -62,14 +62,14 @@ int Location::checkDup(std::string der,int & index)
     }
     return (dup);
 }
-bool Location::checkPermession(string _path,int mode)
+bool Location::checkPermession(string _path)
 {
     struct stat stat_info;
     if(stat(_path.c_str(),&stat_info) < 0)
         return 0;
-    if (!(stat_info.st_mode & mode))
-        return 0;
-    return 1;
+    if ((stat_info.st_mode & S_IXUSR) && (stat_info.st_mode & S_IWUSR))
+        return 1;
+    return 0;
 }
 
 void Location::SetAllDir(vector<string>& locpath)
@@ -277,8 +277,8 @@ void Location::SetUpload_path()
     if (vlocation[i].size() != 2 )
         throw "Invalid number of arguments in 'upload_path' directive \n";
     arg = vlocation[i][1];
-    if (pathIsFile(arg) != 3 || !checkPermession(arg,S_IWUSR))
-        throw "Error : Path is not valid to upload or is not a directory\n";
+    if (pathIsFile(arg) != 3 || !checkPermession(arg))
+        throw "Error : Path is not valid to upload or is not a directory or no permession .\n";
     upload_path = arg;
 }
 
