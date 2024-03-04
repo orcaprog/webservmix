@@ -52,7 +52,7 @@ private:
         bool get;
         bool post;
         bool dele;
-        bool checkPermession(string _path,int mode);
+        bool checkPermession(string _path);
         size_t GetIndex(std::string dir);
         string ServRoot;
         vector<string>  Servindex;
