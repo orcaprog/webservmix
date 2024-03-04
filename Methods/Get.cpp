@@ -104,7 +104,6 @@ void Get::set_extentions(){
     types["jardiff"] = "application/x-java-archive-diff";
     types["jnlp"] = "application/x-java-jnlp-file";
     types["run"] = "application/x-makeself";
-    types["pl"] = "application/x-perl";
     types["pdb"] = "application/x-pilot";
     types["rar"] = "application/x-rar-compressed";
     types["rpm"] = "application/x-redhat-package-manager";
@@ -293,7 +292,7 @@ void Get::read_file(){
 }
 
 int Get::process(string body, int event){
-    body_size += body.size();
+    (void)body;
     if (event == EPOLLIN)
         return 0;
     get(fullUri_path);

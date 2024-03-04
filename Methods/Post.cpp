@@ -914,55 +914,55 @@ void Post::ft_error()
     if (error == 2)
     {
         get.serv.status = "504";
-        get.get(serv.error_page["504"]);
+        get.get_err_page(serv.error_page["504"]);
         serv.status = "504";
     }
     else if (error == 3)
     {
         get.serv.status = "400";
-        get.get(serv.error_page["400"]);
+        get.get_err_page(serv.error_page["400"]);
         serv.status = "400";
     }
     else if (error == 4)
     {
         get.serv.status = "500";
-        get.get(serv.error_page["500"]);
+        get.get_err_page(serv.error_page["500"]);
         serv.status = "500";
     }
     if (error == 5)
     {
         get.serv.status = "411";
-        get.get(serv.error_page["411"]);
+        get.get_err_page(serv.error_page["411"]);
         serv.status = "411";
     }
     if (error == 6)
     {
         get.serv.status = "501";
-        get.get(serv.error_page["501"]);
+        get.get_err_page(serv.error_page["501"]);
         serv.status = "501";
     }
     if (error == 7)
     {
         get.serv.status = "413";
-        get.get(serv.error_page["413"]);
+        get.get_err_page(serv.error_page["413"]);
         serv.status = "413";
     }
     if (error == 8)
     {
         get.serv.status = "403";
-        get.get(serv.error_page["403"]);
+        get.get_err_page(serv.error_page["403"]);
         serv.status = "403";
     }
     if (error == 9)
     {
         get.serv.status = "415";
-        get.get(serv.error_page["415"]);
+        get.get_err_page(serv.error_page["415"]);
         serv.status = "415";
     }
     if (error == 10)
     {
         get.serv.status = "408";
-        get.get(serv.error_page["408"]);
+        get.get_err_page(serv.error_page["408"]);
         serv.status = "408";
     }
     respons = get.respons;

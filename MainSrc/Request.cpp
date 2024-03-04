@@ -219,7 +219,7 @@ void Request::check_for_error(){
     else if (error & Headers_Too_Large || error & Body_SizeTooLarge)
         err_page_name = "413";
     get.serv.status = err_page_name;
-    get.get(serv.error_page[err_page_name]);
+    get.get_err_page(serv.error_page[err_page_name]);
     error_resp = get.respons;
 }
 

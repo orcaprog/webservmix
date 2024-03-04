@@ -20,7 +20,7 @@ int Delete::process(string body, int event)
         if(serv.status != "200 OK")
         {
             get.serv.status = serv.status;
-            get.get(serv.error_page[serv.status]);
+            get.get_err_page(serv.error_page[serv.status]);
             respons = get.respons;
             end = 1;
             return 0;
@@ -38,14 +38,14 @@ int Delete::process(string body, int event)
         else if (status == 1)
         {
             get.serv.status = "403";
-            get.get(serv.error_page["403"]);
+            get.get_err_page(serv.error_page["403"]);
             respons = get.respons;
             end = 1;
         }
         else
         {
             get.serv.status = "500";
-            get.get(serv.error_page["500"]);
+            get.get_err_page(serv.error_page["500"]);
             respons = get.respons;
             end = 1;
         }
