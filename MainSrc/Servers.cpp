@@ -40,8 +40,11 @@ int Servers::pathIsFile(std::string path)
         else
             return 4;
     }
-    else
-        return 0;
+    if (access(path.c_str(), F_OK) != -1) 
+    {
+        return 1;
+    }
+    return 0;
 }
 
 bool Servers::check_isdigit(std::string str)
@@ -403,7 +406,7 @@ void Servers::SetIndex_Of(string _path)
     std::string line;
     std::vector<std::string> _split;
 
-    if (!checkPermession(_path ,S_IRUSR))
+    if (!checkPermession(_path))
     {
         per = 1;
         return ;
@@ -412,7 +415,7 @@ void Servers::SetIndex_Of(string _path)
     DIR *dir = opendir(_path.c_str());
     if (dir == NULL)
     {
-        per = 2;
+        per = 1;
         perror("Error opening directory");
         return;
     }
@@ -575,9 +578,7 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
                 if (locations[in].permession & AUTOINDEX)
                 {
                     SetIndex_Of(hold);
-                    if (per == 2)
-                        setStatusRootPlusUri("501");
-                    else if(per == 1)
+                    if(per == 1)
                         setStatusRootPlusUri("403");
                     else
                         rootUri = "index_of.html";
@@ -586,7 +587,7 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
                     setStatusRootPlusUri("403");
                 return 0;
             }
-            if (!checkPermession(rootUri,S_IRUSR))
+            if (!checkPermession(rootUri))
             {
                 setStatusRootPlusUri("403");
                 return 0;
@@ -598,7 +599,7 @@ int Servers::fillFromLocation(int &in, string &uri, string &method)
         setStatusRootPlusUri("404");
         return 0;
     }
-    else if (!checkPermession(rootUri,S_IRUSR))
+    else if (!checkPermession(rootUri))
     {
         setStatusRootPlusUri("403");
         return  0;
@@ -620,9 +621,7 @@ void Servers::SetUriRoot(int i, string &uri)
             if (locations[i].permession & AUTOINDEX)
             {
                 SetIndex_Of(locations[i].root + "/" + uri);
-                if (per == 2)
-                    setStatusRootPlusUri("501");
-                else if(per == 1)
+                if(per == 1)
                     setStatusRootPlusUri("403");
                 else
                     rootUri = "index_of.html";
@@ -631,8 +630,10 @@ void Servers::SetUriRoot(int i, string &uri)
                 setStatusRootPlusUri("403");
             return ;
         }
-        if (!checkPermession(rootUri,S_IRUSR))
+        if (!checkPermession(rootUri))
+        {   
             setStatusRootPlusUri("403");
+        }
     }
 }
 
@@ -673,16 +674,12 @@ void Servers::SetRederectionResp(vector<string> &redirect)
     rootUri = "";
     status = "301 \r\nLocation: " + redirect[1];
 }
-bool Servers::checkPermession(string _path,int mode)
+bool Servers::checkPermession(string _path)
 {
-    struct stat stat_info;
-    if(stat(_path.c_str(),&stat_info) < 0)
-        return 0;
-    if (!(stat_info.st_mode & mode))
-        return 0;
-    return 1;
+    if (access(_path.c_str(), R_OK) != 0) 
+        return false;
+    return true ;
 }
-
 
 void Servers::FillData(string uri, string mehtod)
 {
@@ -717,7 +714,7 @@ void Servers::FillData(string uri, string mehtod)
             }
             else if (!pathIsFile(rootUri))
                 setStatusRootPlusUri("404");
-            else if (!checkPermession(rootUri ,S_IRUSR))
+            else if (!checkPermession(rootUri))
                 setStatusRootPlusUri("403");
             UriLocation = locations[def];
         }

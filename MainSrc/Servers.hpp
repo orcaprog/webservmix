@@ -68,9 +68,9 @@ private:
     Location FirstFill(size_t & index);
     vector<string> locationPath;
     size_t GetIndex(std::string dir);
-    bool checkPermession(string _path,int mode);
+    bool checkPermession(string _path);
     void setStatusRootPlusUri(string  _status);
-    int per;
+    bool per;
     void deCodeUri(string _rootURi,string uri);
     string decooding_uri(string uri);
 public:
