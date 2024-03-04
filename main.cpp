@@ -13,29 +13,32 @@
 #include "MainSrc/ParceConf.hpp"
 #include "MainSrc/Multiplexing.hpp"
 #include <exception>
-
 int main(int ac , char **av)
 {
     (void)ac;
-
-    // Get g;
-    // g.set_content_length("Content-Length: dgfdfg");
+    string conf;
     try
     {
-        Multiplexing mult(av[1]);
+        if(ac != 2)
+            conf = "";
+        else 
+            conf = av[1];
+        Multiplexing mult(conf);
         mult.CreatMUltiplex();
+    
     }
     catch(std::string  e)
     {
-        std::cerr <<e<< '\n';
+        std::cerr << e<< '\n';
     }
     catch(const char * e)
     {
-        std::cerr <<e<< '\n';
+        std::cerr << e<< '\n';
     }
     catch(exception & ex)
     {
         cout<<ex.what()<<endl;
         cout<<string::npos<<endl;
     }
+    
 }

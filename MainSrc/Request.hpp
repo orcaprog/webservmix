@@ -2,6 +2,7 @@
 #define REQUEST_HPP
 
 #include "../Methods/Cgi.hpp"
+#include "../Methods/Delete.hpp"
 
 using namespace std;
 
@@ -22,7 +23,6 @@ class Request
 {
 int is_cgi;
 int method_type;
-int body_state;
 string req_h;
 string valid_uri;
 string error_resp;
@@ -38,15 +38,16 @@ void check_for_error();
 int set_serv();
 int is_uri_valid(string _uri);
 double body_size;
+Servers serv;
+std::string uri;
+std::string http_v;
+std::string body;
+std::string type;
 public:
     int error;
+    int body_state;
     clock_t startTime;
-    Servers serv;
     Method* method;
-    std::string type;
-    std::string uri;
-    std::string http_v;
-    std::string body;
     std::map<std::string, std::string> headers;
 
     Request();

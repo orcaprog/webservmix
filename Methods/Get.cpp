@@ -11,8 +11,7 @@ Get::Get(){
 }
 
 
-Get::Get(const Get& oth) : Method(oth)
-{
+Get::Get(const Get& oth): Method(oth){
     set_extentions();
     head_size = 0;
     content_len = -1;
@@ -123,7 +122,7 @@ int Get::check_headers(){
         res_h += line + "\n";
         set_content_length(line);
         head_size += line.size()+1;
-        if (head_size > 5000)
+        if (head_size > 10240)
             break;
         if (line.size() && line == "\r")
             hed = 1;
@@ -234,6 +233,19 @@ void Get::get_err_page(const string& err_p_name){
         err_page.read(&res[0],1000);
         res.resize(err_page.gcount());
         respons += res;
+        end = 1;
+    }
+    else{
+        string body_res;
+        stringstream c_len;
+        respons = "HTTP/1.1 500\r\nContent_Type: text/html\r\n";
+        body_res += "<head><title>500 Internal Server Error</title>";
+        body_res += "</head><body><h1>500 Internal Server Error</h1>";
+        body_res += "<p>The server has encountered a situation";
+        body_res += " it does not know how to handle.</p></body>";
+        c_len << body_res.size();
+        respons += "Content_Length: " + c_len.str() + string("\r\n\r\n");
+        respons += body_res;
         end = 1;
     }
 }

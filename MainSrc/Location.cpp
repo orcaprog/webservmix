@@ -3,35 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouassi <abouassi@student.42.fr>          +#+  +:+       +#+        */
+/*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/28 18:23:03 by abouassi          #+#    #+#             */
-/*   Updated: 2024/01/31 16:07:30 by abouassi         ###   ########.fr       */
+/*   Updated: 2024/03/03 17:03:17 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Location.hpp"
-
-void Location::FillValid()
-{
-     Vstrvalid.push_back("listen");
-     Vstrvalid.push_back("server");
-     Vstrvalid.push_back("server_name");
-     Vstrvalid.push_back("host");
-     Vstrvalid.push_back("root");
-     Vstrvalid.push_back("error_page");
-     Vstrvalid.push_back("client_max_body_size");
-     Vstrvalid.push_back("index");
-     Vstrvalid.push_back("location");
-     Vstrvalid.push_back("{");
-     Vstrvalid.push_back("}");
-     Vstrvalid.push_back("return");
-     Vstrvalid.push_back("allow_methods");
-     Vstrvalid.push_back("autoindex");
-     Vstrvalid.push_back("upload");
-     Vstrvalid.push_back("cgi_path");
-}
-
 
 int Location::pathIsFile(std::string path)
 {
@@ -52,8 +31,6 @@ int Location::pathIsFile(std::string path)
     else
         return 0;
 }
-
-
 
 size_t Location::GetIndex(std::string dir)
 {
@@ -81,43 +58,24 @@ int Location::checkDup(std::string der,int & index)
             dup++;
         }
         if (dup > 1)
-        {
            throw "Error duplicate derective '"+vlocation[i][0]+"'  \n";
-        }
         i++;
     }
     return (dup);
 }
 
-// void Location::desplayLocation()
-// {
-
-//     // Printtwodom(vlocation,"location");
-//     cout<<"PATH :"<<path<<endl;
-//     cout<<"permession:"<<permession<<endl;
-//     cout<<"Root :"<<root<<endl;
-//     map<string,string>::iterator iter = cgi_path.begin();
-//     while (iter != cgi_path.end())
-//     {
-//         cout<<"cgi_path :'"<<iter->first<<"' '"<<iter->second<<"'\n";
-//         iter++;
-//     }
-
-//     std::cout<<"index  :"<<index[0]<<std::endl;
-// }
-
-void Location::SetAllDir()
+void Location::SetAllDir(vector<string>& locpath)
 {
-    FillValid();
+    
     SetRoot();
     SetAllowMethods();
     SetUpload();
     SetUpload_path();
     SetReturn();
+    SetPath(locpath);
     SetCgiPath();
     SetAutoindex();
     SetIndex();
-    SetPath();
 }
 
 void Location::SetIndex()
@@ -127,7 +85,7 @@ void Location::SetIndex()
     int num = checkDup("index", i);
     if (num == 0)
     {
-        index[0]= Servindex;
+        index = Servindex;
         return;
     }
     if (vlocation[i].size() < 2)
@@ -143,7 +101,7 @@ void Location::SetIndex()
     }
 }
 
-void Location::SetIndexRoot(string root,string index)
+void Location::SetIndexRoot(string root, vector<string> & index)
 {
     Servindex = index;
     ServRoot = root;
@@ -167,9 +125,21 @@ void Location::SetRoot()
         throw("Root path :'" + arg + "' does not exist or is not a directory.\n");
     realpath(arg.c_str(),resolvedPath);
     root = resolvedPath;
+    root += "/";
 }
 
-void Location::SetPath()
+
+void CheckValidPathLocation(string & pathlocation)
+{
+    if (pathlocation[0] != '/')
+        throw "Error: Invalid input path. Please provide a valid path.\n";
+    if (pathlocation.size() == 1)
+        return ;
+    if (pathlocation[pathlocation.length() - 1] == '/')
+        throw "Error: Invalid input path. Please provide a valid path.\n";
+    pathlocation.push_back('/');
+}
+void Location::SetPath(vector<string>& locpath)
 {
     int i;
     int num = checkDup("location",i);
@@ -179,6 +149,9 @@ void Location::SetPath()
     if (vlocation[i].size() != 2 )
         throw "Invalid number of arguments in 'location' directive \n";
     arg = vlocation[i][1];
+    CheckValidPathLocation(arg);
+    if (find(locpath.begin(),locpath.end(),arg) != locpath.end())
+        throw "Error :duplicate location "+arg+" \n";
     path  = arg;
 }
 
@@ -264,18 +237,20 @@ void Location::SetUpload()
 void Location::SetCgiPath()
 {
     std::string extantion;
-    std::string path;
+    std::string pathcgi;
     for (size_t i = 0; i < vlocation.size(); i++)
     {
         if (vlocation[i][0] == "cgi_path")
         {
+            if (path != "/cgi/")
+                throw "Error : 'cgi path' directive is not allowed here \n";
             if (vlocation[i].size() != 3)
                throw "Invalid number of arguments in 'cgi_path' directive \n";
             extantion = vlocation[i][1];
-            path = vlocation[i][2];
-            if (!pathIsFile(path)) 
-                throw ("Path '"+path+"' does not exist.\n");
-            cgi_path[extantion] = path;
+            pathcgi = vlocation[i][2];
+            if (!pathIsFile(pathcgi)) 
+                throw ("Path '"+pathcgi+"' does not exist.\n");
+            cgi_path[extantion] = pathcgi;
         }
     }
 }
@@ -293,8 +268,8 @@ void Location::SetUpload_path()
     }
     if (vlocation[i].size() != 2 )
         throw "Invalid number of arguments in 'upload_path' directive \n";
-    if (!(permession & UPLOAD))
-        throw "Error : Upload path need to set upload in active mode \n";
+    // if (!(permession & UPLOAD))
+    //     throw "Error : Upload path need to set upload in active mode \n";
     arg = vlocation[i][1];
     if (pathIsFile(arg) != 3)
         throw "Error : Path is not valid to upload or is not a directory\n";
@@ -310,7 +285,7 @@ void Location::SetReturn()
     if (num == 0)
         return ;
     if (vlocation[i].size() != 3 )
-        throw "Invalid number of arguments in 'upload_path' directive \n";
+        throw "Invalid number of arguments in 'return' directive \n";
     arg = vlocation[i][1];
     if (arg != "on" && arg != "off")
         throw "Error : argument  "+arg+" is not valid ( on or off)\n";
@@ -323,7 +298,7 @@ void Location::SetReturn()
 
 Location::Location()
 {
-    permession = 7;
+    permession = 1;
     root = "";
     index.push_back("");
     upload_path = "";

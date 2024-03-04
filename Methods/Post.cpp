@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 10:40:02 by onaciri           #+#    #+#             */
-/*   Updated: 2024/03/03 12:34:16 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/03/03 18:24:44 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,6 @@ Post::Post()
     exit_status = 0;
     add_i = 0;
     err = 0;
-    true_end = 0;
     mimeType();
 }
 
@@ -64,42 +63,6 @@ Post& Post::operator=(const Post& post)
 Post::~Post()
 {
 
-    if ((access(the_file.c_str(),F_OK ) == 0 || MethodType == 3 )  && (error || !true_end))
-    {
-        if (MethodType == 3)
-        {
-            for (size_t i = 0; i < name_bound.size(); i++)
-            {
-                int rem = std::remove(name_bound[i].c_str());
-                if (rem)
-                {
-                    error = 4;
-                    error_time = 1;
-                }
-            }
-        }
-        else
-        {
-            int rem = std::remove(the_file.c_str());
-            if (rem)
-            {
-                error = 4;
-                error_time = 1;
-            }
-        }
-    }
-    if (serv.Is_cgi)
-    {
-        if (access(ran_file.c_str(),F_OK ) == 0)
-        {
-            int rem = std::remove(ran_file.c_str());
-            if (rem)
-            {
-                error = 4;
-            }
-        }
-        error_time = 1;
-    }
     if (env)
     {
         for (int i = 0; env[i]; i++)
@@ -116,6 +79,16 @@ Post::~Post()
 
 
 /*work*/
+
+int Post::is_num(std::string name)
+{
+    for (size_t i = 0; i < name.size(); i++)
+    {
+        if (!isdigit(name[i]))
+            return (0);
+    }
+    return (1);
+}
 
 std::string Post::creat_file_name(int ret)
 {
@@ -235,6 +208,26 @@ void Post::mimeType()
     
 }
 
+
+std::string Post::add_new_name(std::string name, std::string mime)
+{
+    int i = 1;
+    std::stringstream ss;
+    std::string tmp;
+    std::string tmp1;
+    while (1)
+    {
+    
+        ss << i;
+        ss >> tmp;
+        tmp1 = name + "(" + tmp +  ")" + "." +  mime;
+        if (access(tmp1.c_str(), F_OK))
+            return tmp1;
+        i++;
+        ss.clear();
+    }
+}
+
 void Post::openFile(std::string body)
 {
 	std::string mimeVal;
@@ -311,8 +304,14 @@ void Post::openFile(std::string body)
     if (headers.find("Content-Length") != headers.end())
     {
         std::stringstream ss;
+        if (!is_num(headers.find("Content-Length")->second))
+        {
+            error = 3;
+            return ;
+        }
         ss << headers.find("Content-Length")->second;
-        ss >> size_len;        
+        ss >> size_len;   
+             
     }
     else
     {
@@ -508,7 +507,6 @@ void    Post::ft_boundary(std::string& body)
 
     if (left_over)
     {
-        // I add the new body with  what remain of the previous call 
         buffer.append(body, 0, body.size());
         left_over = 0;
         body = buffer;
@@ -516,12 +514,8 @@ void    Post::ft_boundary(std::string& body)
     }
 	if (body.find("\r") != std::string::npos && body.find("\r") + 3 - body.size() < sep.size())
 	{
-        //I put this call body in left over beceause it is not big enough to check sep or sep_end
         if (body.find(sep_end) != std::string::npos)
         {
-            //special cas that probably does not happen anymore
-            //it is if i have a body that end with spe_end with \r\n 
-            //wich will cuse this function to always be called (look at if condation)
             if (body.find("\r\n") !=std::string::npos)
             {
                 buffer = body.substr(0, body.size() - 2);
@@ -535,7 +529,6 @@ void    Post::ft_boundary(std::string& body)
 	}
     if (body.find(sep_end) != std::string::npos)
     {
-        //it all over so i check is there anythig to wirte then if not i close and out
 		pos = body.find(sep_end);
         pos1 = body.find(sep);
         if (!pos || pos == 2)
@@ -547,8 +540,6 @@ void    Post::ft_boundary(std::string& body)
         }
         else if (pos == pos1)
         {
-            // I check if pos and pos1 equal which will mean that sep_end was the only seprator
-            //in this case there is something to be writen before closing
             out.write(body.c_str(), pos - 2);
             total_Body += pos - 2;
             out.close();
@@ -558,20 +549,13 @@ void    Post::ft_boundary(std::string& body)
     }
 	if (body.find(sep) != std::string::npos)
 	{
-        //first function to execute in normal cas
         pos = body.find(sep);
         if (body.find(sep, pos + 1) != std::string::npos)
         {
-            //here i check if i found two or more body so i took only the first body aka until \r\n\rn
-            //and safe the rest in left_ober== buffer
             if (!pos || pos <= 2)
             {
-                //in this case i found sep at the beging neaning it will be nothing to write at the file and all what foulwed pos1
-                //is for the next call
-                //because pos1 satart at sep it will cause a rmain \r\n to stay in the body
-                //that is handle by here_is 
                 pos1 = body.find(sep, pos + 1);
-                std::string buff_tmp = body.substr(0, pos1 );//problem in \r\n ;
+                std::string buff_tmp = body.substr(0, pos1 );
                 buffer = body.substr(pos1, body.size() - (pos1));
                 left_over = body.size() - pos1 ;
                 body = buff_tmp;
@@ -579,10 +563,9 @@ void    Post::ft_boundary(std::string& body)
             }
             else
             {
-                //in case it is not firsr mean I should write then safe whatever left
-                std::string buff_tmp = body.substr(0, pos);//problem in \r\n ;
+                std::string buff_tmp = body.substr(0, pos);
                 buffer = body.substr(pos, body.size() - pos);
-                left_over = body.size() - pos;
+                left_over = buffer.size();
                 body = buff_tmp;
                 out.write(body.c_str(), body.size());
                 total_Body += body.size();
@@ -639,13 +622,12 @@ void    Post::ft_boundary(std::string& body)
 	            else
                     mimeVal = "txt";
                 file = serv.UriLocation.upload_path + "/" +  file;
+                std::string case0 = file;
                 file = file + ".";
                 file += mimeVal;
                 if (access(file.c_str(),F_OK ) == 0)
                 {
-                    crfile = -2;
-                    error = 3;
-                    return ;
+                    file  = add_new_name(case0, mimeVal);
                 }
                 out.open(file.c_str(), std::ios::out | std::ios::binary);
 				if (!out.is_open())
@@ -1008,7 +990,7 @@ void Post::ft_error()
 int Post::process(std::string body, int event)
 {
     pre_total_body = total_Body;
-    if (serv.status != "200 OK" &&  serv.status != "201 Created" )
+    if (serv.status != "200 OK" &&  serv.status != "201 Created" && serv.Is_cgi)
     {
         if (event == EPOLLOUT)
         {
@@ -1102,7 +1084,5 @@ int Post::process(std::string body, int event)
     }
     else
         time_out = 0;
-    if (end)
-        true_end = 1;
     return 1; 
 }

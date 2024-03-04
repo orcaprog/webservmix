@@ -37,15 +37,11 @@ using namespace std;
 class Location
 {
 private:
-        void CheckMethods(std::string methd);
-        size_t GetIndex(std::string dir);
         int  checkDup(std::string der,int & index);
         int pathIsFile(std::string path);
-        void FillValid();
-        void checkValidation();
-        std::vector<std::string> Vstrvalid;
+        void CheckMethods(std::string methd);
         void SetIndex();
-        void SetPath();
+        void SetPath(vector<string>& locpath);
         void SetAllowMethods();
         void SetAutoindex();
         void SetUpload();
@@ -53,29 +49,24 @@ private:
         void SetCgiPath();
         void SetRoot();
         void SetReturn();
-public:
-        std::string path;
-        string  upload_path;
-        std::string root;
-        std::vector<std::string> index;
-        map<string ,string> cgi_path;
-        vector<string> redirect;
         bool get;
         bool post;
         bool dele;
-        int permession;
-        void desplayLocation();
-        void SetAllDir();
-        void SetIndexRoot(string root,string index);
+        size_t GetIndex(std::string dir);
         string ServRoot;
-        string Servindex;
+        vector<string>  Servindex;
+public:
+        int permession;
+        void SetAllDir(vector<string>& locpath);
+        void SetIndexRoot(string root,vector<string> & index );
+        std::string path;
+        std::string  upload_path;
+        std::string root;
+        std::vector<std::string> index;
         std::vector<std::vector<std::string> > vlocation;
+        std::map<string ,string> cgi_path;
+        std::vector<string> redirect;
         Location();
         ~Location();
 };
-
-
-
-
-
 #endif

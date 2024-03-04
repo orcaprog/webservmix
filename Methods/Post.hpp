@@ -6,7 +6,7 @@
 /*   By: onaciri <onaciri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 09:09:48 by onaciri           #+#    #+#             */
-/*   Updated: 2024/03/03 12:33:04 by onaciri          ###   ########.fr       */
+/*   Updated: 2024/03/03 18:20:50 by onaciri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,6 @@ class Post : public Method
         char **cmd;
         char **env;
         int add_i;
-        int true_end;
         std::vector<std::string> name_bound;
 
         
@@ -110,11 +109,12 @@ class Post : public Method
         void    ft_boundary(std::string& body);
 
         void    exe_cgi();
-        std::string find_path_info();
+        std::string add_new_name(std::string name, std::string mime);
         std::string find_ext();
         void script_name();
 
         void ft_error();
+        int is_num(std::string name);
 
 
 

@@ -70,7 +70,8 @@ int Request::spl_reqh_body(string s1)
         body_size += (double)body.size();
         if (body_size > serv.client_max_body_size){
             error |= Body_SizeTooLarge;
-            method->err = 1;
+            if (method)
+                method->err = 1;
         }
         return 0;
     }
@@ -219,11 +220,9 @@ void Request::check_for_error(){
 
 void    Request::process_req(const string &req, int event){
     if (!parce_req(req) || error){
-        check_for_error();
-        if (method)
-        {
+        if (error & Body_SizeTooLarge && type == "POST" && method)
             method->process(body, event);
-        }
+        check_for_error();
         return ;
     }
     if (body_state && method){
@@ -253,8 +252,8 @@ Method* Request::create_method(const string &type){
         m = new Get();
     else if (type == "POST")
         m = new Post();
-    //else if (type == "DELETE")
-    //     m = new Delete();
+    else if (type == "DELETE")
+        m = new Delete();
     else
         cerr<<"Cannot Create Method: "<<"|"<<type<<"|"<<endl;
     if (m){

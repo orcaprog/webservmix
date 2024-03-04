@@ -47,16 +47,17 @@ private:
     size_t index;
     std::vector< Servers > Vservers;
     std::vector<std::vector<std::string> >  Vconf;
-    Servers FirstFill();
     std::vector<std::string> Split_line(std::string line);
+    Servers FirstFill();
     void FillServers();
     void FillServersLocations();
 public:
-    std::map<int, vector<Servers> > msockets;    
+    void DefaultServer();
     void TakeAndParce(std::string confgfile);
     void FillValid();
+    std::vector<string> ser_names;
+    std::map<int, vector<Servers> > msockets;    
     std::vector<std::string> Vstrvalid;
-    void DefaultServer();
     ParceConf();
     ~ParceConf();
 };

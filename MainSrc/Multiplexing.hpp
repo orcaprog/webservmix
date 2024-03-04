@@ -17,24 +17,23 @@ class Multiplexing
 {
 private:
 
-public:
-    Multiplexing(std::string  configfile);
-    ~Multiplexing();
-    ParceConf server;
-    std::map<int ,Request > mClients;
-    clock_t SocketTimeout;
-    struct epoll_event ev;
-    struct epoll_event events[MAX_EVENTS];
     int  conn_sock;
     int nfds;
     int  epollfd;
-    void CreatMUltiplex();
+    bool CheckTimeOut(int n);
+    void CloseClient(int & n);
     void Connect_And_Add(int n);
     void In_Events(int n);
     void Out_Events(int n);
-    void CheckTimeOut();
-    int setnonblocking(int sockfd) ;
-    void CloseClient(int & n);
+    struct epoll_event ev;
+    struct epoll_event events[MAX_EVENTS];
+    clock_t SocketTimeout;
+    ParceConf server;
+    std::map<int ,Request > mClients;
+public:
+    void CreatMUltiplex();
+    Multiplexing(std::string  configfile);
+    ~Multiplexing();
 };
 
 
