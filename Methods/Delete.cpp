@@ -16,13 +16,13 @@ int Delete::process(string body, int event)
     (void)body;
     if(event == EPOLLOUT)
     {
-        Get get;
         if(serv.status != "200 OK")
         {
             get.serv.status = serv.status;
             get.get(serv.error_page[serv.status]);
             respons = get.respons;
-            end = 1;
+            if(get.end)
+                end = 1;
             return 0;
         }
         if(deleted) 
@@ -33,21 +33,24 @@ int Delete::process(string body, int event)
         if(status == 0)
         {
             respons = "HTTP/1.1 204\r\n\r\n";
-            end = 1;
+            if(get.end)
+                end = 1;
         }
         else if (status == 1)
         {
             get.serv.status = "403";
             get.get(serv.error_page["403"]);
             respons = get.respons;
-            end = 1;
+            if(get.end)
+                end = 1;
         }
         else
         {
             get.serv.status = "500";
             get.get(serv.error_page["500"]);
             respons = get.respons;
-            end = 1;
+            if(get.end)
+                end = 1;
         }
     }
     return 0;

@@ -3,6 +3,7 @@
 
 Get::Get(){
     set_extentions();
+    set_err_page();
     end = 0;
     opened = 0;
     content_len = -1;
@@ -11,8 +12,9 @@ Get::Get(){
 }
 
 
-Get::Get(const Get& oth) : Method(oth){
+Get::Get(const Get& oth): Method(oth){
     set_extentions();
+    set_err_page();
     head_size = 0;
     content_len = -1;
     *this = oth;
@@ -34,27 +36,106 @@ Get& Get::operator=(const Get& oth){
     return *this;
 }
 
+void Get::set_err_page(){
+    err_pages["400"] = "400 Bad Request";
+    err_pages["403"] = "403 Forbidden";
+    err_pages["404"] = "404 Not Found";
+    err_pages["405"] = "405 Method Not Allowed";
+    err_pages["408"] = "408 Request Timeout";
+    err_pages["411"] = "411 Length Required";
+    err_pages["413"] = "413 Request Entity Too Large";
+    err_pages["414"] = "414 Request-URI Too Long";
+    err_pages["415"] = "415 Unsupported Media Type";
+    err_pages["500"] = "500 Internal Server Error";
+    err_pages["501"] = "501 Not Implemented";
+    err_pages["504"] = "504 Gateway Timeout";
+    err_pages["505"] = "505 HTTP Version Not Supported";
+}
 
 void Get::set_extentions(){
     types["html"] = "text/html";
-    types["htm"] = "text/html";
     types["css"] = "text/css";
-    types["jpeg"] = "image/jpeg";
-    types["jpg"] = "image/jpeg";
-    types["png"] = "image/png";
+    types["xml"] = "text/xml";
     types["gif"] = "image/gif";
-    types["json"] = "application/json";
-    types["mp4"] = "video/mp4";
-    types["mp3"] = "audio/mpeg";
+    types["jpeg"] = "image/jpeg";
     types["js"] = "application/javascript";
-    types["bmp"] = "image/bmp";
-    types["ico"] = "image/x-icon";
-    types["pdf"] = "application/pdf";
+    types["atom"] = "application/atom+xml";
+    types["rss"] = "application/rss+xml";
+    types["mml"] = "text/mathml";
     types["txt"] = "text/plain";
-    types["xml"] = "application/xml";
+    types["jad"] = "text/vnd.sun.j2me.app-descriptor";
+    types["wml"] = "text/vnd.wap.wml";
+    types["htc"] = "text/x-component";
+    types["avif"] = "image/avif";
+    types["png"] = "image/png";
+    types["svg"] = "image/svg+xml";
+    types["tiff"] = "image/tiff";
+    types["wbmp"] = "image/vnd.wap.wbmp";
+    types["webp"] = "image/webp";
+    types["ico"] = "image/x-icon";
+    types["jng"] = "image/x-jng";
+    types["bmp"] = "image/x-ms-bmp";
+    types["woff"] = "font/woff";
+    types["woff2"] = "font/woff2";
+    types["jar"] = "application/java-archive";
+    types["json"] = "application/json";
+    types["hqx"] = "application/mac-binhex40";
+    types["doc"] = "application/msword";
+    types["pdf"] = "application/pdf";
+    types["ps"] = "application/postscript";
+    types["rtf"] = "application/rtf";
+    types["m3u8"] = "application/vnd.apple.mpegurl";
+    types["kml"] = "application/vnd.google-earth.kml+xml";
+    types["kmz"] = "application/vnd.google-earth.kmz";
+    types["xls"] = "application/vnd.ms-excel";
+    types["eot"] = "application/vnd.ms-fontobject";
+    types["ppt"] = "application/vnd.ms-powerpoint";
+    types["odg"] = "application/vnd.oasis.opendocument.graphics";
+    types["odp"] = "application/vnd.oasis.opendocument.presentation";
+    types["ods"] = "application/vnd.oasis.opendocument.spreadsheet";
+    types["odt"] = "application/vnd.oasis.opendocument.text";
+    types["pptx"] = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+    types["xlsx"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    types["docx"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    types["wmlc"] = "application/vnd.wap.wmlc";
+    types["wasm"] = "application/wasm";
+    types["7z"] = "application/x-7z-compressed";
+    types["cco"] = "application/x-cocoa";
+    types["jardiff"] = "application/x-java-archive-diff";
+    types["jnlp"] = "application/x-java-jnlp-file";
+    types["run"] = "application/x-makeself";
+    types["pdb"] = "application/x-pilot";
+    types["rar"] = "application/x-rar-compressed";
+    types["rpm"] = "application/x-redhat-package-manager";
+    types["sea"] = "application/x-sea";
+    types["swf"] = "application/x-shockwave-flash";
+    types["sit"] = "application/x-stuffit";
+    types["tcl"] = "application/x-tcl";
+    types["crt"] = "application/x-x509-ca-cert";
+    types["xpi"] = "application/x-xpinstall";
+    types["xhtml"] = "application/xhtml+xml";
+    types["xspf"] = "application/xspf+xml";
     types["zip"] = "application/zip";
-    types["tar"] = "application/x-tar";
-    types["gz"] = "application/gzip";
+    types["midi"] = "audio/midi";
+    types["mp3"] = "audio/mpeg";
+    types["ogg"] = "audio/ogg";
+    types["m4a"] = "audio/x-m4a";
+    types["ra"] = "audio/x-realaudio";
+    types["3gpp"] = "video/3gpp";
+    types["ts"] = "video/mp2t";
+    types["mp4"] = "video/mp4";
+    types["mpeg"] = "video/mpeg";
+    types["mov"] = "video/quicktime";
+    types["webm"] = "video/webm";
+    types["flv"] = "video/x-flv";
+    types["m4v"] = "video/x-m4v";
+    types["mng"] = "video/x-mng";
+    types["asf"] = "video/x-ms-asf";
+    types["wmv"] = "video/x-ms-wmv";
+    types["avi"] = "video/x-msvideo";
+    types["c"] = "text/x-c";
+    types["cpp"] = "text/x-c";
+    types["hpp"] = "text/x-c";
 }
 
 int Get::is_tpye_supported(const string& file_name){
@@ -122,7 +203,7 @@ int Get::check_headers(){
         res_h += line + "\n";
         set_content_length(line);
         head_size += line.size()+1;
-        if (head_size > 5000)
+        if (head_size > 10240)
             break;
         if (line.size() && line == "\r")
             hed = 1;
@@ -163,8 +244,7 @@ void Get::open_file(const string& file_name){
     src_file.open(file_name.c_str(), ios::in);
     opened = 1;
     if (!src_file.is_open()){
-        serv.status = "500";
-        get_err_page(serv.error_page["500"]);
+        get_err_page();
         opened = -1;
         return;
     }
@@ -212,29 +292,24 @@ void Get::read_file(){
 }
 
 int Get::process(string body, int event){
-    body_size += body.size();
+    (void)body;
     if (event == EPOLLIN)
         return 0;
     get(fullUri_path);
     return 0;
 }
 
-void Get::get_err_page(const string& err_p_name){
-    string res;
-    fstream err_page;
+void Get::get_err_page(){
+    string body_res;
+    stringstream c_len;
 
-    res.resize(1000);
-    err_page.open(err_p_name.c_str(), ios::in);
-    if (err_page.is_open()){
-        err_page.seekg(0, std::ios::end);
-        file_len = err_page.tellg();
-        err_page.seekg(0, std::ios::beg);
-        set_headers();
-        err_page.read(&res[0],1000);
-        res.resize(err_page.gcount());
-        respons += res;
-        end = 1;
-    }
+    respons = "HTTP/1.1 "+ serv.status + string("\r\nContent_Type: text/html\r\n");
+    body_res += "<title>"+ err_pages[serv.status] +string("</title>");
+    body_res += "<body><h1>"+ err_pages[serv.status] +string("</h1></body>");
+    c_len << body_res.size();
+    respons += "Content_Length: " + c_len.str() + string("\r\n\r\n");
+    respons += body_res;
+    end = 1;
 }
 
 Get::~Get(){

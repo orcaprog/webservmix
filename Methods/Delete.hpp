@@ -26,6 +26,7 @@ class Delete : public Method
     int status;
     int process(string body, int event) ;
     void RemoveAllPath(std::string path);
+    Get get;
 public:
     Delete();
     ~Delete();

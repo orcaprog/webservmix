@@ -51,17 +51,25 @@ int Location::checkDup(std::string der,int & index)
     size_t i = 0;
     while ( i < vlocation.size())
     {
-        
         if (vlocation[i][0] == der)
         {
             index = i;
             dup++;
         }
         if (dup > 1)
-           throw "Error : duplicate derective '"+vlocation[i][0]+"'  \n";
+            throw "Error: Duplicate directive '" + der + "' detected in configuration file.\n";
         i++;
     }
     return (dup);
+}
+bool Location::checkPermession(string _path,int mode)
+{
+    struct stat stat_info;
+    if(stat(_path.c_str(),&stat_info) < 0)
+        return 0;
+    if (!(stat_info.st_mode & mode))
+        return 0;
+    return 1;
 }
 
 void Location::SetAllDir(vector<string>& locpath)
@@ -269,7 +277,7 @@ void Location::SetUpload_path()
     if (vlocation[i].size() != 2 )
         throw "Invalid number of arguments in 'upload_path' directive \n";
     arg = vlocation[i][1];
-    if (pathIsFile(arg) != 3)
+    if (pathIsFile(arg) != 3 || !checkPermession(arg,S_IWUSR))
         throw "Error : Path is not valid to upload or is not a directory\n";
     upload_path = arg;
 }

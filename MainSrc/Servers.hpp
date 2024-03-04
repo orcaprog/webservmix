@@ -68,11 +68,11 @@ private:
     Location FirstFill(size_t & index);
     vector<string> locationPath;
     size_t GetIndex(std::string dir);
-    bool checkPermession(string _path);
+    bool checkPermession(string _path,int mode);
     void setStatusRootPlusUri(string  _status);
     int per;
-    bool isDecoded;
     void deCodeUri(string _rootURi,string uri);
+    string decooding_uri(string uri);
 public:
     int port;
     int server_fd;

@@ -18,19 +18,21 @@ ssize_t content_len;
 size_t file_len;
 string res_h;
 fstream src_file;
+map<string,string> err_pages;
 map<string,string> types;
 string content_type;
 string extension;
 
 int set_content_type(const string& file_name);
 void set_extentions();
+void set_err_page();
 void open_file(const string& file_name);
 void set_headers();
 int check_headers();
 void read_file();
 void set_content_length(string line);
-void get_err_page(const string& err_p_name);
 public:
+    void get_err_page();
     Get();
     Get(const Get& oth);
     Get& operator=(const Get& oth);

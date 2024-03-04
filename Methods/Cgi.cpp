@@ -101,7 +101,8 @@ void Cgi::waiting(){
             std::remove(out_file.c_str());
             get.serv.status = "500";
             get.get(serv.error_page["500"]);
-            resp_done = 1;
+            if (get.end)
+                resp_done = 1;
         }
     }
     else{

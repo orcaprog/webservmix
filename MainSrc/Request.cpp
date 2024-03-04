@@ -7,6 +7,7 @@ Request::Request()
     body_size = 0;
     error = 0;
     is_cgi = 0;
+    err_end = 0;
     valid_uri = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!%$&'()*+,;=";
 }
 
@@ -14,6 +15,7 @@ Request::Request()
 Request::Request(const vector<Servers>& vser){
     method = NULL;
     body_state = 0;
+    err_end = 0;
     body_size = 0;
     error = 0;
     ser_vec = vser;
@@ -41,6 +43,7 @@ Request& Request::operator=(const Request& oth){
         ser_vec = oth.ser_vec;
         is_cgi = oth.is_cgi;
         valid_uri = oth.valid_uri;
+        err_end = oth.err_end;
     }
     return *this;
 }
@@ -117,12 +120,12 @@ int Request::parce_rline(const string &rline){
     string tmp;
     ss<<rline;
     getline(ss, tmp, ' ');
-    if (tmp != "GET" && tmp != "POST" && tmp != "DELETE"){
+    type = tmp;
+    if (type != "GET" && type != "POST" && type != "DELETE"){
         error = Method_Unkounu;
         return 0;
     }
-    method_type = (tmp == "GET") + (tmp == "POST")*2 + (tmp == "DELETE")*4;
-    type = tmp;
+    method_type = (type == "GET") + (type == "POST")*2 + (type == "DELETE")*4;
     getline(ss, tmp, ' ');
     uri = tmp;
     if (!is_uri_valid(uri)){
@@ -170,7 +173,7 @@ int Request::parce_req(const string &req)
     std::stringstream sstr;
     string line;
 
-    if (!spl_reqh_body(req))
+    if (error || !spl_reqh_body(req))
         return 1;
     sstr << req_h;
     getline(sstr,line);
@@ -195,16 +198,21 @@ int Request::parce_req(const string &req)
     return 1;
 }
 
-void Request::check_for_error(){
-    if (!error || error_resp.size())
+void Request::check_for_error(int event){
+    cout<<"err_end: "<<err_end<<endl;
+    if (!error || err_end || event == EPOLLIN)
         return;
     
     string err_page_name;
-    Get get;
     if (error & Invalid_Header)
         err_page_name = "400";
-    else if (error & Method_Unkounu)
+    else if (error & Method_Unkounu){
         err_page_name = "501";
+        if (type == "HEAD"){
+            error_resp = "HTTP/1.1 501\r\n\r\n";
+            return ;
+        }
+    }
     else if (error & Not_Allowed_Method)
         err_page_name = "405";
     else if (error & Uri_Too_Long)
@@ -216,13 +224,15 @@ void Request::check_for_error(){
     get.serv.status = err_page_name;
     get.get(serv.error_page[err_page_name]);
     error_resp = get.respons;
+    if (get.end)
+        err_end = 1;
 }
 
 void    Request::process_req(const string &req, int event){
     if (!parce_req(req) || error){
         if (error & Body_SizeTooLarge && type == "POST" && method)
             method->process(body, event);
-        check_for_error();
+        check_for_error(event);
         return ;
     }
     if (body_state && method){
@@ -234,15 +244,14 @@ void    Request::process_req(const string &req, int event){
 }
 
 int Request::resp_done() const{
-    if (error)
+    if (error && err_end)
         return 1;
     if (is_cgi){
         if (cgi.resp_done)
             return 1;
     }
-    else
-        if (method && method->end)
-            return 1;
+    if (method && method->end)
+        return 1;
     return 0;
 }
 
@@ -254,8 +263,6 @@ Method* Request::create_method(const string &type){
         m = new Post();
     else if (type == "DELETE")
         m = new Delete();
-    else
-        cerr<<"Cannot Create Method: "<<"|"<<type<<"|"<<endl;
     if (m){
         m->headers = headers;
         m->http_v = http_v;
@@ -268,12 +275,16 @@ Method* Request::create_method(const string &type){
 }
 
 string Request::get_respons() const{
-    if (error)
+    if (error && !(type == "POST" && method && method->end)){
         return error_resp;
+    }
     if (!method)
         return("");
-    if (is_cgi)
+    if (is_cgi){
+        if (cgi.get.respons.size())
+            cout<<"cgi_resp: "<<cgi.get.respons<<endl;
         return cgi.get.respons;
+    }
     return (method->respons);
 }
 

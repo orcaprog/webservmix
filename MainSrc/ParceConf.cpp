@@ -138,6 +138,15 @@ void ParceConf::FillServers()
         Vservers.push_back(FirstFill());
 }
 
+void ParceConf::CloseServesError()
+{
+    std::map<int, vector<Servers> >::iterator iter = msockets.begin();
+    while (iter != msockets.end())
+    {
+        close(iter->first);
+        iter++;
+    }
+}
 void ParceConf::FillServersLocations()
 {
     FillServers();
@@ -153,7 +162,10 @@ void ParceConf::FillServersLocations()
             hold = msockets[Vservers[i].server_fd];
             iter = find(hold.begin(), hold.end(), "");
             if (iter != hold.end() && hold.size() > 1)
+            {
+                CloseServesError();
                 throw "Error : Conflicting same host and port and no exsist of servername\n";
+            }
         }
         i++;
     }
